@@ -17,7 +17,7 @@ public class MistralConfig {
 
     @Bean
     public ChatModel mistralChatModel() {
-        var mistralAiApi = new MistralAiApi("YeL1YJ7JgGYA0w1acwAEaTEcbH2ZdKmi");
+        var mistralAiApi = new MistralAiApi("key");
 
         var options = MistralAiChatOptions.builder()
                 .model(SMALL)
