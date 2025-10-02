@@ -47,7 +47,7 @@ public class ImageAnalysisService {
      * @param imageBytes
      * @return a List<String> of identified labels
      */
-    public List<String> detectLabels(byte[] imageBytes) {
+    private List<String> detectLabels(byte[] imageBytes) {
         List<String> labelsList = new ArrayList<>();
 
         try {
@@ -82,7 +82,7 @@ public class ImageAnalysisService {
      * @param labelsList the list of labels returned by Rekognition
      * @return true if allowed, else false
      */
-    public boolean filterLabels(List<String> labelsList) {
+    private boolean filterLabels(List<String> labelsList) {
 
         List<String> adjustedLabelsList = new ArrayList<>();
 
