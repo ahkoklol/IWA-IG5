@@ -21,7 +21,7 @@ public class AIAnalysisController {
         this.aiAnalysisService = aiAnalysisService;
     }
 
-    @GetMapping("/{postId")
+    @GetMapping("/{postId}")
     public ResponseEntity<?> getPostId(@PathVariable("postId") String postId) {
         boolean result = aiAnalysisService.analyze(postId);
         return ResponseEntity.ok(result);

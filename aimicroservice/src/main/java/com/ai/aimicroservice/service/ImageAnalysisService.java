@@ -35,7 +35,9 @@ public class ImageAnalysisService {
         try {
             byte[] bytes = mediaServiceClient.getS3ObjectBytes(image).get(); // blocks until result
             List<String> labels = detectLabels(bytes);
+            log.info("labels: {}", labels);
             boolean result = filterLabels(labels);
+            log.info("result: {}", result);
             return "Labels: " + labels + " | Allowed: " + result;
         } catch (Exception e) {
             throw new RuntimeException("Failed to analyze image", e);
@@ -47,7 +49,7 @@ public class ImageAnalysisService {
      * @param imageBytes
      * @return a List<String> of identified labels
      */
-    private List<String> detectLabels(byte[] imageBytes) {
+    protected List<String> detectLabels(byte[] imageBytes) {
         List<String> labelsList = new ArrayList<>();
 
         try {
@@ -82,7 +84,7 @@ public class ImageAnalysisService {
      * @param labelsList the list of labels returned by Rekognition
      * @return true if allowed, else false
      */
-    private boolean filterLabels(List<String> labelsList) {
+    protected boolean filterLabels(List<String> labelsList) {
 
         List<String> adjustedLabelsList = new ArrayList<>();
 
@@ -90,8 +92,6 @@ public class ImageAnalysisService {
             String cleanLabel = label.split(":")[0].trim(); // take only "Seed"
             adjustedLabelsList.add(cleanLabel);
         }
-
-        log.info("Detected labels: " + adjustedLabelsList);
 
         Set<String> allowedSeedLabels = Set.of(
                 "Seed", "Grain", "Plant", "Produce", "Vegetable",

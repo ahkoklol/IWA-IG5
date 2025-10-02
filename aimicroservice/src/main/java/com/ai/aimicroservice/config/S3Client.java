@@ -10,7 +10,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 public class S3Client {
 
     @Bean
-    public S3AsyncClient s3Client() {
+    public S3AsyncClient getS3AsyncClient() {
         return S3AsyncClient.builder()
                 .credentialsProvider(DefaultCredentialsProvider.builder().build())
                 .region(Region.US_WEST_1)

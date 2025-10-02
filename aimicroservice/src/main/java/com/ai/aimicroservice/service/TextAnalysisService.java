@@ -22,7 +22,7 @@ public class TextAnalysisService {
      * @param description the text to analyze
      * @return the response from the LLM
      */
-    String analyzeText(String description) {
+    protected String analyzeText(String description) {
         return mistral.generateTextAnalysis(description);
     }
 
