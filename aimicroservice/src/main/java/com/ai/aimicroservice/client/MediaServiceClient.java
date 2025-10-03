@@ -39,4 +39,25 @@ public class MediaServiceClient {
                     }
                 });
     }
+
+    /**
+     * Move the file to the archive
+     * @param objectId the name of the object to move
+     * @return nothing
+     */
+    public CompletableFuture<Void> moveObjectToArchive(String objectId) {
+        return webClient.post()
+                .uri("/media/{objectId}/move", objectId)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .publishOn(Schedulers.boundedElastic())
+                .toFuture()
+                .whenComplete((v, ex) -> {
+                    if (ex != null) {
+                        logger.error("Failed to move object {}", objectId, ex);
+                    } else {
+                        logger.info("Successfully moved object {}", objectId);
+                    }
+                });
+    }
 }

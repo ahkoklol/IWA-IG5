@@ -34,6 +34,7 @@ public class ImageAnalysisService {
     String analyzeImage(String image) {
         try {
             byte[] bytes = mediaServiceClient.getS3ObjectBytes(image).get(); // blocks until result
+            mediaServiceClient.moveObjectToArchive(image); // file was processed
             List<String> labels = detectLabels(bytes);
             log.info("labels: {}", labels);
             boolean result = filterLabels(labels);
