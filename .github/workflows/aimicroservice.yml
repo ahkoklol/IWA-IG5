@@ -37,6 +37,8 @@ jobs:
           ALLOW_NONSTANDARD_REGIONS: "1"
 
     steps:
+    - name: Clean up old localstack folder
+      run: sudo rm -rf ./docker/localstack || true
     - uses: actions/checkout@v4
     - name: Set up JDK 17
       uses: actions/setup-java@v4
