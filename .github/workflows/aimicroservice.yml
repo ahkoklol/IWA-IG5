@@ -30,11 +30,11 @@ jobs:
         volumes:
           - "./docker/localstack/init.sh:/etc/localstack/init/ready.d/init-aws.sh"
           - "./docker/localstack/data/:/tmp/data"
-      env:
-        SERVICES=s3
-        GATEWAY_LISTEN=0.0.0.0:4566
-        AWS_REGION=us-west-1
-        ALLOW_NONSTANDARD_REGIONS=1
+        env:
+          SERVICES: "s3"
+          GATEWAY_LISTEN: "0.0.0.0:4566"
+          AWS_REGION: "us-west-1"
+          ALLOW_NONSTANDARD_REGIONS: "1"
 
     steps:
     - uses: actions/checkout@v4
