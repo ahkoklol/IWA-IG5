@@ -57,7 +57,6 @@ public class ImageAnalysisServiceTest {
                 Path.of("src/test/resources/weed.png")).join();
         Localstack.uploadFileAsync(BUCKET, "weed2.jpg",
                 Path.of("src/test/resources/weed2.jpg")).join();
-
     }
 
     @Test
