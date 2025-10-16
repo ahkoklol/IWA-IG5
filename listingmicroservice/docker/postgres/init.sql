@@ -16,6 +16,22 @@ CREATE TABLE IF NOT EXISTS post (
     client_id VARCHAR(100)
 );
 
+CREATE TABLE IF NOT EXISTS favourite (
+    -- Primary Key components (Composite Key)
+    client_id VARCHAR(100) NOT NULL,
+    post_id VARCHAR(100) NOT NULL,
+
+    -- Additional Field
+    date TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- Define the Composite Primary Key
+    PRIMARY KEY (client_id, post_id),
+
+    -- Define Foreign Key to the local 'post' table
+    -- This enforces data integrity for local posts
+    FOREIGN KEY (post_id) REFERENCES post (post_id) ON DELETE CASCADE
+);
+
 INSERT INTO post (
     post_id, date_created, date_modified, description, photos, weight, quantity, type,
     season, edible, flowering_season, harvest_date, price, status, client_id

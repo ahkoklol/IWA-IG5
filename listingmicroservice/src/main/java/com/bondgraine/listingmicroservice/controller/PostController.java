@@ -14,7 +14,11 @@ public class PostController {
 
     private static final Logger log = LoggerFactory.getLogger(PostController.class);
 
-    private PostService postService;
+    private final PostService postService;
+
+    public PostController(PostService postService) {
+        this.postService = postService;
+    }
 
     @GetMapping("/{postId}")
     public ResponseEntity<Post> getPost(@PathVariable("postId") String postId) {
@@ -24,7 +28,7 @@ public class PostController {
                 .orElseGet(() -> ResponseEntity.notFound().build()); // 404 Not Found
     }
 
-    @PostMapping("/{postId}")
+    @PatchMapping("/{postId}")
     public ResponseEntity<Post> updatePost(@RequestBody Post post, @PathVariable String postId) {
         log.info("Received request to edit post: {}", post);
         // The JSON payload is automatically mapped to the 'Post' object
@@ -45,7 +49,7 @@ public class PostController {
         return new ResponseEntity<>(createdPost, HttpStatus.CREATED);
     }
 
-    @PostMapping("/{postId}/hide")
+    @PatchMapping("/{postId}/hide")
     public ResponseEntity<Post> hidePost(@PathVariable String postId) {
         log.info("Received request to hide post: {}", postId);
         if(postService.hidePost(postId)) {

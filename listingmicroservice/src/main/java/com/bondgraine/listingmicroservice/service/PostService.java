@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,7 +16,11 @@ public class PostService {
 
     private static final Logger log = LoggerFactory.getLogger(PostService.class);
 
-    private PostRepository postRepository;
+    private final PostRepository postRepository;
+
+    public PostService(PostRepository postRepository) {
+        this.postRepository = postRepository;
+    }
 
     /**
      * Fetch a post by id
@@ -27,21 +32,88 @@ public class PostService {
     }
 
     /**
-     * Update a post by id
+     * Update a post by id -> for now updates all fields
+     * TODO: do we need a DTO for Patch because we only update specific fields?
      * @param postId the id of the post
      * @param post the Post object with updated info
      * @return the updated Post object
      */
     public Post updatePost(String postId, Post post) {
 
-        // Throw NoSuchElementException if post with id postId not found
-        getPostById(postId).orElseThrow();
-        return postRepository.save(post);
+        Post existingPost = postRepository.findById(postId)
+                // If not found, return null as per your constraint
+                .orElse(null);
+
+        if (existingPost == null) {
+            return null;
+        }
+
+        // Set service-managed fields only if a change occurred
+        if (applyUpdates(existingPost, post)) {
+            existingPost.setDate_modified(new Date());
+            return postRepository.save(existingPost);
+        }
+
+        // If nothing changed, return the existing entity without saving
+        return existingPost;
+    }
+
+    /**
+     * Helper method to compare Post fields and apply updates
+     * @param existingPost the post from the database
+     * @param post the data of the post to update
+     * @return true if a field was updated, false otherwise
+     */
+    boolean applyUpdates(Post existingPost, Post post) {
+        boolean updated = false;
+
+        if (post.getDescription() != null && !post.getDescription().equals(existingPost.getDescription())) {
+            existingPost.setDescription(post.getDescription());
+            updated = true;
+        }
+        if (post.getPhotos() != null && !post.getPhotos().equals(existingPost.getPhotos())) {
+            existingPost.setPhotos(post.getPhotos());
+            updated = true;
+        }
+        if (post.getWeight() != existingPost.getWeight()) {
+            existingPost.setWeight(post.getWeight());
+            updated = true;
+        }
+        if (post.getQuantity() != existingPost.getQuantity()) {
+            existingPost.setQuantity(post.getQuantity());
+            updated = true;
+        }
+        if (post.getType() != null && !post.getType().equals(existingPost.getType())) {
+            existingPost.setType(post.getType());
+            updated = true;
+        }
+        if (post.getPrice() != existingPost.getPrice()) {
+            existingPost.setPrice(post.getPrice());
+            updated = true;
+        }
+        if (!Objects.equals(post.getSeason(), existingPost.getSeason())) {
+            existingPost.setSeason(post.getSeason());
+            updated = true;
+        }
+        if (!Objects.equals(post.getFlowering_season(), existingPost.getFlowering_season())) {
+            existingPost.setFlowering_season(post.getFlowering_season());
+            updated = true;
+        }
+        if (post.getHarvest_date() != existingPost.getHarvest_date()) {
+            existingPost.setHarvest_date(post.getHarvest_date());
+            updated = true;
+        }
+        if (post.isEdible() != existingPost.isEdible()) {
+            existingPost.setEdible(post.isEdible());
+            updated = true;
+        }
+        return updated;
     }
 
     /**
      * Create a post
      * @param post the Post object to create
+     * @return the created Post object
      */
     public Post createPost(Post post) {
         post.setPost_id(UUID.randomUUID().toString());
@@ -56,17 +128,15 @@ public class PostService {
     public boolean hidePost(String postId) {
         Optional<Post> optionalPost = getPostById(postId);
         return optionalPost.map(post -> {
-            // If the post is present (inside the Optional):
-
-            // 3. Apply the required changes (business logic)
             post.setStatus("hidden");
             post.setDate_modified(new Date()); // Update modification timestamp
-
-            // 4. Save the modified entity. Hibernate performs an UPDATE.
             postRepository.save(post);
-
-            // 5. Return true inside the map function, indicating the operation succeeded.
             return true;
         }).orElse(false);
+    }
+
+    public void favourite(String postId) {
+        Optional<Post> optionalPost = getPostById(postId);
+
     }
 }
