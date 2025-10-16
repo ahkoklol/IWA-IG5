@@ -1,15 +1,15 @@
 package com.bondgraine.listingmicroservice.service;
 
+import com.bondgraine.listingmicroservice.entity.Favourite;
+import com.bondgraine.listingmicroservice.entity.FavouriteId;
 import com.bondgraine.listingmicroservice.entity.Post;
+import com.bondgraine.listingmicroservice.repository.FavouriteRepository;
 import com.bondgraine.listingmicroservice.repository.PostRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class PostService {
@@ -18,8 +18,11 @@ public class PostService {
 
     private final PostRepository postRepository;
 
-    public PostService(PostRepository postRepository) {
+    private final FavouriteRepository favouriteRepository;
+
+    public PostService(PostRepository postRepository, FavouriteRepository favouriteRepository) {
         this.postRepository = postRepository;
+        this.favouriteRepository = favouriteRepository;
     }
 
     /**
@@ -135,8 +138,51 @@ public class PostService {
         }).orElse(false);
     }
 
-    public void favourite(String postId) {
+    /**
+     * Hide a post - change status to "hidden"
+     * @param postId the id of the post
+     * @return true if the post was successfully hidden, false otherwise
+     */
+    public boolean unhidePost(String postId) {
         Optional<Post> optionalPost = getPostById(postId);
+        return optionalPost.map(post -> {
+            post.setStatus("visible");
+            post.setDate_modified(new Date()); // Update modification timestamp
+            postRepository.save(post);
+            return true;
+        }).orElse(false);
+    }
 
+    public boolean favourite(String postId, String clientId) {
+        Optional<Post> post = getPostById(postId);
+        if (post.isEmpty()) {
+            throw new NoSuchElementException("Post not found with ID: " + postId);
+        }
+
+        boolean exists = favouriteRepository.existsByIdPostIdAndIdClientId(postId, clientId);
+        if (exists) {
+            return false;
+        }
+        Favourite favourite = new Favourite();
+        favourite.setId(new FavouriteId(postId, clientId));
+        favourite.setDate(new Date());
+        favouriteRepository.save(favourite);
+        return true;
+    }
+
+    public boolean unfavourite(String postId, String clientId) {
+        Optional<Post> post = getPostById(postId);
+        if (post.isEmpty()) {
+            throw new NoSuchElementException("Post not found with ID: " + postId);
+        }
+
+        boolean exists = favouriteRepository.existsByIdPostIdAndIdClientId(postId, clientId);
+        if (!exists) {
+            return false;
+        }
+        Favourite favourite = new Favourite();
+        favourite.setId(new FavouriteId(postId, clientId));
+        favouriteRepository.delete(favourite);
+        return true;
     }
 }

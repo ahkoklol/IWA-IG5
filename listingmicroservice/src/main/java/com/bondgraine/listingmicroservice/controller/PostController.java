@@ -1,5 +1,6 @@
 package com.bondgraine.listingmicroservice.controller;
 
+import com.bondgraine.listingmicroservice.entity.FavouriteId;
 import com.bondgraine.listingmicroservice.entity.Post;
 import com.bondgraine.listingmicroservice.service.PostService;
 import org.slf4j.Logger;
@@ -56,6 +57,26 @@ public class PostController {
             return ResponseEntity.ok().build(); // 200 ok if post was updated
         } else {
             return ResponseEntity.notFound().build(); // 404 not found id
+        }
+    }
+
+    @PostMapping("/{postId}/favourite")
+    public ResponseEntity<Post> favouritePost(@PathVariable String postId, @RequestBody String clientId) {
+        boolean result = postService.favourite(postId, clientId);
+        if(result) {
+            return ResponseEntity.ok().build(); // 200 ok
+        } else {
+            return ResponseEntity.badRequest().build(); // already favoured
+        }
+    }
+
+    @PostMapping("/{postId}/unfavourite")
+    public ResponseEntity<Post> unfavouritePost(@PathVariable String postId, @RequestBody String clientId) {
+        boolean result = postService.unfavourite(postId, clientId);
+        if(result) {
+            return ResponseEntity.ok().build(); // 200 ok
+        } else {
+            return ResponseEntity.badRequest().build(); // already unfavoured
         }
     }
 
