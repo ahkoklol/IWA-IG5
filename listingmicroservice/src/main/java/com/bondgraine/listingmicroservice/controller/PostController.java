@@ -70,7 +70,7 @@ public class PostController {
         }
     }
 
-    @PostMapping("/{postId}/unfavourite")
+    @DeleteMapping("/{postId}/favourite")
     public ResponseEntity<Post> unfavouritePost(@PathVariable String postId, @RequestBody String clientId) {
         boolean result = postService.unfavourite(postId, clientId);
         if(result) {
