@@ -17,7 +17,7 @@ public class FavouriteId implements Serializable {
     // NOTE: JPA requires default constructor for embedded IDs
     public FavouriteId() {}
 
-    public FavouriteId(String clientId, String postId) {
+    public FavouriteId(String postId, String clientId) {
         this.clientId = clientId;
         this.postId = postId;
     }

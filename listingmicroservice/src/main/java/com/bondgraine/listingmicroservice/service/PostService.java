@@ -167,6 +167,7 @@ public class PostService {
         favourite.setId(new FavouriteId(postId, clientId));
         favourite.setDate(new Date());
         favouriteRepository.save(favourite);
+        log.info("Put post favourite with ID: " + postId + "and client ID: " + clientId);
         return true;
     }
 
@@ -183,6 +184,7 @@ public class PostService {
         Favourite favourite = new Favourite();
         favourite.setId(new FavouriteId(postId, clientId));
         favouriteRepository.delete(favourite);
+        log.info("Removed post favourite with ID: " + postId + " and client ID: " + clientId);
         return true;
     }
 }
