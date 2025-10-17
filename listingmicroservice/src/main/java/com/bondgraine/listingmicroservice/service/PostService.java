@@ -199,4 +199,14 @@ public class PostService {
         log.info("Found {} posts with status 'sold'  for client {}", list.size(), clientId);
         return list;
     }
+
+    public Post buyPost(String postId) {
+        Optional<Post> post = getPostById(postId);
+        if(post.isEmpty()) {
+            throw new NoSuchElementException("Post not found with ID: " + postId);
+        }
+        post.get().setStatus("sold");
+        log.info("Post with id {} marked as sold", postId);
+        return postRepository.save(post.get());
+    }
 }

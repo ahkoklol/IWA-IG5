@@ -100,9 +100,19 @@ public class PostController {
 
     @GetMapping("/{clientId}/soldList")
     public ResponseEntity<List<Post>> getSoldPosts(@PathVariable String clientId) {
-        log.info("Received request to get selling posts for client {}", clientId);
+        log.info("Received request to get sold posts for client {}", clientId);
         List<Post> visiblePosts = postService.getSellPosts(clientId);
         return ResponseEntity.ok(visiblePosts);
     }
 
+    @PatchMapping("/{postId}/buy")
+    public ResponseEntity<Post> buyPost(@PathVariable String postId) {
+        log.info("Received request to buy post: {}", postId);
+        Post post = postService.buyPost(postId);
+        if (post == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(post);
+
+    }
 }
