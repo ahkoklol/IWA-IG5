@@ -1,6 +1,5 @@
 package com.bondgraine.listingmicroservice.controller;
 
-import com.bondgraine.listingmicroservice.entity.FavouriteId;
 import com.bondgraine.listingmicroservice.entity.Post;
 import com.bondgraine.listingmicroservice.service.PostService;
 import org.slf4j.Logger;
