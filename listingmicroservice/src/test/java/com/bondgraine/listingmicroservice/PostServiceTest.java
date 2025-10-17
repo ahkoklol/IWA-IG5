@@ -184,8 +184,6 @@ public class PostServiceTest extends PostgresTestcontainer {
                 .doesNotContain(hiddenPost.getPost_id());
     }
 
-    // ---------------------------------------------------------------------------------
-
     @Test
     void testGetSoldPosts_ReturnsOnlySoldPosts() {
         final String clientId = "client_sold_test";
@@ -207,5 +205,59 @@ public class PostServiceTest extends PostgresTestcontainer {
                 .extracting(Post::getPost_id)
                 .contains(soldPost.getPost_id(), anotherSoldPost.getPost_id())
                 .doesNotContain(visiblePost.getPost_id());
+    }
+
+    @Test
+    void testBuyPost_Successful_MarksAsSold() {
+        // Arrange
+        final String clientId = "buyerA";
+        // Create a post that is initially visible
+        Post savedPost = createPostWithStatus(clientId, "visible", "s1");
+        String postId = savedPost.getPost_id();
+
+        // Act
+        Post updatedPost = postService.buyPost(postId);
+
+        // Retrieve directly from DB to verify persistence
+        Optional<Post> verifiedPost = postRepository.findById(postId);
+
+        // Assert
+        assertThat(updatedPost).isNotNull();
+        // 1. Verify the return object status
+        assertThat(updatedPost.getStatus()).isEqualTo("sold");
+
+        assertThat(verifiedPost).isPresent();
+        // 2. Verify the database persistence
+        assertThat(verifiedPost.get().getStatus()).isEqualTo("sold");
+    }
+
+    @Test
+    void testBuyPost_PostNotFound_ThrowsNoSuchElementException() {
+        // Arrange
+        String nonExistentPostId = "non-existent-buy-id";
+
+        // Act & Assert
+        // Expect a NoSuchElementException to be thrown when calling buyPost with a bad ID
+        assertThrows(NoSuchElementException.class, () -> {
+            postService.buyPost(nonExistentPostId);
+        });
+    }
+
+    @Test
+    void testBuyPost_AlreadySold_UpdatesStatusToSoldAgain() {
+        // Arrange
+        final String clientId = "buyerB";
+        // Create a post that is already sold (buyPost should still work)
+        Post savedPost = createPostWithStatus(clientId, "sold", "s2");
+        String postId = savedPost.getPost_id();
+
+        // Act
+        Post updatedPost = postService.buyPost(postId);
+
+        // Assert
+        // The service logic simply sets status to "sold" and saves,
+        // which is fine even if it's already sold.
+        assertThat(updatedPost).isNotNull();
+        assertThat(updatedPost.getStatus()).isEqualTo("sold");
     }
 }
