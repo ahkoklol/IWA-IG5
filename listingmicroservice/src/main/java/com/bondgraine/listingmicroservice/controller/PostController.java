@@ -60,6 +60,16 @@ public class PostController {
         }
     }
 
+    @PatchMapping("/{postId}/unhide")
+    public ResponseEntity<Post> unhidePost(@PathVariable String postId) {
+        log.info("Received request to unhide post: {}", postId);
+        if(postService.hidePost(postId)) {
+            return ResponseEntity.ok().build(); // 200 ok if post was updated
+        } else {
+            return ResponseEntity.notFound().build(); // 404 not found id
+        }
+    }
+
     @PostMapping("/{postId}/favourite")
     public ResponseEntity<Post> favouritePost(@PathVariable String postId, @RequestBody String clientId) {
         boolean result = postService.favourite(postId, clientId);

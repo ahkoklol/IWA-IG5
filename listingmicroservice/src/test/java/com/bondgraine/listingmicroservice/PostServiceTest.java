@@ -43,7 +43,7 @@ public class PostServiceTest extends PostgresTestcontainer {
     }
 
     @Test
-    void testCreatePostAndGetPostById() {
+    void testCreatePost() {
         // Arrange
         Post newPost = createValidTestPost("clientA");
 
@@ -57,7 +57,7 @@ public class PostServiceTest extends PostgresTestcontainer {
     }
 
     @Test
-    void testUpdatePost_SuccessfulUpdate() {
+    void testUpdatePost() {
         // Arrange
         Post savedPost = postRepository.save(createValidTestPost("clientB"));
         String postId = savedPost.getPost_id();
@@ -77,7 +77,7 @@ public class PostServiceTest extends PostgresTestcontainer {
     }
 
     @Test
-    void testHidePost_ChangesStatus() {
+    void testHidePost() {
         // Arrange
         Post savedPost = postRepository.save(createValidTestPost("clientC"));
         String postId = savedPost.getPost_id();
@@ -90,6 +90,22 @@ public class PostServiceTest extends PostgresTestcontainer {
         assertThat(hidden).isTrue();
         assertThat(postAfterHide.getStatus()).isEqualTo("hidden");
         assertThat(postAfterHide.getDate_modified()).isAfter(postAfterHide.getDate_created());
+    }
+
+    @Test
+    void testUnhidePost() {
+        // Arrange
+        Post savedPost = postRepository.save(createValidTestPost("clientC"));
+        String postId = savedPost.getPost_id();
+
+        // Act
+        boolean unhidden = postService.unhidePost(postId);
+        Post postAfterUnhide = postService.getPostById(postId).orElseThrow();
+
+        // Assert
+        assertThat(unhidden).isTrue();
+        assertThat(postAfterUnhide.getStatus()).isEqualTo("visible");
+        assertThat(postAfterUnhide.getDate_modified()).isAfter(postAfterUnhide.getDate_created());
     }
 
     // --- Favourite Tests ---
