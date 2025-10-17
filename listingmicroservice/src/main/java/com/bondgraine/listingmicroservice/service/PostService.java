@@ -205,8 +205,11 @@ public class PostService {
 
     public Post buyPost(String postId) {
         Optional<Post> post = getPostById(postId);
-        if(post.isEmpty()) {
+        if (post.isEmpty()) {
             throw new NoSuchElementException("Post not found with ID: " + postId);
+        }
+        if (!post.get().getStatus().equals("visible")) {
+            throw new IllegalStateException("Post with ID: " + postId + " cannot be purchased. Current status is: " + post.get().getStatus());
         }
         post.get().setStatus("sold");
         log.info("Post with id {} marked as sold", postId);

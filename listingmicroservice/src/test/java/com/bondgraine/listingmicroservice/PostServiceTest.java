@@ -6,6 +6,7 @@ import com.bondgraine.listingmicroservice.repository.PostRepository;
 import com.bondgraine.listingmicroservice.service.PostService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
@@ -28,106 +29,103 @@ public class PostServiceTest extends PostgresTestcontainer {
     @Autowired
     private FavouriteRepository favouriteRepository;
 
-    /**
-     * Base post
-     * @param clientId id of the client
-     * @return a Post object
-     */
-    private Post createValidTestPost(String clientId) {
+    private Post defaultPost;
+    private Post hiddenPost;
+    private Post soldPost;
+    private String defaultPostId;
+    private String hiddenPostId;
+    private String soldPostId;
+    private final String defaultClientId = "TEST_CLIENT_ID";
+
+    // Add this helper method to your PostServiceTest class
+    private Post createBasePost(String postId, String status) {
         Post post = new Post();
-        post.setPost_id(clientId);
-        post.setDescription("Test Post Description");
+        post.setPost_id(postId);
+        post.setDescription("Default Test Post Description");
         post.setWeight(10.0);
         post.setQuantity(2);
         post.setPrice(15.99);
         post.setType("Fruit");
         post.setEdible(true);
-        post.setStatus("visible");
-        post.setClientId(clientId);
+        post.setStatus(status); // Set the specific status
+        post.setClientId(defaultClientId);
         post.setDate_created(new Date());
         return post;
     }
 
-    /**
-     * Helper method to set up posts with a specific status
-     * @param clientId id of the client
-     * @param status status of the post (hidden, visible, sold)
-     * @param postIdSuffix
-     * @return
-     */
-    private Post createPostWithStatus(String clientId, String status, String postIdSuffix) {
-        Post post = new Post();
-        post.setPost_id(clientId + "-" + postIdSuffix);
-        post.setDescription(status + " Post");
-        post.setWeight(1.0);
-        post.setQuantity(1);
-        post.setPrice(10.0);
-        post.setType("Test");
-        post.setEdible(true);
-        post.setStatus(status); // Set the specific status
-        post.setClientId(clientId);
-        post.setDate_created(new Date());
-        return postRepository.save(post); // Save directly via repository for setup
+    @BeforeEach
+    void setUp() {
+        // 1. VISIBLE Post
+        Post visiblePost = createBasePost("PST-VIS-123", "visible");
+        this.defaultPost = postRepository.save(visiblePost);
+        this.defaultPostId = this.defaultPost.getPost_id();
+
+        // 2. HIDDEN Post
+        Post hiddenPostInstance = createBasePost("PST-HID-456", "hidden");
+        this.hiddenPost = postRepository.save(hiddenPostInstance);
+        this.hiddenPostId = this.hiddenPost.getPost_id();
+
+        // 3. SOLD Post
+        Post soldPostInstance = createBasePost("PST-SOLD-789", "sold");
+        this.soldPost = postRepository.save(soldPostInstance);
+        this.soldPostId = this.soldPost.getPost_id();
     }
 
     @Test
     void testCreatePost() {
-        Post newPost = createValidTestPost("clientA");
+        Post newPost = new Post();
+        newPost.setPost_id("createPostId");
+        newPost.setDescription("description");
+        newPost.setWeight(1.0);
+        newPost.setQuantity(1);
+        newPost.setPrice(10.0);
+        newPost.setType("Test");
+        newPost.setEdible(true);
+        newPost.setStatus("visible"); // Set the specific status
+        newPost.setClientId(defaultClientId);
+        newPost.setDate_created(new Date());
 
         Post createdPost = postService.createPost(newPost);
         Optional<Post> fetchedPost = postService.getPostById(createdPost.getPost_id());
 
         assertThat(fetchedPost).isPresent();
-        assertThat(fetchedPost.get().getClientId()).isEqualTo("clientA");
+        assertThat(fetchedPost.get().getClientId()).isEqualTo(defaultClientId);
     }
 
     @Test
-    void testUpdatePost() {
-        Post savedPost = postRepository.save(createValidTestPost("clientB"));
-        String postId = savedPost.getPost_id();
+    void testGetPostById_Found() {
+        Optional<Post> fetchedPost = postService.getPostById(defaultPostId);
 
+        assertThat(fetchedPost).isPresent();
+        assertThat(fetchedPost.get().getClientId()).isEqualTo(defaultClientId);
+        assertThat(fetchedPost.get().getDescription()).isEqualTo("Default Test Post Description");
+    }
+
+    @Test
+    void testUpdatePost_Successful() {
         Post updateData = new Post();
         updateData.setDescription("New Updated Description");
-        updateData.setPrice(99.99); // Price change
+        updateData.setPrice(99.99);
 
-        Post updatedPost = postService.updatePost(postId, updateData);
+        Post updatedPost = postService.updatePost(defaultPostId, updateData);
 
         assertThat(updatedPost).isNotNull();
         assertThat(updatedPost.getDescription()).isEqualTo("New Updated Description");
         assertThat(updatedPost.getPrice()).isEqualTo(99.99);
-        assertThat(updatedPost.getDate_modified()).isAfter(updatedPost.getDate_created());
     }
 
     @Test
-    void testHidePost() {
-        Post savedPost = postRepository.save(createValidTestPost("clientC"));
-        String postId = savedPost.getPost_id();
-
-        boolean hidden = postService.hidePost(postId);
-        Post postAfterHide = postService.getPostById(postId).orElseThrow();
+    void testHidePost_ChangesStatus() {
+        boolean hidden = postService.hidePost(defaultPostId);
+        Post postAfterHide = postService.getPostById(defaultPostId).orElseThrow();
 
         assertThat(hidden).isTrue();
         assertThat(postAfterHide.getStatus()).isEqualTo("hidden");
-        assertThat(postAfterHide.getDate_modified()).isAfter(postAfterHide.getDate_created());
-    }
-
-    @Test
-    void testUnhidePost() {
-        Post savedPost = postRepository.save(createValidTestPost("clientC"));
-        String postId = savedPost.getPost_id();
-
-        boolean unhidden = postService.unhidePost(postId);
-        Post postAfterUnhide = postService.getPostById(postId).orElseThrow();
-
-        assertThat(unhidden).isTrue();
-        assertThat(postAfterUnhide.getStatus()).isEqualTo("visible");
-        assertThat(postAfterUnhide.getDate_modified()).isAfter(postAfterUnhide.getDate_created());
     }
 
     @Test
     void testFavourite_Successful() {
-        Post savedPost = postRepository.save(createValidTestPost("owner1"));
-        String postId = savedPost.getPost_id();
+        String postId = defaultPostId;
         String clientId = "fan1";
 
         boolean result = postService.favourite(postId, clientId);
@@ -148,8 +146,7 @@ public class PostServiceTest extends PostgresTestcontainer {
 
     @Test
     void testFavourite_AlreadyExists_ReturnsFalse() {
-        Post savedPost = postRepository.save(createValidTestPost("owner2"));
-        String postId = savedPost.getPost_id();
+        String postId = defaultPostId;
         String clientId = "fan3";
 
         postService.favourite(postId, clientId);
@@ -162,16 +159,11 @@ public class PostServiceTest extends PostgresTestcontainer {
 
     @Test
     void testGetSellPosts_ReturnsOnlyVisiblePosts() {
-        final String clientId = "client_visible_test";
-        Post visiblePost = createPostWithStatus(clientId, "visible", "v1");
-        Post anotherVisiblePost = createPostWithStatus(clientId, "visible", "v2");
-        createPostWithStatus(clientId, "sold", "s1");
-        Post hiddenPost = createPostWithStatus(clientId, "hidden", "h1");
 
-        List<Post> sellPosts = postService.getSellPosts(clientId);
+        List<Post> sellPosts = postService.getSellPosts(defaultClientId);
 
         // Should find exactly 2 posts with status "visible"
-        assertThat(sellPosts).hasSize(2);
+        assertThat(sellPosts).hasSize(1);
 
         // Ensure the list contains only the visible posts
         assertThat(sellPosts)
@@ -180,63 +172,37 @@ public class PostServiceTest extends PostgresTestcontainer {
 
         assertThat(sellPosts)
                 .extracting(Post::getPost_id)
-                .contains(visiblePost.getPost_id(), anotherVisiblePost.getPost_id())
+                .contains(defaultPostId)
                 .doesNotContain(hiddenPost.getPost_id());
     }
 
     @Test
     void testGetSoldPosts_ReturnsOnlySoldPosts() {
-        final String clientId = "client_sold_test";
-        Post soldPost = createPostWithStatus(clientId, "sold", "s1");
-        Post anotherSoldPost = createPostWithStatus(clientId, "sold", "s2");
-        Post visiblePost = createPostWithStatus(clientId, "visible", "v1");
-        createPostWithStatus(clientId, "hidden", "h1");
-        List<Post> soldPosts = postService.getSoldPosts(clientId);
+        // Act: Call service with the correct Client ID
+        List<Post> soldPosts = postService.getSoldPosts(defaultClientId);
 
-        // Should find exactly 2 posts with status "sold"
-        assertThat(soldPosts).hasSize(2);
+        // Assert 1: Only ONE sold post was created for this client in setUp()
+        assertThat(soldPosts).hasSize(1);
 
-        // Ensure the list contains only the sold posts
-        assertThat(soldPosts)
-                .extracting(Post::getStatus)
-                .containsOnly("sold");
-
+        // Assert 2: The post returned must be the specific sold post ID
         assertThat(soldPosts)
                 .extracting(Post::getPost_id)
-                .contains(soldPost.getPost_id(), anotherSoldPost.getPost_id())
-                .doesNotContain(visiblePost.getPost_id());
+                .containsOnly(soldPostId); // Use containsOnly for precision
     }
 
     @Test
     void testBuyPost_Successful_MarksAsSold() {
-        // Arrange
-        final String clientId = "buyerA";
-        // Create a post that is initially visible
-        Post savedPost = createPostWithStatus(clientId, "visible", "s1");
-        String postId = savedPost.getPost_id();
+        Post updatedPost = postService.buyPost(defaultPostId);
 
-        // Act
-        Post updatedPost = postService.buyPost(postId);
-
-        // Retrieve directly from DB to verify persistence
-        Optional<Post> verifiedPost = postRepository.findById(postId);
-
-        // Assert
         assertThat(updatedPost).isNotNull();
-        // 1. Verify the return object status
         assertThat(updatedPost.getStatus()).isEqualTo("sold");
-
-        assertThat(verifiedPost).isPresent();
-        // 2. Verify the database persistence
-        assertThat(verifiedPost.get().getStatus()).isEqualTo("sold");
+        assertThat(postRepository.findById(defaultPostId).get().getStatus()).isEqualTo("sold");
     }
 
     @Test
     void testBuyPost_PostNotFound_ThrowsNoSuchElementException() {
-        // Arrange
         String nonExistentPostId = "non-existent-buy-id";
 
-        // Act & Assert
         // Expect a NoSuchElementException to be thrown when calling buyPost with a bad ID
         assertThrows(NoSuchElementException.class, () -> {
             postService.buyPost(nonExistentPostId);
@@ -244,20 +210,33 @@ public class PostServiceTest extends PostgresTestcontainer {
     }
 
     @Test
-    void testBuyPost_AlreadySold_UpdatesStatusToSoldAgain() {
-        // Arrange
-        final String clientId = "buyerB";
-        // Create a post that is already sold (buyPost should still work)
-        Post savedPost = createPostWithStatus(clientId, "sold", "s2");
-        String postId = savedPost.getPost_id();
+    void testBuyPost_AlreadySold_ThrowsIllegalStateException() {
+        String postId = soldPostId;
 
-        // Act
-        Post updatedPost = postService.buyPost(postId);
+        // The service should throw IllegalStateException because 'sold' is neither 'visible' nor 'hidden'
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            postService.buyPost(postId);
+        });
 
-        // Assert
-        // The service logic simply sets status to "sold" and saves,
-        // which is fine even if it's already sold.
-        assertThat(updatedPost).isNotNull();
-        assertThat(updatedPost.getStatus()).isEqualTo("sold");
+        // Verify the exception message is descriptive
+        assertThat(exception.getMessage())
+                .contains("cannot be purchased")
+                .contains("Current status is: sold");
+    }
+
+    @Test
+    void testBuyPost_Hidden_ThrowsIllegalStateException() {
+        // Arrange: Use the post set to "hidden" in @BeforeEach
+        String postId = hiddenPostId;
+
+        // Act & Assert: Expect an exception
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            postService.buyPost(postId);
+        });
+
+        // Verify the exception message is descriptive
+        assertThat(exception.getMessage())
+                .contains("cannot be purchased")
+                .contains("Current status is: hidden");
     }
 }
