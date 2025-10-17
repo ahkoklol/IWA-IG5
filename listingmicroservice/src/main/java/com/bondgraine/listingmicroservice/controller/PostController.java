@@ -36,12 +36,10 @@ public class PostController {
         // The JSON payload is automatically mapped to the 'Post' object
         Post updatedPost = postService.updatePost(postId, post);
 
-        if (updatedPost != null) {
-            log.info("Updated post with id {}", postId);
-            return ResponseEntity.ok(updatedPost); // 200 ok with updated entity
-        } else {
-            return ResponseEntity.notFound().build(); // 404 not found id
+        if (updatedPost == null) {
+            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.ok(updatedPost);
     }
 
     @PostMapping
@@ -54,41 +52,37 @@ public class PostController {
     @PatchMapping("/{postId}/hide")
     public ResponseEntity<Post> hidePost(@PathVariable String postId) {
         log.info("Received request to hide post: {}", postId);
-        if(postService.hidePost(postId)) {
-            return ResponseEntity.ok().build(); // 200 ok if post was updated
-        } else {
+        if (!postService.hidePost(postId)) {
             return ResponseEntity.notFound().build(); // 404 not found id
         }
+        return ResponseEntity.ok().build(); // 200 ok if post was updated
     }
 
     @PatchMapping("/{postId}/unhide")
     public ResponseEntity<Post> unhidePost(@PathVariable String postId) {
         log.info("Received request to unhide post: {}", postId);
-        if(postService.hidePost(postId)) {
-            return ResponseEntity.ok().build(); // 200 ok if post was updated
-        } else {
+        if (!postService.unhidePost(postId)) {
             return ResponseEntity.notFound().build(); // 404 not found id
         }
+        return ResponseEntity.ok().build(); // 200 ok if post was updated
     }
 
     @PostMapping("/{postId}/favourite")
     public ResponseEntity<Post> favouritePost(@PathVariable String postId, @RequestBody String clientId) {
         boolean result = postService.favourite(postId, clientId);
-        if(result) {
-            return ResponseEntity.ok().build(); // 200 ok
-        } else {
-            return ResponseEntity.badRequest().build(); // already favoured
+        if (!result) {
+            return ResponseEntity.notFound().build(); // 404 not found id
         }
+        return ResponseEntity.ok().build(); // 200 ok
     }
 
     @DeleteMapping("/{postId}/favourite")
     public ResponseEntity<Post> unfavouritePost(@PathVariable String postId, @RequestBody String clientId) {
         boolean result = postService.unfavourite(postId, clientId);
-        if(result) {
-            return ResponseEntity.ok().build(); // 200 ok
-        } else {
-            return ResponseEntity.badRequest().build(); // already unfavoured
+        if (!result) {
+            return ResponseEntity.notFound().build(); // 404 not found id
         }
+        return ResponseEntity.ok().build(); // 200 ok
     }
 
     @GetMapping("/{clientId}/sellList")

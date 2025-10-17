@@ -48,16 +48,19 @@ public class PostService {
                 .orElse(null);
 
         if (existingPost == null) {
+            log.warn("No post found with id: {}", postId);
             return null;
         }
 
         // Set service-managed fields only if a change occurred
         if (applyUpdates(existingPost, post)) {
             existingPost.setDate_modified(new Date());
+            log.info("Updated post: {}", existingPost);
             return postRepository.save(existingPost);
         }
 
         // If nothing changed, return the existing entity without saving
+        log.warn("Nothing had to be updated: {}", existingPost);
         return existingPost;
     }
 
