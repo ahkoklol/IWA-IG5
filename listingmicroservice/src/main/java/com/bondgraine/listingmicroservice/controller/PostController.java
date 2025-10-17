@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/post")
 public class PostController {
@@ -88,6 +90,20 @@ public class PostController {
         } else {
             return ResponseEntity.badRequest().build(); // already unfavoured
         }
+    }
+
+    @GetMapping("/sell")
+    public ResponseEntity<List<Post>> getVisiblePosts(@RequestParam String clientId) {
+        log.info("Received request to get selling posts for client {}", clientId);
+        List<Post> visiblePosts = postService.getSellPosts(clientId);
+        return ResponseEntity.ok(visiblePosts);
+    }
+
+    @GetMapping("/sold")
+    public ResponseEntity<List<Post>> getSoldPosts(@RequestParam String clientId) {
+        log.info("Received request to get selling posts for client {}", clientId);
+        List<Post> visiblePosts = postService.getSellPosts(clientId);
+        return ResponseEntity.ok(visiblePosts);
     }
 
 }

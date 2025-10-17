@@ -29,5 +29,5 @@ public class Post {
     private Date harvest_date;
     private double price;
     private String status;
-    private String client_id;
+    private String clientId;
 }

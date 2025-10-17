@@ -187,4 +187,16 @@ public class PostService {
         log.info("Removed post favourite with ID: " + postId + " and client ID: " + clientId);
         return true;
     }
+
+    public List<Post> getSellPosts(String clientId) {
+        List<Post> list = postRepository.findByClientIdAndStatus(clientId, "visible");
+        log.info("Found {} posts with status 'visible' for client {}", list.size(), clientId);
+        return list;
+    }
+
+    public List<Post> getSoldPosts(String clientId) {
+        List<Post> list = postRepository.findByClientIdAndStatus(clientId, "sold");
+        log.info("Found {} posts with status 'sold'  for client {}", list.size(), clientId);
+        return list;
+    }
 }
