@@ -92,14 +92,14 @@ public class PostController {
     }
 
     @GetMapping("/sell")
-    public ResponseEntity<List<Post>> getVisiblePosts(@RequestParam String clientId) {
+    public ResponseEntity<List<Post>> getVisiblePosts(@RequestBody String clientId) {
         log.info("Received request to get selling posts for client {}", clientId);
         List<Post> visiblePosts = postService.getSellPosts(clientId);
         return ResponseEntity.ok(visiblePosts);
     }
 
     @GetMapping("/sold")
-    public ResponseEntity<List<Post>> getSoldPosts(@RequestParam String clientId) {
+    public ResponseEntity<List<Post>> getSoldPosts(@RequestBody String clientId) {
         log.info("Received request to get selling posts for client {}", clientId);
         List<Post> visiblePosts = postService.getSellPosts(clientId);
         return ResponseEntity.ok(visiblePosts);
