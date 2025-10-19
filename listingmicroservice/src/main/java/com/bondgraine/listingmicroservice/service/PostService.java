@@ -142,9 +142,9 @@ public class PostService {
     }
 
     /**
-     * Hide a post - change status to "hidden"
+     * Unhide a post - change status to "visible"
      * @param postId the id of the post
-     * @return true if the post was successfully hidden, false otherwise
+     * @return true if the post was successfully unhidden, false otherwise
      */
     public boolean unhidePost(String postId) {
         Optional<Post> optionalPost = getPostById(postId);
@@ -156,6 +156,12 @@ public class PostService {
         }).orElse(false);
     }
 
+    /**
+     * Favourite a post
+     * @param postId the id of the post
+     * @param clientId the id of the client favouring the post
+     * @return true if the post was successfully favoured, false otherwise
+     */
     public boolean favourite(String postId, String clientId) {
         Optional<Post> post = getPostById(postId);
         if (post.isEmpty()) {
@@ -174,6 +180,12 @@ public class PostService {
         return true;
     }
 
+    /**
+     * Unfavourite a post
+     * @param postId the id of the post
+     * @param clientId the id of the client unfavouring the post
+     * @return true if the post was successfully unfavored, false otherwise
+     */
     public boolean unfavourite(String postId, String clientId) {
         Optional<Post> post = getPostById(postId);
         if (post.isEmpty()) {
@@ -191,18 +203,33 @@ public class PostService {
         return true;
     }
 
+    /**
+     * Fetch the list of all posts with status 'visible'
+     * @param clientId the id of the seller
+     * @return a list of Post
+     */
     public List<Post> getSellPosts(String clientId) {
         List<Post> list = postRepository.findByClientIdAndStatus(clientId, "visible");
         log.info("Found {} posts with status 'visible' for client {}", list.size(), clientId);
         return list;
     }
 
+    /**
+     * Fetch the list of all posts with status 'sold'
+     * @param clientId the id of the seller
+     * @return a list of Post
+     */
     public List<Post> getSoldPosts(String clientId) {
         List<Post> list = postRepository.findByClientIdAndStatus(clientId, "sold");
         log.info("Found {} posts with status 'sold'  for client {}", list.size(), clientId);
         return list;
     }
 
+    /**
+     * Mark the Post as sold
+     * @param postId the id of the post
+     * @return an updated Post object
+     */
     public Post buyPost(String postId) {
         Optional<Post> post = getPostById(postId);
         if (post.isEmpty()) {

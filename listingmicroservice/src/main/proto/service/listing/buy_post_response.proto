@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+// Defines the package for this message
+package listing.service;
+
+option java_package = "com.bondgraine.listingmicroservice.grpc";
+option java_multiple_files = true;
+
+message BuyPostResponse {
+  bool success = 1;
+  string error_message = 2;
+}

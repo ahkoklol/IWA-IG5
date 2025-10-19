@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+// Defines the package for this message
+package listing.service;
+
+option java_package = "com.bondgraine.listingmicroservice.grpc";
+option java_multiple_files = true;
+// The outer class name for this specific file, if java_multiple_files=false.
+// Since it's true, the message name will be the class name.
+
+message BuyPostRequest {
+  string post_id = 1;
+}

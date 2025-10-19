@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:15
+    image: postgres:latest
     platform: linux/amd64
     container_name: postgresdocker
     restart: always
