@@ -1,5 +1,7 @@
 package com.bondgraine.listingmicroservice.service;
 
+import com.bondgraine.listingmicroservice.entity.Post;
+import com.bondgraine.listingmicroservice.grpc.BuyPostRequest;
 import com.bondgraine.listingmicroservice.grpc.BuyPostResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,5 +18,18 @@ public class ListingServiceImpl {
         this.postService = postService;
     }
 
+    public BuyPostResponse buyPost(BuyPostRequest buyPostRequest) {
+        Post buyPostResponse = postService.buyPost(buyPostRequest.getPostId());
+        if (buyPostResponse.getStatus().equals("sold")) {
+            return BuyPostResponse.newBuilder()
+                    .setSuccess(true)
+                    .build();
+        } else {
+            return BuyPostResponse.newBuilder()
+                    .setSuccess(false)
+                    .setErrorMessage("The post could not be bought, current status: " + buyPostResponse.getStatus())
+                    .build();
+        }
+    }
 
 }
