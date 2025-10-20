@@ -14,13 +14,10 @@ import java.util.Date;
 @Table(name = "favourite")
 public class Favourite {
 
-    // Define the composite key using the embedded ID class
     @EmbeddedId
     private FavouriteId id;
 
-    // Define the non-key field
-    @Temporal(TemporalType.TIMESTAMP) // Maps java.util.Date to a timestamp in the DB
+    @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 
-    // NOTE: You might need a default constructor here if not using Lombok's @NoArgsConstructor
 }
