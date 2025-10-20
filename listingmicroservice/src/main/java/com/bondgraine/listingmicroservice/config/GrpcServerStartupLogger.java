@@ -14,7 +14,7 @@ public class GrpcServerStartupLogger implements ApplicationListener<ContextRefre
 
     // Inject the gRPC server port from configuration
     // The default value for grpc.server.port is typically 9090 if not set.
-    @Value("${grpc.server.port:0}")
+    @Value("${grpc.server.port:9090}")
     private int grpcPort;
 
     @Override

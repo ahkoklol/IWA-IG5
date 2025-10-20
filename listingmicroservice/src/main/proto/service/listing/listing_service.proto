@@ -3,7 +3,7 @@ syntax = "proto3";
 package listing.service;
 
 option java_package = "com.bondgraine.listingmicroservice.grpc";
-option java_outer_classname = "ListingServiceProto";
+//option java_outer_classname = "ListingServiceProto";
 option java_multiple_files = true;
 
 import "service/listing/buy_post_request.proto";
