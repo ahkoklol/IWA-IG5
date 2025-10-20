@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-// Defines the package for this message
 package listing.service;
 
 option java_package = "com.bondgraine.listingmicroservice.grpc";

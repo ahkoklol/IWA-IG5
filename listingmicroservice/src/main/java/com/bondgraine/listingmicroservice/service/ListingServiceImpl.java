@@ -21,10 +21,12 @@ public class ListingServiceImpl {
     public BuyPostResponse buyPost(BuyPostRequest buyPostRequest) {
         Post buyPostResponse = postService.buyPost(buyPostRequest.getPostId());
         if (buyPostResponse.getStatus().equals("sold")) {
+            log.info("Sold Post Successfully");
             return BuyPostResponse.newBuilder()
                     .setSuccess(true)
                     .build();
         } else {
+            log.info("Sold Post Failed");
             return BuyPostResponse.newBuilder()
                     .setSuccess(false)
                     .setErrorMessage("The post could not be bought, current status: " + buyPostResponse.getStatus())
