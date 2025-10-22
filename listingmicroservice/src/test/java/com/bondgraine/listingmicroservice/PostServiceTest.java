@@ -40,7 +40,7 @@ public class PostServiceTest extends PostgresTestcontainer {
     // Add this helper method to your PostServiceTest class
     private Post createBasePost(String postId, String status) {
         Post post = new Post();
-        post.setPost_id(postId);
+        post.setPostId(postId);
         post.setDescription("Default Test Post Description");
         post.setWeight(10.0);
         post.setQuantity(2);
@@ -49,7 +49,7 @@ public class PostServiceTest extends PostgresTestcontainer {
         post.setEdible(true);
         post.setStatus(status); // Set the specific status
         post.setClientId(defaultClientId);
-        post.setDate_created(new Date());
+        post.setDateCreated(new Date());
         return post;
     }
 
@@ -58,23 +58,23 @@ public class PostServiceTest extends PostgresTestcontainer {
         // 1. VISIBLE Post
         Post visiblePost = createBasePost("PST-VIS-123", "visible");
         this.defaultPost = postRepository.save(visiblePost);
-        this.defaultPostId = this.defaultPost.getPost_id();
+        this.defaultPostId = this.defaultPost.getPostId();
 
         // 2. HIDDEN Post
         Post hiddenPostInstance = createBasePost("PST-HID-456", "hidden");
         this.hiddenPost = postRepository.save(hiddenPostInstance);
-        this.hiddenPostId = this.hiddenPost.getPost_id();
+        this.hiddenPostId = this.hiddenPost.getPostId();
 
         // 3. SOLD Post
         Post soldPostInstance = createBasePost("PST-SOLD-789", "sold");
         this.soldPost = postRepository.save(soldPostInstance);
-        this.soldPostId = this.soldPost.getPost_id();
+        this.soldPostId = this.soldPost.getPostId();
     }
 
     @Test
     void testCreatePost() {
         Post newPost = new Post();
-        newPost.setPost_id("createPostId");
+        newPost.setPostId("createPostId");
         newPost.setDescription("description");
         newPost.setWeight(1.0);
         newPost.setQuantity(1);
@@ -83,10 +83,10 @@ public class PostServiceTest extends PostgresTestcontainer {
         newPost.setEdible(true);
         newPost.setStatus("visible"); // Set the specific status
         newPost.setClientId(defaultClientId);
-        newPost.setDate_created(new Date());
+        newPost.setDateCreated(new Date());
 
         Post createdPost = postService.createPost(newPost);
-        Optional<Post> fetchedPost = postService.getPostById(createdPost.getPost_id());
+        Optional<Post> fetchedPost = postService.getPostById(createdPost.getPostId());
 
         assertThat(fetchedPost).isPresent();
         assertThat(fetchedPost.get().getClientId()).isEqualTo(defaultClientId);
@@ -171,9 +171,9 @@ public class PostServiceTest extends PostgresTestcontainer {
                 .containsOnly("visible");
 
         assertThat(sellPosts)
-                .extracting(Post::getPost_id)
+                .extracting(Post::getPostId)
                 .contains(defaultPostId)
-                .doesNotContain(hiddenPost.getPost_id());
+                .doesNotContain(hiddenPost.getPostId());
     }
 
     @Test
@@ -186,7 +186,7 @@ public class PostServiceTest extends PostgresTestcontainer {
 
         // Assert 2: The post returned must be the specific sold post ID
         assertThat(soldPosts)
-                .extracting(Post::getPost_id)
+                .extracting(Post::getPostId)
                 .containsOnly(soldPostId); // Use containsOnly for precision
     }
 

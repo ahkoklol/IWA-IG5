@@ -1,5 +1,6 @@
 package com.bondgraine.listingmicroservice.entity;
 
+import com.bondgraine.listingmicroservice.converter.StringListConverter;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -12,12 +13,18 @@ import java.util.List;
 public class Post {
 
     @Id
-    private String post_id;
-    private Date date_created;
-    private Date date_modified;
+    @Column(name = "postid") // Mapping Java 'postId' to DB 'postid' (lowercase in Postgres)
+    private String postId;
+
+    @Column(name = "datecreated")
+    private Date dateCreated;
+
+    @Column(name = "datemodified")
+    private Date dateModified;
+
     private String description;
 
-    @ElementCollection
+    @Convert(converter = StringListConverter.class)
     private List<String> photos;
 
     private double weight;
@@ -25,9 +32,16 @@ public class Post {
     private String type;
     private String season;
     private boolean edible;
-    private String flowering_season;
-    private Date harvest_date;
+
+    @Column(name = "floweringseason")
+    private String floweringSeason;
+
+    @Column(name = "harvestdate")
+    private Date harvestDate;
+
     private double price;
     private String status;
+
+    @Column(name = "clientid") // Mapping Java 'clientId' to DB 'clientid'
     private String clientId;
 }

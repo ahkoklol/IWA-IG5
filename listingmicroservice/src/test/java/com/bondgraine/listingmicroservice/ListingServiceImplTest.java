@@ -5,14 +5,17 @@ import com.bondgraine.listingmicroservice.grpc.BuyPostRequest;
 import com.bondgraine.listingmicroservice.grpc.BuyPostResponse;
 import com.bondgraine.listingmicroservice.service.ListingServiceImpl;
 import com.bondgraine.listingmicroservice.service.PostService;
+import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -23,6 +26,9 @@ class ListingServiceImplTest {
 
     @InjectMocks
     private ListingServiceImpl listingServiceImpl;
+
+    @Mock
+    private StreamObserver<BuyPostResponse> responseObserver;
 
     private static final String POST_ID = "testpostid";
     private BuyPostRequest buyPostRequest;
@@ -41,9 +47,14 @@ class ListingServiceImplTest {
 
         when(postService.buyPost(POST_ID)).thenReturn(soldPost);
 
-        BuyPostResponse response = listingServiceImpl.buyPost(buyPostRequest);
+        listingServiceImpl.buyPost(buyPostRequest, responseObserver);
 
-        assertTrue(response.getSuccess());
+        ArgumentCaptor<BuyPostResponse> responseCaptor = ArgumentCaptor.forClass(BuyPostResponse.class);
+        verify(responseObserver).onNext(responseCaptor.capture());
+        verify(responseObserver).onCompleted(); // Should always complete successfully
+
+        BuyPostResponse capturedResponse = responseCaptor.getValue();
+        assertTrue(capturedResponse.getSuccess());
     }
 
     @Test
@@ -53,10 +64,15 @@ class ListingServiceImplTest {
 
         when(postService.buyPost(POST_ID)).thenReturn(pendingPost);
 
-        BuyPostResponse response = listingServiceImpl.buyPost(buyPostRequest);
+        listingServiceImpl.buyPost(buyPostRequest, responseObserver);
 
-        assertFalse(response.getSuccess());
-        assertEquals("The post could not be bought, current status: " + "pending",
-                response.getErrorMessage());
+        // ASSERT
+        ArgumentCaptor<BuyPostResponse> responseCaptor = ArgumentCaptor.forClass(BuyPostResponse.class);
+        verify(responseObserver).onNext(responseCaptor.capture());
+        verify(responseObserver).onCompleted(); // Should always complete successfully
+
+        BuyPostResponse capturedResponse = responseCaptor.getValue();
+        assertFalse(capturedResponse.getSuccess());
+        assertEquals("The post could not be bought, current status: pending", capturedResponse.getErrorMessage());
     }
 }

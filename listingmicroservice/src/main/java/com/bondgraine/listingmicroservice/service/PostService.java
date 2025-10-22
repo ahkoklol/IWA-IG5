@@ -54,7 +54,7 @@ public class PostService {
 
         // Set service-managed fields only if a change occurred
         if (applyUpdates(existingPost, post)) {
-            existingPost.setDate_modified(new Date());
+            existingPost.setDateModified(new Date());
             log.info("Updated post: {}", existingPost);
             return postRepository.save(existingPost);
         }
@@ -77,10 +77,11 @@ public class PostService {
             existingPost.setDescription(post.getDescription());
             updated = true;
         }
+        /*
         if (post.getPhotos() != null && !post.getPhotos().equals(existingPost.getPhotos())) {
             existingPost.setPhotos(post.getPhotos());
             updated = true;
-        }
+        }*/
         if (post.getWeight() != existingPost.getWeight()) {
             existingPost.setWeight(post.getWeight());
             updated = true;
@@ -101,12 +102,12 @@ public class PostService {
             existingPost.setSeason(post.getSeason());
             updated = true;
         }
-        if (!Objects.equals(post.getFlowering_season(), existingPost.getFlowering_season())) {
-            existingPost.setFlowering_season(post.getFlowering_season());
+        if (!Objects.equals(post.getFloweringSeason(), existingPost.getFloweringSeason())) {
+            existingPost.setFloweringSeason(post.getFloweringSeason());
             updated = true;
         }
-        if (post.getHarvest_date() != existingPost.getHarvest_date()) {
-            existingPost.setHarvest_date(post.getHarvest_date());
+        if (post.getHarvestDate() != existingPost.getHarvestDate()) {
+            existingPost.setHarvestDate(post.getHarvestDate());
             updated = true;
         }
         if (post.isEdible() != existingPost.isEdible()) {
@@ -122,7 +123,7 @@ public class PostService {
      * @return the created Post object
      */
     public Post createPost(Post post) {
-        post.setPost_id(UUID.randomUUID().toString());
+        post.setPostId(UUID.randomUUID().toString());
         return postRepository.save(post);
     }
 
@@ -135,7 +136,7 @@ public class PostService {
         Optional<Post> optionalPost = getPostById(postId);
         return optionalPost.map(post -> {
             post.setStatus("hidden");
-            post.setDate_modified(new Date()); // Update modification timestamp
+            post.setDateModified(new Date()); // Update modification timestamp
             postRepository.save(post);
             return true;
         }).orElse(false);
@@ -150,7 +151,7 @@ public class PostService {
         Optional<Post> optionalPost = getPostById(postId);
         return optionalPost.map(post -> {
             post.setStatus("visible");
-            post.setDate_modified(new Date()); // Update modification timestamp
+            post.setDateModified(new Date()); // Update modification timestamp
             postRepository.save(post);
             return true;
         }).orElse(false);

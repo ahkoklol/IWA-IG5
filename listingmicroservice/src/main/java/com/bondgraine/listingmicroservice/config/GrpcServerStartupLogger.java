@@ -1,4 +1,4 @@
-package com.bondgraine.listingmicroservice.config;
+/*package com.bondgraine.listingmicroservice.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,4 +22,4 @@ public class GrpcServerStartupLogger implements ApplicationListener<ContextRefre
         // This log executes after the Spring application context has successfully started.
         log.info("gRPC Server Started Successfully and is listening on port: {}", grpcPort);
     }
-}
+}*/
