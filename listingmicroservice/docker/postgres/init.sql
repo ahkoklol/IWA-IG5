@@ -16,25 +16,9 @@ CREATE TABLE IF NOT EXISTS post (
     clientId VARCHAR(100)
     );
 
-CREATE TABLE IF NOT EXISTS favourite (
-    -- Primary Key components (Composite Key)
-    clientId VARCHAR(100) NOT NULL,
-    postId VARCHAR(100) NOT NULL,
-
-    -- Additional Field
-    date TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    -- Define the Composite Primary Key
-    PRIMARY KEY (clientId, postId),
-
-    -- Define Foreign Key to the local 'post' table
-    -- This enforces data integrity for local posts
-    FOREIGN KEY (postId) REFERENCES post (postId) ON DELETE CASCADE
-);
-
 INSERT INTO post (
-    "postId", "dateCreated", "dateModified", "description", "photos", "weight", "quantity", "type",
-    "season", "edible", "floweringSeason", "harvestDate", "price", "status", "clientId"
+    postId, dateCreated, dateModified, description, photos, weight, quantity, type,
+    season, edible, floweringSeason, harvestDate, price, status, clientId
 ) VALUES
       (
           'post001',
@@ -50,7 +34,7 @@ INSERT INTO post (
           'June-July',
           '2025-07-15',
           12.99,
-          'Available',
+          'visible',
           'client001'
       ),
       (
@@ -64,9 +48,25 @@ INSERT INTO post (
           'Furniture',
           'All Seasons',
           FALSE,
-          June-July,
+          'June-July',
           '2025-07-15',
           79.99,
-          'Available',
+          'visible',
           'client002'
       );
+
+CREATE TABLE IF NOT EXISTS favourite (
+    -- Primary Key components (Composite Key)
+                                         clientId VARCHAR(100) NOT NULL,
+    postId VARCHAR(100) NOT NULL,
+
+    -- Additional Field
+    date TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- Define the Composite Primary Key
+    PRIMARY KEY (clientId, postId),
+
+    -- Define Foreign Key to the local 'post' table
+    -- This enforces data integrity for local posts
+    FOREIGN KEY (postId) REFERENCES post (postId) ON DELETE CASCADE
+    );
