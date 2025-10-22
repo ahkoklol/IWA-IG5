@@ -126,8 +126,30 @@ public class PostService {
      * @return the created Post object
      */
     public Post createPost(Post post) {
+        if (!checkCreatePostContent(post)) {
+            throw new IllegalArgumentException("Some fields are missing");
+        }
         post.setPostId(UUID.randomUUID().toString());
+        Date now = new Date();
+        post.setDateCreated(now);
+        post.setDateModified(now);
+        post.setStatus("visible");
         return postRepository.save(post);
+    }
+
+    boolean checkCreatePostContent(Post post) {
+        if (post.getDescription() == null || post.getDescription().isEmpty()) return false;
+        if (post.getPhotos() == null || post.getPhotos().isEmpty()) return false;
+        if (post.getType() == null || post.getType().isEmpty()) return false;
+        if (post.getSeason() == null || post.getSeason().isEmpty()) return false;
+        if (post.getFloweringSeason() == null || post.getFloweringSeason().isEmpty()) return false;
+        if (post.getHarvestDate() == null) return false;
+        if (post.getStatus() == null || post.getStatus().isEmpty()) return false;
+        if (post.getClientId() == null || post.getClientId().isEmpty()) return false;
+        if (post.getWeight() <= 0.0) return false;
+        if (post.getPrice() <= 0.0) return false;
+        if (post.getQuantity() <= 0) return false;
+        return true;
     }
 
     /**
@@ -137,12 +159,20 @@ public class PostService {
      */
     public boolean hidePost(String postId) {
         Optional<Post> optionalPost = getPostById(postId);
-        return optionalPost.map(post -> {
-            post.setStatus("hidden");
-            post.setDateModified(new Date()); // Update modification timestamp
-            postRepository.save(post);
-            return true;
-        }).orElse(false);
+        if (optionalPost.isEmpty()) {
+            log.error("No post found with id: {}", postId);
+            return false;
+        }
+        Post post = optionalPost.get();
+        if (!post.getStatus().equals("visible")) {
+            log.error("Post {} is already hidden or sold", postId);
+            return false;
+        }
+        post.setStatus("hidden");
+        post.setDateModified(new Date());
+        postRepository.save(post);
+        log.info("Post {} successfully hidden", postId);
+        return true;
     }
 
     /**
@@ -152,12 +182,20 @@ public class PostService {
      */
     public boolean unhidePost(String postId) {
         Optional<Post> optionalPost = getPostById(postId);
-        return optionalPost.map(post -> {
-            post.setStatus("visible");
-            post.setDateModified(new Date()); // Update modification timestamp
-            postRepository.save(post);
-            return true;
-        }).orElse(false);
+        if (optionalPost.isEmpty()) {
+            log.error("No post found with id: {}", postId);
+            return false;
+        }
+        Post post = optionalPost.get();
+        if (!post.getStatus().equals("hidden")) {
+            log.error("Post {} is already visible or sold", postId);
+            return false;
+        }
+        post.setStatus("visible");
+        post.setDateModified(new Date());
+        postRepository.save(post);
+        log.info("Post {} successfully unhidden", postId);
+        return true;
     }
 
     /**
@@ -169,11 +207,12 @@ public class PostService {
     public boolean favourite(String postId, String clientId) {
         Optional<Post> post = getPostById(postId);
         if (post.isEmpty()) {
+            log.error("Post not found with ID: " + postId);
             throw new NoSuchElementException("Post not found with ID: " + postId);
         }
-
         boolean exists = favouriteRepository.existsByIdPostIdAndIdClientId(postId, clientId);
         if (exists) {
+            log.error("Post {} is already in favourite", postId);
             return false;
         }
         Favourite favourite = new Favourite();
@@ -193,11 +232,12 @@ public class PostService {
     public boolean unfavourite(String postId, String clientId) {
         Optional<Post> post = getPostById(postId);
         if (post.isEmpty()) {
+            log.error("Post not found with ID: " + postId);
             throw new NoSuchElementException("Post not found with ID: " + postId);
         }
-
         boolean exists = favouriteRepository.existsByIdPostIdAndIdClientId(postId, clientId);
         if (!exists) {
+            log.error("Post {} is not in favourite", postId);
             return false;
         }
         Favourite favourite = new Favourite();
@@ -237,9 +277,11 @@ public class PostService {
     public Post buyPost(String postId) {
         Optional<Post> post = getPostById(postId);
         if (post.isEmpty()) {
+            log.error("Post not found with ID: " + postId);
             throw new NoSuchElementException("Post not found with ID: " + postId);
         }
         if (!post.get().getStatus().equals("visible")) {
+            log.error("Post {} is not visible", postId);
             throw new IllegalStateException("Post with ID: " + postId + " cannot be purchased. Current status is: " + post.get().getStatus());
         }
         post.get().setStatus("sold");
