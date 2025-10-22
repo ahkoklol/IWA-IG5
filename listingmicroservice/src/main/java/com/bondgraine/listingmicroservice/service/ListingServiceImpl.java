@@ -13,11 +13,6 @@ import io.grpc.StatusRuntimeException;
 
 /**
  * gRPC Service implementation that handles requests for buying posts.
- * It extends the generated ImplBase class and uses the required StreamObserver pattern.
- *
- * NOTE: The implementation now correctly overrides the method defined in the
- * generated ListingServiceGrpc.AsyncService interface, which is the
- * standard gRPC asynchronous signature.
  */
 @GrpcService
 public class ListingServiceImpl extends ListingServiceGrpc.ListingServiceImplBase {
@@ -32,23 +27,17 @@ public class ListingServiceImpl extends ListingServiceGrpc.ListingServiceImplBas
 
     /**
      * Implements the unary gRPC method to handle the purchase of a post.
-     * This method signature is required to correctly implement the AsyncService contract.
-     *
      * @param request The BuyPostRequest containing the postId.
      * @param responseObserver The observer used to send the response back to the client.
      */
-    // The @Override annotation works here because we are overriding the default method
-    // defined in the AsyncService interface (which ListingServiceImplBase implements).
     @Override
     public void buyPost(BuyPostRequest request, StreamObserver<BuyPostResponse> responseObserver) {
         log.info("Received buyPost request for postId: {}", request.getPostId());
-
         BuyPostResponse response;
+
         try {
-            // 1. Execute business logic to attempt the purchase
             Post post = postService.buyPost(request.getPostId());
 
-            // 2. Build the appropriate response message
             if (post.getStatus().equals("sold")) {
                 log.info("Post {} sold successfully.", request.getPostId());
                 response = BuyPostResponse.newBuilder()
@@ -62,13 +51,11 @@ public class ListingServiceImpl extends ListingServiceGrpc.ListingServiceImplBas
                         .build();
             }
 
-            // 3. Send the response and signal completion
             responseObserver.onNext(response);
             responseObserver.onCompleted();
 
         } catch (Exception e) {
             log.error("Error processing buyPost request for postId: {}", request.getPostId(), e);
-            // In case of an exception, send an error status to the client
             responseObserver.onError(e);
         }
     }

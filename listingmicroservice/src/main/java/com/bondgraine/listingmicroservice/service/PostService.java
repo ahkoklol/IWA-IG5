@@ -44,12 +44,16 @@ public class PostService {
     public Post updatePost(String postId, Post post) {
 
         Post existingPost = postRepository.findById(postId)
-                // If not found, return null as per your constraint
                 .orElse(null);
 
         if (existingPost == null) {
             log.warn("No post found with id: {}", postId);
-            return null;
+            throw new NoSuchElementException("Post not found with ID: " + postId);
+        }
+
+        if (post.getPostId() != null) {
+            log.warn("Illegal to update post_id");
+            throw new IllegalArgumentException("Post ID cannot be modified during an update operation.");
         }
 
         // Set service-managed fields only if a change occurred
@@ -77,11 +81,10 @@ public class PostService {
             existingPost.setDescription(post.getDescription());
             updated = true;
         }
-        /*
         if (post.getPhotos() != null && !post.getPhotos().equals(existingPost.getPhotos())) {
             existingPost.setPhotos(post.getPhotos());
             updated = true;
-        }*/
+        }
         if (post.getWeight() != existingPost.getWeight()) {
             existingPost.setWeight(post.getWeight());
             updated = true;

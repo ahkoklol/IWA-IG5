@@ -13,13 +13,13 @@ import java.util.List;
 public class Post {
 
     @Id
-    @Column(name = "postId") // Mapping Java 'postId' to DB 'postid' (lowercase in Postgres)
+    @Column(name = "post_id")
     private String postId;
 
-    @Column(name = "dateCreated")
+    @Column(name = "date_created")
     private Date dateCreated;
 
-    @Column(name = "dateModified")
+    @Column(name = "date_modified")
     private Date dateModified;
 
     private String description;
@@ -33,15 +33,15 @@ public class Post {
     private String season;
     private boolean edible;
 
-    @Column(name = "floweringSeason")
+    @Column(name = "flowering_season")
     private String floweringSeason;
 
-    @Column(name = "harvestDate")
+    @Column(name = "harvest_date")
     private Date harvestDate;
 
     private double price;
     private String status;
 
-    @Column(name = "clientId") // Mapping Java 'clientId' to DB 'clientid'
+    @Column(name = "client_id")
     private String clientId;
 }

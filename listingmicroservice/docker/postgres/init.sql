@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS post (
-    postId VARCHAR(100) PRIMARY KEY,
-    dateCreated DATE NOT NULL DEFAULT CURRENT_DATE,
-    dateModified DATE,
+    post_id VARCHAR(100) PRIMARY KEY,
+    date_created DATE NOT NULL DEFAULT CURRENT_DATE,
+    date_modified DATE,
     description VARCHAR(500),
     photos TEXT,
     weight DOUBLE PRECISION,
@@ -9,16 +9,16 @@ CREATE TABLE IF NOT EXISTS post (
     type VARCHAR(100),
     season VARCHAR(50),
     edible BOOLEAN,
-    floweringSeason VARCHAR(100),
-    harvestDate DATE,
+    flowering_season VARCHAR(100),
+    harvest_date DATE,
     price DOUBLE PRECISION,
     status VARCHAR(50),
-    clientId VARCHAR(100)
+    client_id VARCHAR(100)
     );
 
 INSERT INTO post (
-    postId, dateCreated, dateModified, description, photos, weight, quantity, type,
-    season, edible, floweringSeason, harvestDate, price, status, clientId
+    post_id, date_created, date_modified, description, photos, weight, quantity, type,
+    season, edible, flowering_season, harvest_date, price, status, client_id
 ) VALUES
       (
           'post001',
