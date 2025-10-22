@@ -144,7 +144,6 @@ public class PostService {
         if (post.getSeason() == null || post.getSeason().isEmpty()) return false;
         if (post.getFloweringSeason() == null || post.getFloweringSeason().isEmpty()) return false;
         if (post.getHarvestDate() == null) return false;
-        if (post.getStatus() == null || post.getStatus().isEmpty()) return false;
         if (post.getClientId() == null || post.getClientId().isEmpty()) return false;
         if (post.getWeight() <= 0.0) return false;
         if (post.getPrice() <= 0.0) return false;
@@ -161,12 +160,12 @@ public class PostService {
         Optional<Post> optionalPost = getPostById(postId);
         if (optionalPost.isEmpty()) {
             log.error("No post found with id: {}", postId);
-            return false;
+            throw new NoSuchElementException("Post not found with ID: " + postId);
         }
         Post post = optionalPost.get();
         if (!post.getStatus().equals("visible")) {
             log.error("Post {} is already hidden or sold", postId);
-            return false;
+            throw new IllegalStateException("Post with id " + postId + "cannot be hidden, status is {}" + post.getStatus());
         }
         post.setStatus("hidden");
         post.setDateModified(new Date());
@@ -184,12 +183,12 @@ public class PostService {
         Optional<Post> optionalPost = getPostById(postId);
         if (optionalPost.isEmpty()) {
             log.error("No post found with id: {}", postId);
-            return false;
+            throw new NoSuchElementException("Post not found with ID: " + postId);
         }
         Post post = optionalPost.get();
         if (!post.getStatus().equals("hidden")) {
             log.error("Post {} is already visible or sold", postId);
-            return false;
+            throw new IllegalStateException("Post with id " + postId + "cannot be unhidden, status is {}" + post.getStatus());
         }
         post.setStatus("visible");
         post.setDateModified(new Date());
@@ -213,7 +212,8 @@ public class PostService {
         boolean exists = favouriteRepository.existsByIdPostIdAndIdClientId(postId, clientId);
         if (exists) {
             log.error("Post {} is already in favourite", postId);
-            return false;
+            throw new IllegalStateException("Post with id " + postId + "cannot be favored, status is {}" + post.get().getStatus());
+
         }
         Favourite favourite = new Favourite();
         favourite.setId(new FavouriteId(postId, clientId));
@@ -238,7 +238,7 @@ public class PostService {
         boolean exists = favouriteRepository.existsByIdPostIdAndIdClientId(postId, clientId);
         if (!exists) {
             log.error("Post {} is not in favourite", postId);
-            return false;
+            throw new IllegalStateException("Post with id " + postId + "cannot be unfavored, status is {}" + post.get().getStatus());
         }
         Favourite favourite = new Favourite();
         favourite.setId(new FavouriteId(postId, clientId));

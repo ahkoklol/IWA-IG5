@@ -9,10 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -72,16 +69,19 @@ public class PostServiceTest extends PostgresTestcontainer {
     }
 
     @Test
-    void testCreatePost() {
+    void testCreatePost_AllFieldsValid() {
         Post newPost = new Post();
-        newPost.setPostId("createPostId");
         newPost.setDescription("description");
+        newPost.setPhotos(new ArrayList<>()); // Initialize if null
+        newPost.getPhotos().add("photo1");
+        newPost.setSeason("season");
+        newPost.setFloweringSeason("floweringSeason");
+        newPost.setHarvestDate(new Date());
         newPost.setWeight(1.0);
         newPost.setQuantity(1);
         newPost.setPrice(10.0);
         newPost.setType("Test");
         newPost.setEdible(true);
-        newPost.setStatus("visible"); // Set the specific status
         newPost.setClientId(defaultClientId);
         newPost.setDateCreated(new Date());
 
@@ -90,6 +90,16 @@ public class PostServiceTest extends PostgresTestcontainer {
 
         assertThat(fetchedPost).isPresent();
         assertThat(fetchedPost.get().getClientId()).isEqualTo(defaultClientId);
+    }
+
+    @Test
+    void testCreatePost_FieldsMissing() {
+        Post newPost = new Post();
+        newPost.setDescription("description");
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> postService.createPost(newPost)
+        );
     }
 
     @Test
