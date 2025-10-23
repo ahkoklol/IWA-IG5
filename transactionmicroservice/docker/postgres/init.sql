@@ -1,6 +1,6 @@
 CREATE TABLE transaction (
                              transaction_id VARCHAR(255) PRIMARY KEY,
-                             date DATE NOT NULL DEFAULT CURRENT_DATE,,
+                             date DATE NOT NULL DEFAULT CURRENT_DATE,
                              status VARCHAR(50) NOT NULL,
                              commission DOUBLE PRECISION NOT NULL,
                              stripe_commission DOUBLE PRECISION NOT NULL,
