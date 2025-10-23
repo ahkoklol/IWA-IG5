@@ -4,12 +4,12 @@ import com.bondgraine.listingmicroservice.entity.Post;
 import com.bondgraine.listingmicroservice.grpc.BuyPostRequest;
 import com.bondgraine.listingmicroservice.grpc.BuyPostResponse;
 import com.bondgraine.listingmicroservice.grpc.ListingServiceGrpc;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.grpc.server.service.GrpcService;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 
 /**
  * gRPC Service implementation that handles requests for buying posts.

@@ -51,7 +51,7 @@ class ListingServiceImplTest {
 
         ArgumentCaptor<BuyPostResponse> responseCaptor = ArgumentCaptor.forClass(BuyPostResponse.class);
         verify(responseObserver).onNext(responseCaptor.capture());
-        verify(responseObserver).onCompleted(); // Should always complete successfully
+        verify(responseObserver).onCompleted();
 
         BuyPostResponse capturedResponse = responseCaptor.getValue();
         assertTrue(capturedResponse.getSuccess());
@@ -66,10 +66,9 @@ class ListingServiceImplTest {
 
         listingServiceImpl.buyPost(buyPostRequest, responseObserver);
 
-        // ASSERT
         ArgumentCaptor<BuyPostResponse> responseCaptor = ArgumentCaptor.forClass(BuyPostResponse.class);
         verify(responseObserver).onNext(responseCaptor.capture());
-        verify(responseObserver).onCompleted(); // Should always complete successfully
+        verify(responseObserver).onCompleted();
 
         BuyPostResponse capturedResponse = responseCaptor.getValue();
         assertFalse(capturedResponse.getSuccess());

@@ -5,8 +5,8 @@ import com.bondgraine.listingmicroservice.repository.FavouriteRepository;
 import com.bondgraine.listingmicroservice.repository.PostRepository;
 import com.bondgraine.listingmicroservice.service.PostService;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
