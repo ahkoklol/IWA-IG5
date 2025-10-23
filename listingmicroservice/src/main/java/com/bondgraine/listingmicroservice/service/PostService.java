@@ -47,12 +47,12 @@ public class PostService {
                 .orElse(null);
 
         if (existingPost == null) {
-            log.warn("No post found with id: {}", postId);
+            log.error("No post found with id: {}", postId);
             throw new NoSuchElementException("Post not found with ID: " + postId);
         }
 
         if (post.getPostId() != null) {
-            log.warn("Illegal to update post_id");
+            log.error("Illegal to update post_id");
             throw new IllegalArgumentException("Post ID cannot be modified during an update operation.");
         }
 
@@ -188,7 +188,7 @@ public class PostService {
         Post post = optionalPost.get();
         if (!post.getStatus().equals("hidden")) {
             log.error("Post {} is already visible or sold", postId);
-            throw new IllegalStateException("Post with id " + postId + "cannot be unhidden, status is {}" + post.getStatus());
+            throw new IllegalStateException("Post with id " + postId + "cannot be unhidden, status is " + post.getStatus());
         }
         post.setStatus("visible");
         post.setDateModified(new Date());

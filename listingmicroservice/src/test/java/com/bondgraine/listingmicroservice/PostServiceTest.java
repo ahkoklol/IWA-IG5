@@ -83,17 +83,18 @@ public class PostServiceTest extends PostgresTestcontainer {
         newPost.setType("Test");
         newPost.setEdible(true);
         newPost.setClientId(defaultClientId);
-        newPost.setDateCreated(new Date());
 
         Post createdPost = postService.createPost(newPost);
         Optional<Post> fetchedPost = postService.getPostById(createdPost.getPostId());
 
         assertThat(fetchedPost).isPresent();
+        assertThat(fetchedPost.get().getStatus()).isEqualTo("visible");
+        assertThat(fetchedPost.get().getDateCreated()).isEqualTo(fetchedPost.get().getDateModified());
         assertThat(fetchedPost.get().getClientId()).isEqualTo(defaultClientId);
     }
 
     @Test
-    void testCreatePost_FieldsMissing() {
+    void testCreatePost_FieldsMissing_ThrowsIllegalArgumentException() {
         Post newPost = new Post();
         newPost.setDescription("description");
         assertThrows(
@@ -112,6 +113,16 @@ public class PostServiceTest extends PostgresTestcontainer {
     }
 
     @Test
+    void testUpdatePost_PostNotFound_ThrowsNoSuchElementException() {
+        Post update = new Post();
+        update.setPrice(99.99);
+        assertThrows(
+                NoSuchElementException.class,
+                () -> postService.updatePost("fakeid", update)
+        );
+    }
+
+    @Test
     void testUpdatePost_Successful() {
         Post updateData = new Post();
         updateData.setDescription("New Updated Description");
@@ -120,6 +131,7 @@ public class PostServiceTest extends PostgresTestcontainer {
         Post updatedPost = postService.updatePost(defaultPostId, updateData);
 
         assertThat(updatedPost).isNotNull();
+        assertThat(updatedPost.getDateCreated() != updatedPost.getDateModified()).isTrue();
         assertThat(updatedPost.getDescription()).isEqualTo("New Updated Description");
         assertThat(updatedPost.getPrice()).isEqualTo(99.99);
     }
@@ -131,6 +143,52 @@ public class PostServiceTest extends PostgresTestcontainer {
 
         assertThat(hidden).isTrue();
         assertThat(postAfterHide.getStatus()).isEqualTo("hidden");
+        assertThat(postAfterHide.getDateModified() != postAfterHide.getDateCreated()).isTrue();
+    }
+
+    @Test
+    void testHidePost_PostNotFound_ThrowsNoSuchElementException() {
+        assertThrows(
+                NoSuchElementException.class,
+                () -> postService.hidePost("fakeid")
+        );
+    }
+
+    @Test
+    void testHidePost_WrongStatus_ThrowsIllegalStateException() {
+        postService.hidePost(defaultPostId);
+        assertThrows(
+                IllegalStateException.class,
+                () -> postService.hidePost(defaultPostId)
+        );
+    }
+
+    @Test
+    void testUnhidePost_ChangesStatus() {
+        postService.hidePost(defaultPostId);
+        boolean unhidden = postService.unhidePost(defaultPostId);
+        Post postAfterHide = postService.getPostById(defaultPostId).orElseThrow();
+
+        assertThat(unhidden).isTrue();
+        assertThat(postAfterHide.getStatus()).isEqualTo("visible");
+        assertThat(postAfterHide.getDateModified() != postAfterHide.getDateCreated()).isTrue();
+    }
+
+    @Test
+    void testUnhidePost_PostNotFound_ThrowsNoSuchElementException() {
+        postService.hidePost(defaultPostId);
+        assertThrows(
+                NoSuchElementException.class,
+                () -> postService.unhidePost("fakeid")
+        );
+    }
+
+    @Test
+    void testUnhidePost_WrongStatus_ThrowsIllegalStateException() {
+        assertThrows(
+                IllegalStateException.class,
+                () -> postService.unhidePost(defaultPostId)
+        );
     }
 
     @Test
@@ -145,7 +203,7 @@ public class PostServiceTest extends PostgresTestcontainer {
     }
 
     @Test
-    void testFavourite_PostNotFound_ThrowsException() {
+    void testFavourite_PostNotFound_ThrowsNoSuchElementException() {
         String nonExistentPostId = "non-existent-id";
         String clientId = "fan2";
 
@@ -155,16 +213,47 @@ public class PostServiceTest extends PostgresTestcontainer {
     }
 
     @Test
-    void testFavourite_AlreadyExists_ReturnsFalse() {
+    void testFavourite_AlreadyExists_ThrowsIllegalStateException() {
         String postId = defaultPostId;
         String clientId = "fan3";
 
         postService.favourite(postId, clientId);
-        boolean result = postService.favourite(postId, clientId); // Attempt to favourite again
 
-        assertThat(result).isFalse();
-        // Verify only one entry exists (not strictly necessary but confirms logic)
-        assertThat(favouriteRepository.count()).isEqualTo(1);
+        assertThrows(IllegalStateException.class, () -> {
+            postService.favourite(postId, clientId); // Attempt to favourite again
+        });
+    }
+
+    @Test
+    void testIUnfavourite_Successful() {
+        String postId = defaultPostId;
+        String clientId = "fan1";
+
+        postService.favourite(postId, clientId);
+        boolean result = postService.unfavourite(postId, clientId);
+
+        assertThat(result).isTrue();
+        assertThat(favouriteRepository.existsByIdPostIdAndIdClientId(postId, clientId)).isFalse();
+    }
+
+    @Test
+    void testUnfavourite_PostNotFound_ThrowsNoSuchElementException() {
+        String nonExistentPostId = "non-existent-id";
+        String clientId = "fan2";
+
+        assertThrows(NoSuchElementException.class, () -> {
+            postService.unfavourite(nonExistentPostId, clientId);
+        });
+    }
+
+    @Test
+    void testUnfavourite_PostNotInFavourite_ThrowsIllegalStateException() {
+        String postId = defaultPostId;
+        String clientId = "fan3";
+
+        assertThrows(IllegalStateException.class, () -> {
+            postService.unfavourite(postId, clientId);
+        });
     }
 
     @Test
