@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Transactional
 public class TransactionServiceTest extends PostgresTestcontainer { // Assuming PostgresTestcontainer is correctly set up
@@ -30,16 +31,15 @@ public class TransactionServiceTest extends PostgresTestcontainer { // Assuming 
      * Helper method to create a base Transaction object.
      * @param transactionId The ID for the transaction.
      * @param clientId The ID of the buyer.
-     * @param status The status of the transaction.
      * @return A new Transaction object.
      */
-    private Transaction createBaseTransaction(String transactionId, String clientId, String status) {
+    private Transaction createBaseTransaction(String transactionId, String clientId) {
         Transaction transaction = new Transaction();
-        transaction.setTransaction_id(transactionId);
+        transaction.setTransactionId(transactionId);
         transaction.setDate(new Date());
-        transaction.setStatus(status);
+        transaction.setStatus("pending");
         transaction.setCommission(1.50);
-        transaction.setStripe_commission(0.50);
+        transaction.setStripeCommission(0.50);
         transaction.setClientId(clientId);
         transaction.setPostId("POST-" + transactionId.substring(4));
         return transaction;
@@ -49,32 +49,39 @@ public class TransactionServiceTest extends PostgresTestcontainer { // Assuming 
     void setUp() {
         transactionRepository.deleteAll(); // Ensure a clean slate before each test
 
-        Transaction completed = createBaseTransaction("TRX-COMP-001", defaultBuyerId, "COMPLETED");
-        this.completedTransaction = transactionRepository.save(completed);
+        Transaction transaction = createBaseTransaction("TRX-COMP-001", defaultBuyerId);
+        this.completedTransaction = transactionRepository.save(transaction);
 
-        Transaction otherBuyerCompleted = createBaseTransaction("TRX-COMP-003", otherBuyerId, "COMPLETED");
-        transactionRepository.save(otherBuyerCompleted);
+        Transaction otherTransaction = createBaseTransaction("TRX-COMP-003", otherBuyerId);
+        transactionRepository.save(otherTransaction);
     }
-
-    //-------------------------------------------------------------------------
-    //                              purchase Tests
-    //-------------------------------------------------------------------------
 
     @Test
     void testPurchase_Successful() {
-        Transaction newTransactionData = createBaseTransaction("newTransaction", defaultBuyerId, "COMPLETED");
+        Transaction newTransactionData = createBaseTransaction("newTransaction", defaultBuyerId);
 
         Transaction createdTransaction = transactionService.purchase(newTransactionData);
 
         assertThat(createdTransaction).isNotNull();
-        assertThat(createdTransaction.getTransaction_id()).isNotNull();
+        assertThat(createdTransaction.getTransactionId()).isNotNull();
         assertThat(createdTransaction.getDate()).isNotNull();
+        assertThat(createdTransaction.getStatus().equals("completed")).isTrue();
 
-        Transaction fetchedTransaction = transactionRepository.findById(createdTransaction.getTransaction_id()).orElse(null);
+        Transaction fetchedTransaction = transactionRepository.findById(createdTransaction.getTransactionId()).orElse(null);
 
         assertThat(fetchedTransaction).isNotNull();
         assertThat(fetchedTransaction.getClientId()).isEqualTo("BUYER-123");
         assertThat(fetchedTransaction.getCommission()).isEqualTo(1.5);
+    }
+
+    @Test
+    void testPurchase_MissingFields_ThrowsIllegalArgumentException() {
+        Transaction transaction = new Transaction();
+        transaction.setClientId(defaultBuyerId);
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> transactionService.purchase(transaction)
+        );
     }
 
     @Test
@@ -95,8 +102,8 @@ public class TransactionServiceTest extends PostgresTestcontainer { // Assuming 
 
         // Ensure the list contains the specific transaction IDs set up
         assertThat(transactions)
-                .extracting(Transaction::getTransaction_id)
-                .containsExactlyInAnyOrder(completedTransaction.getTransaction_id());
+                .extracting(Transaction::getTransactionId)
+                .containsExactlyInAnyOrder(completedTransaction.getTransactionId());
     }
 
     @Test

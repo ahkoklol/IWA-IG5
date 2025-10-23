@@ -3,7 +3,6 @@ syntax = "proto3";
 package transaction.service;
 
 option java_package = "com.bg.transactionmicroservice.grpc";
-option java_outer_classname = "transactionServiceProto";
 option java_multiple_files = true;
 
 import "service/transaction/purchase_request.proto";

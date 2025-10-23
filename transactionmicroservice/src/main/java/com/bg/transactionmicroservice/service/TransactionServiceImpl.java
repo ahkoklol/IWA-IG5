@@ -25,9 +25,10 @@ public class TransactionServiceImpl extends TransactionServiceGrpc.TransactionSe
     @Override
     public void purchase(PurchaseRequest purchaseRequest, StreamObserver<PurchaseResponse> responseObserver) {
         Transaction transaction = new Transaction();
-        transaction.setStatus("ok");
+        transaction.setStatus("pending");
+        // TODO: remove set commission and stripe commission
         transaction.setCommission(2);
-        transaction.setStripe_commission(3);
+        transaction.setStripeCommission(3);
         transaction.setClientId(purchaseRequest.getClientId());
         transaction.setPostId(purchaseRequest.getPostId());
 

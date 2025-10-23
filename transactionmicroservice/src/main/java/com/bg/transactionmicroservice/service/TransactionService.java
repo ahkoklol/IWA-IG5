@@ -22,9 +22,21 @@ public class TransactionService {
     }
 
     public Transaction purchase(Transaction transaction) {
-        transaction.setTransaction_id(UUID.randomUUID().toString());
+        if (!checkPurchaseTransactionContent(transaction)) {
+            log.error("Invalid purchase transaction content");
+            throw new IllegalArgumentException("Invalid purchase transaction content");
+        }
+        transaction.setTransactionId(UUID.randomUUID().toString());
         transaction.setDate(new Date());
+        transaction.setStatus("completed");
+        // TODO: set commission and set stripe commission
         return transactionRepository.save(transaction);
+    }
+
+    boolean checkPurchaseTransactionContent(Transaction transaction) {
+        if (transaction.getPostId() == null || transaction.getPostId().isEmpty()) return false;
+        if (transaction.getClientId() == null || transaction.getClientId().isEmpty()) return false;
+        return true;
     }
 
     public List<Transaction> getTransactions(String clientId) {

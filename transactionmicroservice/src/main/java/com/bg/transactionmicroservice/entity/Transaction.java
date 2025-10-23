@@ -1,5 +1,6 @@
 package com.bg.transactionmicroservice.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -13,10 +14,13 @@ import java.util.Date;
 public class Transaction {
 
     @Id
+    @Column(name = "transaction_id")
     private String transactionId;
     private Date date;
     private String status;
     private double commission;
+
+    @Column(name = "stripe_commission")
     private double stripeCommission;
     private String clientId; // buyer id
     private String postId;
