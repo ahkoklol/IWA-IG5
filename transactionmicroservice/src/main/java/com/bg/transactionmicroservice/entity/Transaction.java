@@ -13,11 +13,11 @@ import java.util.Date;
 public class Transaction {
 
     @Id
-    private String transaction_id;
+    private String transactionId;
     private Date date;
     private String status;
     private double commission;
-    private double stripe_commission;
+    private double stripeCommission;
     private String clientId; // buyer id
     private String postId;
 
