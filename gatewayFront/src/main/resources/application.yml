@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+          discovery:
+            locator:
+              enabled: true        # active la découverte automatique des routes
+              lower-case-service-id: true
+  config:
+    import: optional:file:./.env
+eureka:
+  client:
+    service-url:
+      defaultZone: http://<EUREKA_HOST>:8761/eureka/

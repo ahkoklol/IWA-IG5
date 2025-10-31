@@ -11,7 +11,7 @@ import org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctio
 @Configuration
 public class AuthServiceRoutes extends BaseRoutes {
 
-    @Bean
+    @Bean("authServiceRoutes")
     @Override
     public RouterFunction<ServerResponse> routes() {
         return GatewayRouterFunctions.route("auth_service")

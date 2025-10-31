@@ -12,7 +12,7 @@ import org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctio
 @Configuration
 public class TransactionServiceRoutes extends BaseRoutes {
 
-    @Bean
+    @Bean("transactionServiceRoutes")
     @Override
     public RouterFunction<ServerResponse> routes() {
         return GatewayRouterFunctions.route("transaction_service")

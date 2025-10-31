@@ -12,7 +12,7 @@ import org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctio
 @Configuration
 public class ReportingServiceRoutes extends BaseRoutes {
 
-    @Bean
+    @Bean("reportingServiceRoutes")
     @Override
     public RouterFunction<ServerResponse> routes() {
         return GatewayRouterFunctions.route("reporting_service")
