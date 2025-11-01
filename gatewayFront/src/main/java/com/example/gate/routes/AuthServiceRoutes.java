@@ -9,10 +9,9 @@ import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions;
 import org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions;
 
 @Configuration
-public class AuthServiceRoutes extends BaseRoutes {
+public class AuthServiceRoutes implements BaseRoutes{
 
-    @Bean("authServiceRoutes")
-    @Override
+    @Bean("authServiceRoutesBean")
     public RouterFunction<ServerResponse> routes() {
         return GatewayRouterFunctions.route("auth_service")
                 .route(RequestPredicates.path("/auth/**"),

@@ -10,9 +10,9 @@ import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions;
 import org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions;
 
 @Configuration
-public class TransactionServiceRoutes extends BaseRoutes {
+public class TransactionServiceRoutes implements BaseRoutes {
 
-    @Bean("transactionServiceRoutes")
+    @Bean("transactionServiceRoutesBean")
     @Override
     public RouterFunction<ServerResponse> routes() {
         return GatewayRouterFunctions.route("transaction_service")

@@ -10,9 +10,9 @@ import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions;
 import org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions;
 
 @Configuration
-public class ClientServiceRoutes extends BaseRoutes {
+public class ClientServiceRoutes implements BaseRoutes {
 
-    @Bean("clientServiceRoutes")
+    @Bean("clientServiceRoutesBean")
     @Override
     public RouterFunction<ServerResponse> routes() {
         return GatewayRouterFunctions.route("user_service")
