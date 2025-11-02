@@ -10,9 +10,11 @@ service MediaService {
 message UploadRequest {
   bytes image = 1;
   string filename = 2;
+  string content_type = 3;
 }
 
 message UploadResponse {
   string url = 1;
   string message = 2;
+  string content_type = 3;
 }

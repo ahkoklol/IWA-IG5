@@ -1,11 +1,8 @@
 package com.micro.media.services;
 
 import com.micro.media.repository.S3bgRepository;
-import com.micro.media.services.AIService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.parsing.AliasDefinition;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,8 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
-
-
 
 @Service
 public class MediaService {
@@ -26,33 +21,30 @@ public class MediaService {
     private AIService aiValidationService;
 
     /**
-     * Fonction principale d'upload et validation
+     * Upload d'image via gRPC (bytes bruts)
      */
-    public String uploadImage(MultipartFile file) {
-        // 1. Validation du fichier
-        validateUploadedFile(file);
+    public String uploadImage(byte[] imageBytes, String originalFilename, String contentType) {
+        // 1. Validation
+        validateImageBytes(imageBytes, contentType);
 
-        // 2. Créer fichier temporaire
-        File tempFile = createTemporaryFile(file);
+        // 2. Fichier temporaire
+        File tempFile = createTemporaryFile(imageBytes, originalFilename);
 
         try {
-            // 3. Générer nom unique
-            //TODO: Récupérer nom de l'utilisateur
-            String uniqueFileName = generateUniqueFileName(file.getOriginalFilename());
+            // 3. Nom unique
+            String uniqueFileName = generateUniqueFileName(originalFilename);
 
-            // 4. Upload vers pending
+            // 4. Upload pending
             String pendingUrl = uploadToPending(tempFile, uniqueFileName);
 
-            // 5. Validation par IA
+            // 5. Validation IA
             AIService.AIServiceResult aiResult = sendImageToAI(tempFile, pendingUrl);
 
-            // 6. Votre validation du résultat IA
+            // 6. Traitement résultat
             boolean isImageApproved = processAIValidationResult(aiResult);
 
-            // 7. Déplacement vers dossier final
-            String finalUrl = moveToFinalDestination(uniqueFileName, isImageApproved);
-
-            return finalUrl;
+            // 7. Destination finale
+            return moveToFinalDestination(uniqueFileName, isImageApproved);
 
         } finally {
             // 8. Nettoyage
@@ -61,58 +53,59 @@ public class MediaService {
     }
 
     /**
-     * Validation du fichier uploadé
+     * Validation des bytes d'image
      */
-    private void validateUploadedFile(MultipartFile file) {
-        if (file.isEmpty()) {
+    private void validateImageBytes(byte[] imageBytes, String contentType) {
+        if (imageBytes == null || imageBytes.length == 0) {
             throw new IllegalArgumentException("Fichier vide");
         }
 
-        // Vérification du type MIME
-        String contentType = file.getContentType();
+        // Type MIME
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("Le fichier doit être une image");
         }
 
-        // Vérification de la taille (max 10MB)
-        long maxSizeBytes = 10 * 1024 * 1024;
-        if (file.getSize() > maxSizeBytes) {
-            throw new IllegalArgumentException("Fichier trop volumineux (max 10MB)");
+        // Formats acceptés uniquement
+        String[] allowedTypes = {"image/png", "image/jpeg", "image/jpg", "image/webp"};
+        boolean isAllowed = false;
+        for (String allowed : allowedTypes) {
+            if (allowed.equalsIgnoreCase(contentType)) {
+                isAllowed = true;
+                break;
+            }
+        }
+        if (!isAllowed) {
+            throw new IllegalArgumentException("Format d'image non supporté. Formats acceptés : PNG, JPEG, JPG, WEBP");
         }
 
-        // Vérification intégrité
-        try {
-            file.getBytes();
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Fichier corrompu", e);
+        // Taille max 10MB
+        long maxSizeBytes = 10 * 1024 * 1024;
+        if (imageBytes.length > maxSizeBytes) {
+            throw new IllegalArgumentException("Fichier trop volumineux (max 10MB)");
         }
     }
 
+
+
     /**
-     * Création du fichier temporaire
+     * Création fichier temporaire depuis bytes
      */
-    private File createTemporaryFile(MultipartFile file) {
+    private File createTemporaryFile(byte[] imageBytes, String originalFilename) {
         try {
             Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
-            Path tempFile = Files.createTempFile(tempDir, "upload_", "_" + file.getOriginalFilename());
-            file.transferTo(tempFile.toFile());
+            Path tempFile = Files.createTempFile(tempDir, "upload_", "_" + originalFilename);
+            Files.write(tempFile, imageBytes);
             return tempFile.toFile();
         } catch (IOException e) {
             throw new RuntimeException("Erreur création fichier temporaire", e);
         }
     }
 
-    /**
-     * Génération d'un nom unique pour le fichier
-     */
     private String generateUniqueFileName(String originalFilename) {
         String extension = extractFileExtension(originalFilename);
         return UUID.randomUUID().toString() + extension;
     }
 
-    /**
-     * Extraction de l'extension du fichier
-     */
     private String extractFileExtension(String filename) {
         if (filename != null && filename.contains(".")) {
             return filename.substring(filename.lastIndexOf("."));
@@ -120,60 +113,29 @@ public class MediaService {
         return "";
     }
 
-    /**
-     * Upload vers le dossier pending
-     */
     private String uploadToPending(File tempFile, String fileName) {
         return s3bgRepository.uploadToPendingFolder(tempFile, fileName);
     }
 
-    /**
-     * Envoi de l'image au service IA
-     */
     private AIService.AIServiceResult sendImageToAI(File imageFile, String imageUrl) {
         return aiValidationService.sendToAIService(imageFile, imageUrl);
     }
 
-    /**
-     * Traitement du résultat de l'IA
-     */
     private boolean processAIValidationResult(AIService.AIServiceResult aiResult) {
         return aiValidationService.validateAIResult(aiResult);
     }
 
-    /**
-     * Déplacement vers le dossier final selon validation
-     */
     private String moveToFinalDestination(String fileName, boolean isApproved) {
-        if (isApproved) {
-            return moveToApproved(fileName);
-        } else {
-            return moveToRejected(fileName);
-        }
+        return isApproved
+                ? s3bgRepository.moveToApprovedFolder(fileName)
+                : s3bgRepository.moveToRejectedFolder(fileName);
     }
 
-    /**
-     * Déplacement vers approved
-     */
-    private String moveToApproved(String fileName) {
-        return s3bgRepository.moveToApprovedFolder(fileName);
-    }
-
-    /**
-     * Déplacement vers rejected
-     */
-    private String moveToRejected(String fileName) {
-        return s3bgRepository.moveToRejectedFolder(fileName);
-    }
-
-    /**
-     * Nettoyage du fichier temporaire
-     */
     private void cleanupTemporaryFile(File tempFile) {
         if (tempFile != null && tempFile.exists()) {
             boolean deleted = tempFile.delete();
             if (!deleted) {
-                System.err.println("Impossible de supprimer le fichier temporaire: " + tempFile.getPath());
+                System.err.println("Impossible de supprimer: " + tempFile.getPath());
             }
         }
     }
