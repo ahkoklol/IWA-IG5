@@ -1,0 +1,18 @@
+syntax = "proto3";
+package media;
+option java_package = "com.micro.media.grpc";
+option java_outer_classname = "MediaProto";
+
+service MediaService {
+  rpc UploadImage(UploadRequest) returns (UploadResponse);
+}
+
+message UploadRequest {
+  bytes image = 1;
+  string filename = 2;
+}
+
+message UploadResponse {
+  string url = 1;
+  string message = 2;
+}
