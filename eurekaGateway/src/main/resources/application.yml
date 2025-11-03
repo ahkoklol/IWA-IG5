@@ -1,6 +1,10 @@
 spring:
   application:
     name: eureka-server
+  security:
+    user:
+      name: ${ADMIN_USERNAME:eurekaadmin}
+      password: ${ADMIN_PASSWORD:eurekapass}
 
 server:
   port: 8761
@@ -11,3 +15,4 @@ eureka:
     fetch-registry: false
   server:
     wait-time-in-ms-when-sync-empty: 0
+    enable-self-preservation: false
