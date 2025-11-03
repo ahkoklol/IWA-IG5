@@ -25,9 +25,9 @@ public class ReportingController {
     }
 
     @PostMapping("/report/{postId}")
-    public ResponseEntity<Void> report(@PathVariable("postId") String postId, @RequestBody Report report) {
-        reportService.report(report);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<Report> report(@PathVariable("postId") String postId, @RequestBody Report report) {
+        Report createdReport = reportService.report(report);
+        return new ResponseEntity<>(createdReport, HttpStatus.OK);
     }
 
     @GetMapping("/report/{postId}")
@@ -44,9 +44,9 @@ public class ReportingController {
     }
 
     @PostMapping("/request/{postId}")
-    public ResponseEntity<Void> request(@PathVariable("postId") String postId, @RequestBody Request request) {
-        requestService.request(request);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<Request> request(@PathVariable("postId") String postId, @RequestBody Request request) {
+        Request createdRequest = requestService.request(request);
+        return new ResponseEntity<>(createdRequest, HttpStatus.OK);
     }
 
     @GetMapping("/request/{postId}")
@@ -61,5 +61,4 @@ public class ReportingController {
         reportService.deleteReport(postId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
 }

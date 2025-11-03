@@ -24,8 +24,9 @@ public class ReportService {
     /**
      * Report a post
      * @param report a Report object
+     * @return a Report object
      */
-    public void report(Report report) {
+    public Report report(Report report) {
         report.setReportId(UUID.randomUUID().toString());
         report.setType(report.getType());
         report.setDate(new Date());
@@ -33,28 +34,28 @@ public class ReportService {
         report.setClientId(report.getClientId());
         report.setPostId(report.getPostId());
 
-        reportRepository.save(report);
+        return reportRepository.save(report);
     }
 
     /**
      * Fetch a report by id
-     * @param reportId the id of the report
+     * @param postId the id of the post
      * @return a Report object or null
      */
-    public Optional<Report> getReport(String reportId) {
-        return reportRepository.findById(reportId);
+    public Optional<Report> getReport(String postId) {
+        return reportRepository.findByPostId(postId);
     }
 
     /**
      * Delete a report
-     * @param reportId id of the report
+     * @param postId id of the post
      */
-    public void deleteReport(String reportId) {
-        Optional<Report> report = reportRepository.findById(reportId);
+    public void deleteReport(String postId) {
+        Optional<Report> report = reportRepository.findById(postId);
         if (report.isEmpty()) {
-            log.error("Report with id {} not found", reportId);
-            throw new IllegalStateException("Report with id " + reportId + " not found");
+            log.error("Report with id {} not found", postId);
+            throw new IllegalStateException("Report with id " + postId + " not found");
         }
-        reportRepository.deleteById(reportId);
+        reportRepository.deleteById(postId);
     }
 }

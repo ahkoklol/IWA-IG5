@@ -24,36 +24,37 @@ public class RequestService {
     /**
      * request a post
      * @param request a request object
+     * @return a Request object
      */
-    public void request(Request request) {
+    public Request request(Request request) {
         request.setRequestId(UUID.randomUUID().toString());
         request.setType(request.getType());
         request.setDate(new Date());
         request.setDescription(request.getDescription());
         request.setPostId(request.getPostId());
 
-        requestRepository.save(request);
+        return requestRepository.save(request);
     }
 
     /**
      * Fetch a request by id
-     * @param requestId the id of the request
+     * @param postId the id of the post
      * @return a request object or null
      */
-    public Optional<Request> getRequest(String requestId) {
-        return requestRepository.findById(requestId);
+    public Optional<Request> getRequest(String postId) {
+        return requestRepository.findByRequestId(postId);
     }
 
     /**
      * Delete a request
-     * @param requestId id of the request
+     * @param postId id of the post
      */
-    public void deleteRequest(String requestId) {
-        Optional<Request> request = requestRepository.findById(requestId);
+    public void deleteRequest(String postId) {
+        Optional<Request> request = requestRepository.findById(postId);
         if (request.isEmpty()) {
-            log.error("request with id {} not found", requestId);
-            throw new IllegalStateException("request with id " + requestId + " not found");
+            log.error("request with id {} not found", postId);
+            throw new IllegalStateException("request with id " + postId + " not found");
         }
-        requestRepository.deleteById(requestId);
+        requestRepository.deleteById(postId);
     }
 }
