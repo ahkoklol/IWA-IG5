@@ -15,7 +15,7 @@ import org.springframework.grpc.server.service.GrpcService;
  * gRPC Service implementation that handles requests for buying posts.
  */
 @GrpcService
-public class ListingServiceImpl extends ListingServiceGrpc.ListingServiceImplBase {
+public class ListingServiceImpl {
 
     private static final Logger log = LoggerFactory.getLogger(ListingServiceImpl.class);
 
@@ -30,7 +30,6 @@ public class ListingServiceImpl extends ListingServiceGrpc.ListingServiceImplBas
      * @param request The BuyPostRequest containing the postId.
      * @param responseObserver The observer used to send the response back to the client.
      */
-    @Override
     public void buyPost(BuyPostRequest request, StreamObserver<BuyPostResponse> responseObserver) {
         log.info("Received buyPost request for postId: {}", request.getPostId());
         BuyPostResponse response;
@@ -58,18 +57,5 @@ public class ListingServiceImpl extends ListingServiceGrpc.ListingServiceImplBas
             log.error("Error processing buyPost request for postId: {}", request.getPostId(), e);
             responseObserver.onError(e);
         }
-    }
-
-    /**
-     * REQUIRED IMPLEMENTATION: This method is required by the abstract
-     * ListingServiceImplBase to satisfy the Java compiler, even though it is not
-     * used by the Async gRPC service registration. It throws UNAVAILABLE to
-     * prevent accidental synchronous calls.
-     */
-    @Override
-    public BuyPostResponse buyPost(BuyPostRequest buyPostRequest) {
-        throw new StatusRuntimeException(Status.UNIMPLEMENTED.withDescription(
-                "Synchronous/Blocking method BuyPost is not implemented. Use the AsyncService contract."
-        ));
     }
 }
