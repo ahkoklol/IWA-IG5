@@ -6,5 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface RequestRepository extends JpaRepository<Request,String> {
-    Optional<Request> findByRequestId(String postId);
+    Optional<Request> findByPostId(String postId);
+    void deleteByPostId(String postId);
 }

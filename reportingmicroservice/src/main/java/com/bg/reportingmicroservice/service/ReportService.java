@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,7 +27,14 @@ public class ReportService {
      * @param report a Report object
      * @return a Report object
      */
-    public Report report(Report report) {
+    public Report report(String postId, Report report) {
+
+        // check that postId and report.postId match
+        if (!Objects.equals(postId, report.getPostId())) {
+            log.warn("Post id mismatch");
+            throw new IllegalArgumentException("Post id mismatch");
+        }
+
         report.setReportId(UUID.randomUUID().toString());
         report.setType(report.getType());
         report.setDate(new Date());
@@ -51,11 +59,12 @@ public class ReportService {
      * @param postId id of the post
      */
     public void deleteReport(String postId) {
-        Optional<Report> report = reportRepository.findById(postId);
+        Optional<Report> report = getReport(postId);
         if (report.isEmpty()) {
             log.error("Report with id {} not found", postId);
-            throw new IllegalStateException("Report with id " + postId + " not found");
+            throw new IllegalArgumentException("Report with id " + postId + " not found");
         }
-        reportRepository.deleteById(postId);
+        reportRepository.deleteByPostId(postId);
+        log.info("Report with id {} deleted", postId);
     }
 }

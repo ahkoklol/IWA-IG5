@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,7 +27,14 @@ public class RequestService {
      * @param request a request object
      * @return a Request object
      */
-    public Request request(Request request) {
+    public Request request(String postId, Request request) {
+
+        // check that postId and report.postId match
+        if (!Objects.equals(postId, request.getPostId())) {
+            log.warn("Post id mismatch");
+            throw new IllegalArgumentException("Post id mismatch");
+        }
+
         request.setRequestId(UUID.randomUUID().toString());
         request.setType(request.getType());
         request.setDate(new Date());
@@ -42,7 +50,7 @@ public class RequestService {
      * @return a request object or null
      */
     public Optional<Request> getRequest(String postId) {
-        return requestRepository.findByRequestId(postId);
+        return requestRepository.findByPostId(postId);
     }
 
     /**
@@ -50,11 +58,12 @@ public class RequestService {
      * @param postId id of the post
      */
     public void deleteRequest(String postId) {
-        Optional<Request> request = requestRepository.findById(postId);
+        Optional<Request> request = getRequest(postId);
         if (request.isEmpty()) {
-            log.error("request with id {} not found", postId);
-            throw new IllegalStateException("request with id " + postId + " not found");
+            log.error("Request with id {} not found", postId);
+            throw new IllegalArgumentException("Request with id " + postId + " not found");
         }
-        requestRepository.deleteById(postId);
+        requestRepository.deleteByPostId(postId);
+        log.info("Request with id {} deleted", postId);
     }
 }

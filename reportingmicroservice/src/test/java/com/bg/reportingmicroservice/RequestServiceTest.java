@@ -45,7 +45,7 @@ public class RequestServiceTest extends PostgresTestcontainer {
         request.setDescription("testdescription");
         request.setPostId("testpostid");
 
-        Request createdRequest = requestService.request(request);
+        Request createdRequest = requestService.request("testpostid", request);
 
         assertThat(createdRequest).isNotNull();
 
@@ -54,6 +54,18 @@ public class RequestServiceTest extends PostgresTestcontainer {
         assertThat(createdRequestResult).isPresent();
         assertThat(createdRequestResult.get()).isEqualTo(createdRequest);
         assertThat(createdRequestResult.get().getDescription()).isEqualTo("testdescription");
+    }
+
+    @Test
+    void testCreateRequest_Throws_IllegalArgumentException() {
+        Request request = new Request();
+        request.setRequestId("testrequestid");
+        request.setType("testreport");
+        request.setDate(new Date());
+        request.setDescription("testdescription");
+        request.setPostId("testpostid");
+
+        assertThrows(IllegalArgumentException.class, () -> requestService.request("fakepostid", request));
     }
 
     @Test
@@ -74,7 +86,7 @@ public class RequestServiceTest extends PostgresTestcontainer {
     void testDeleteRequest_Success() {
         requestService.deleteRequest(defaultRequest.getPostId());
 
-        assertThat(requestService.getRequest(defaultRequest.getPostId())).isNull();
+        assertThat(requestService.getRequest(defaultRequest.getPostId())).isEmpty();
     }
 
     @Test

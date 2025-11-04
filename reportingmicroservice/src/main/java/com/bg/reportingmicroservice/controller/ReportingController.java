@@ -26,7 +26,12 @@ public class ReportingController {
 
     @PostMapping("/report/{postId}")
     public ResponseEntity<Report> report(@PathVariable("postId") String postId, @RequestBody Report report) {
-        Report createdReport = reportService.report(report);
+        Report createdReport = reportService.report(postId, report);
+        if (createdReport == null) {
+            log.error("Report not created");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        log.info("Report created");
         return new ResponseEntity<>(createdReport, HttpStatus.OK);
     }
 
@@ -45,7 +50,12 @@ public class ReportingController {
 
     @PostMapping("/request/{postId}")
     public ResponseEntity<Request> request(@PathVariable("postId") String postId, @RequestBody Request request) {
-        Request createdRequest = requestService.request(request);
+        Request createdRequest = requestService.request(postId, request);
+        if (createdRequest == null) {
+            log.error("Request not created");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        log.info("Request created");
         return new ResponseEntity<>(createdRequest, HttpStatus.OK);
     }
 

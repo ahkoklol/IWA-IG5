@@ -47,7 +47,7 @@ public class ReportServiceTest extends PostgresTestcontainer {
         report.setDescription("testdescription");
         report.setPostId("testpostid");
 
-        Report createdReport = reportService.report(report);
+        Report createdReport = reportService.report("testpostid", report);
 
         assertThat(createdReport).isNotNull();
 
@@ -56,6 +56,19 @@ public class ReportServiceTest extends PostgresTestcontainer {
         assertThat(createdReportResult).isPresent();
         assertThat(createdReportResult.get()).isEqualTo(createdReport);
         assertThat(createdReportResult.get().getClientId()).isEqualTo("testclientid");
+    }
+
+    @Test
+    void testCreateReport_Throws_IllegalArgumentException() {
+        Report report = new Report();
+        report.setReportId("testreportid");
+        report.setType("testreport");
+        report.setDate(new Date());
+        report.setClientId("testclientid");
+        report.setDescription("testdescription");
+        report.setPostId("testpostid");
+
+        assertThrows(IllegalArgumentException.class, () -> reportService.report("fakepostid", report));
     }
 
     @Test
@@ -74,7 +87,7 @@ public class ReportServiceTest extends PostgresTestcontainer {
 
     @Test
     void testDeleteReport_Success() {
-        reportService.deleteReport(defaultReport.getReportId());
+        reportService.deleteReport(defaultReport.getPostId());
 
         assertThat(reportService.getReport(defaultReport.getPostId())).isEmpty();
     }
@@ -82,8 +95,8 @@ public class ReportServiceTest extends PostgresTestcontainer {
     @Test
     void testDeleteReport_Throws_IllegalStateException() {
         assertThrows(
-                IllegalStateException.class,
-                () -> reportService.deleteReport("postid")
+                IllegalArgumentException.class,
+                () -> reportService.deleteReport("fakepostid")
         );
     }
 

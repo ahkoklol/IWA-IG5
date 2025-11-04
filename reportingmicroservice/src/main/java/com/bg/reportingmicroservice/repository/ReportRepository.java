@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface ReportRepository extends JpaRepository<Report,String> {
     Optional<Report> findByPostId(String postId);
+    void deleteByPostId(String postId);
 }
