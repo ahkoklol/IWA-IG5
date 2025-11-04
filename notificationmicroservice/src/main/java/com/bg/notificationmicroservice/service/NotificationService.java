@@ -65,7 +65,7 @@ public class NotificationService {
      * @param notificationId the id of the notification
      * @return a Notification object if found
      */
-    private Optional<Notification> getNotification(String notificationId) {
+    public Optional<Notification> getNotification(String notificationId) {
         return notificationRepository.findById(notificationId);
     }
 
