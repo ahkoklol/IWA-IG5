@@ -66,10 +66,16 @@ public class ClientService {
         }
 
         // check all fields and update
+        boolean updated = applyClientUpdates(existingClient.get(), client);
 
-        existingClient.get().setDateModified(new Date());
-        clientRepository.save(existingClient.get());
-        log.info("Client with id {} has been updated", clientId);
+        if (updated) {
+            // 2. Only save and update dateModified if at least one field changed
+            existingClient.get().setDateModified(new Date());
+            clientRepository.save(existingClient.get());
+            log.info("Client with id {} has been updated", clientId);
+        } else {
+            log.info("Client with id {} found, but no fields were updated", clientId);
+        }
     }
 
     /**
@@ -220,5 +226,41 @@ public class ClientService {
         log.info("Added photo for client {}", clientId);
     }
 
+    /**
+     * Helper method to compare Client fields and apply updates
+     * @param existingClient the client from the database
+     * @param newClientData the data of the client to update
+     * @return true if a field was updated, false otherwise
+     */
+    boolean applyClientUpdates(Client existingClient, Client newClientData) {
+        boolean updated = false;
 
+        if (!Objects.equals(newClientData.getAddress(), existingClient.getAddress())) {
+            existingClient.setAddress(newClientData.getAddress());
+            updated = true;
+        }
+
+        if (!Objects.equals(newClientData.getNationality(), existingClient.getNationality())) {
+            existingClient.setNationality(newClientData.getNationality());
+            updated = true;
+        }
+
+        if (!Objects.equals(newClientData.getPhone(), existingClient.getPhone())) {
+            existingClient.setPhone(newClientData.getPhone());
+            updated = true;
+        }
+
+        if (!Objects.equals(newClientData.getPhoto(), existingClient.getPhoto())) {
+            existingClient.setPhoto(newClientData.getPhoto());
+            updated = true;
+        }
+
+        // Assuming dateOfBirth is an updatable field
+        if (!Objects.equals(newClientData.getDateOfBirth(), existingClient.getDateOfBirth())) {
+            existingClient.setDateOfBirth(newClientData.getDateOfBirth());
+            updated = true;
+        }
+
+        return updated;
+    }
 }
