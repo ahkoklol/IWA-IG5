@@ -1,5 +1,6 @@
 package com.bg.usermicroservice.service;
 
+import com.bg.usermicroservice.client.ListingClient;
 import com.bg.usermicroservice.controller.UserController;
 import com.bg.usermicroservice.entity.Client;
 import com.bg.usermicroservice.entity.ClientReview;
@@ -7,6 +8,8 @@ import com.bg.usermicroservice.entity.ClientReviewDTO;
 import com.bg.usermicroservice.entity.ClientReviewId;
 import com.bg.usermicroservice.repository.ClientRepository;
 import com.bg.usermicroservice.repository.ClientReviewRepository;
+import com.bondgraine.listingmicroservice.grpc.GetPostRequest;
+import com.bondgraine.listingmicroservice.grpc.GetPostResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,10 +25,12 @@ public class ClientService {
 
     private final ClientRepository clientRepository;
     private final ClientReviewRepository clientReviewRepository;
+    private final ListingClient listingClient;
 
-    public ClientService(ClientRepository clientRepository, ClientReviewRepository clientReviewRepository) {
+    public ClientService(ClientRepository clientRepository, ClientReviewRepository clientReviewRepository, ListingClient listingClient) {
         this.clientRepository = clientRepository;
         this.clientReviewRepository = clientReviewRepository;
+        this.listingClient = listingClient;
     }
 
     /**
@@ -156,7 +161,25 @@ public class ClientService {
             throw new IllegalArgumentException("Client with id " + clientReviewDTO.getBuyerId() + " does not exist");
         }
 
-        // check that post exists using grpc
+        // Check that post exists using gRPC and throws if not found
+        GetPostRequest getPostRequest = GetPostRequest.newBuilder()
+                .setPostId(clientReviewDTO.getPostId())
+                .build();
+
+        // Attempt to get the post, wrapping the call in a try-catch for validation
+        try {
+            listingClient.getPost(getPostRequest);
+            log.info("Post with id {} successfully verified.", clientReviewDTO.getPostId());
+        } catch (io.grpc.StatusRuntimeException e) {
+            if (e.getStatus().getCode() == io.grpc.Status.Code.NOT_FOUND) {
+                log.error("Post with id {} not found for review.", clientReviewDTO.getPostId());
+                throw new IllegalArgumentException("Post with id " + clientReviewDTO.getPostId() + " not found.");
+            } else {
+                log.error("gRPC call failed for post {}. Status: {}. Message: {}",
+                        clientReviewDTO.getPostId(), e.getStatus().getCode(), e.getMessage());
+                throw new RuntimeException("Failed to verify post existence due to service error.", e);
+            }
+        }
 
         // map to client review and save to db
         ClientReview clientReview = new ClientReview();
@@ -181,8 +204,7 @@ public class ClientService {
     /**
      * Add a profile picture for the user
      * @param clientId the client id
-     * @param photo
-     * @return
+     * @param photo the photo
      */
     public void addPhoto(String clientId, MultipartFile photo) {
         Optional<Client> existingClient = getClient(clientId);
