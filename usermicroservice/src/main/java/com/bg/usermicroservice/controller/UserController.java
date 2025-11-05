@@ -60,17 +60,20 @@ public class UserController {
     @GetMapping("/{clientId}/reviews")
     public ResponseEntity<List<ClientReviewDTO>> getReviews(@PathVariable String clientId) {
         List<ClientReviewDTO> clientReviews = clientService.getSellerReviews(clientId);
-        if (clientReviews.isEmpty()) {
-            log.info("No reviews found for client with id {}", clientId);
-            return ResponseEntity.ok(clientReviews);
-        }
-
+        log.info("Found {} reviews for client with id {}", clientReviews.size(), clientId);
+        return ResponseEntity.ok(clientReviews);
     }
 
     @PostMapping("/{clientId}/review")
-    public ResponseEntity<ClientReviewDTO> review(@PathVariable String clientId, @RequestBody ClientReviewDTO clientReviewDTO) {}
+    public ResponseEntity<ClientReviewDTO> review(@PathVariable String clientId, @RequestBody ClientReviewDTO clientReviewDTO) {
+        ClientReviewDTO clientReview = clientService.createSellerReview(clientId, clientReviewDTO);
+        return ResponseEntity.ok(clientReview);
+    }
 
     @PostMapping("/{clientId}/photo")
-    public ResponseEntity<Void> addPhoto(@PathVariable String clientId, @RequestParam("photo") MultipartFile photo) {}
+    public ResponseEntity<Void> addPhoto(@PathVariable String clientId, @RequestParam("photo") MultipartFile photo) {
+        clientService.addPhoto(clientId, photo);
+        return ResponseEntity.ok().build();
+    }
 
 }

@@ -90,7 +90,7 @@ public class ClientService {
     public List<ClientReviewDTO> getSellerReviews(String sellerId) {
         Optional<Client> existingClient = getClient(sellerId);
         if (existingClient.isEmpty()) {
-            log.error("Client with id {} does not exist", sellerId);
+            log.error("Seller with id {} does not exist", sellerId);
             throw new IllegalArgumentException("Client with id " + sellerId + " does not exist");
         }
 
@@ -173,6 +173,8 @@ public class ClientService {
         // map and return the dto
         clientReviewDTO.setDateCreated(clientReview.getDateCreated());
         clientReviewDTO.setDateModified(clientReview.getDateModified());
+
+        log.info("Review created for seller {}",  sellerId);
         return clientReviewDTO;
     }
 
@@ -182,7 +184,7 @@ public class ClientService {
      * @param photo
      * @return
      */
-    public Client addPhoto(String clientId, MultipartFile photo) {
+    public void addPhoto(String clientId, MultipartFile photo) {
         Optional<Client> existingClient = getClient(clientId);
         if (existingClient.isEmpty()) {
             log.error("Client with id {} does not exist", clientId);
@@ -193,7 +195,7 @@ public class ClientService {
 
         // save the photo name in Client object
 
-        // return the updated client
+        log.info("Added photo for client {}", clientId);
     }
 
 
