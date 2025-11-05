@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ClientService {
@@ -63,6 +64,7 @@ public class ClientService {
 
         existingClient.get().setDateModified(new Date());
         clientRepository.save(existingClient.get());
+        log.info("Client with id {} has been updated", clientId);
     }
 
     /**
@@ -77,21 +79,62 @@ public class ClientService {
         }
 
         clientRepository.deleteById(clientId);
+        log.info("Client with id {} has been deleted", clientId);
     }
 
     /**
      * Fetch all reviews for a seller
      * @param sellerId the seller id
-     * @return a list of ClientReview objects
+     * @return a list of ClientReviewDTO objects
      */
-    public List<ClientReview> getSellerReviews(String sellerId) {
+    public List<ClientReviewDTO> getSellerReviews(String sellerId) {
         Optional<Client> existingClient = getClient(sellerId);
         if (existingClient.isEmpty()) {
             log.error("Client with id {} does not exist", sellerId);
             throw new IllegalArgumentException("Client with id " + sellerId + " does not exist");
         }
 
-        return clientReviewRepository.findAllBySellerId(sellerId);
+        List<ClientReview> clientReviews = clientReviewRepository.findAllBySellerId(sellerId);
+
+        return mapToClientReviewDTO(clientReviews);
+    }
+
+    /**
+     * Helper method to map a list of ClientReview to a list of ClientReviewDTO
+     * @param clientReviews a list of ClinetReview objects
+     * @return a list of ClientReviewDTO
+     */
+    public List<ClientReviewDTO> mapToClientReviewDTO(List<ClientReview> clientReviews) {
+        // Check for null or empty list to avoid errors
+        if (clientReviews == null || clientReviews.isEmpty()) {
+            return List.of(); // Return an empty list for a clean result
+        }
+
+        return clientReviews.stream()
+                .map(this::mapToClientReviewDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Helper method to map a single ClientReview to ClientReviewDTO
+     * @param clientReview a ClientReview object
+     * @return a ClientReviewDTO
+     */
+    private ClientReviewDTO mapToClientReviewDTO(ClientReview clientReview) {
+        ClientReviewDTO dto = new ClientReviewDTO();
+
+        dto.setRating(clientReview.getRating());
+        dto.setComment(clientReview.getComment());
+        dto.setDateCreated(clientReview.getDateCreated());
+        dto.setDateModified(clientReview.getDateModified());
+        dto.setSellerId(clientReview.getSellerId());
+
+        if (clientReview.getClientReviewId() != null) {
+            dto.setBuyerId(clientReview.getClientReviewId().getBuyerId());
+            dto.setPostId(clientReview.getClientReviewId().getPostId());
+        }
+
+        return dto;
     }
 
     /**
