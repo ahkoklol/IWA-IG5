@@ -3,12 +3,14 @@ syntax = "proto3";
 package listing.service;
 
 option java_package = "com.bondgraine.listingmicroservice.grpc";
-//option java_outer_classname = "ListingServiceProto";
 option java_multiple_files = true;
 
 import "service/listing/buy_post_request.proto";
 import "service/listing/buy_post_response.proto";
+import "service/listing/get_post_response.proto";
+import "service/listing/get_post_request.proto";
 
 service ListingService {
   rpc BuyPost(BuyPostRequest) returns (BuyPostResponse);
+  rpc GetPost(GetPostRequest) returns (GetPostResponse);
 }
