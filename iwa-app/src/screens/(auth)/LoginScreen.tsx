@@ -1,36 +1,30 @@
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  StatusBar,
+  View, Text, TextInput, Pressable, StyleSheet, KeyboardAvoidingView, Platform, StatusBar,
 } from "react-native";
 import { Eye, EyeOff } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../../navigation/RootNavigator";
 
-type Props = {
-  onLogin?: () => void;         // facultatif : callback si tu veux brancher ton auth plus tard
-  onSignupClick?: () => void;   // facultatif : callback vers l’inscription
-};
-
-export default function LoginScreen({ onLogin, onSignupClick }: Props) {
+export default function LoginScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = () => {
-    // TODO: branche ton appel API / validation ici
-    onLogin?.();
-  };
+const handleSubmit = () => {
+  // TODO: login (optionnel)
+  // Redirige et nettoie l'historique pour éviter "Back" vers Login
+  navigation.reset({
+    index: 0,
+    routes: [{ name: "Home" }],
+  });
+};
 
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
-
-      {/* Notch "maquette" */}
       <View style={styles.notch} />
 
       <KeyboardAvoidingView
@@ -51,26 +45,26 @@ export default function LoginScreen({ onLogin, onSignupClick }: Props) {
             style={styles.input}
           />
 
-          <View style={styles.passwordWrapper}>
+          <View style={{ position: "relative" }}>
             <TextInput
               value={password}
               onChangeText={setPassword}
               placeholder="Mot de passe"
               placeholderTextColor="#9CA3AF"
               secureTextEntry={!showPassword}
-              style={[styles.input, styles.inputWithIcon]}
+              style={[styles.input, { paddingRight: 44 }]}
             />
             <Pressable
               onPress={() => setShowPassword((s) => !s)}
-              style={styles.eyeButton}
+              style={{ position: "absolute", right: 12, top: "50%", marginTop: -10 }}
               hitSlop={10}
             >
               {showPassword ? <EyeOff size={20} color="#9CA3AF" /> : <Eye size={20} color="#9CA3AF" />}
             </Pressable>
           </View>
 
-          <View style={styles.right}>
-            <Pressable onPress={onSignupClick}>
+          <View style={{ alignItems: "flex-end", marginTop: 4 }}>
+            <Pressable onPress={() => navigation.navigate("Register1")}>
               <Text style={styles.link}>S'inscrire ?</Text>
             </Pressable>
           </View>
@@ -87,79 +81,21 @@ export default function LoginScreen({ onLogin, onSignupClick }: Props) {
 const BG = "#B9ECFF";
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: BG,
-  },
+  root: { flex: 1, backgroundColor: BG },
   notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
-    marginTop: 8,
+    width: 128, height: 32, backgroundColor: "#000",
+    borderBottomLeftRadius: 24, borderBottomRightRadius: 24,
+    alignSelf: "center", marginTop: 8,
   },
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-  },
+  container: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
   title: {
-    fontSize: 32,
-    marginBottom: 48,
-    color: "#111827",
-    // utilise ta police Gaegu chargée dans App.tsx
-    fontFamily: "Gaegu",
-    fontWeight: "700",
-    textAlign: "center",
+    fontSize: 32, marginBottom: 48, color: "#111827", fontFamily: "Gaegu", fontWeight: "700", textAlign: "center",
   },
-  form: {
-    width: "100%",
-    maxWidth: 360,
-    gap: 12,
-  },
+  form: { width: "100%", maxWidth: 360, gap: 12 },
   input: {
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#111827",
+    backgroundColor: "#fff", borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, color: "#111827",
   },
-  passwordWrapper: {
-    position: "relative",
-  },
-  inputWithIcon: {
-    paddingRight: 44, // place pour l’icône œil
-  },
-  eyeButton: {
-    position: "absolute",
-    right: 12,
-    top: "50%",
-    marginTop: -10, // moitié de la hauteur icône (20)
-  },
-  right: {
-    alignItems: "flex-end",
-    marginTop: 4,
-  },
-  link: {
-    color: "#111827",
-    textDecorationLine: "underline",
-    fontFamily: "Gaegu",
-    fontWeight: "700",
-    fontSize: 16,
-  },
-  submit: {
-    marginTop: 24,
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  submitText: {
-    fontSize: 24,
-    color: "#111827",
-    fontFamily: "Gaegu",
-    fontWeight: "700",
-  },
+  link: { color: "#111827", textDecorationLine: "underline", fontFamily: "Gaegu", fontWeight: "700", fontSize: 16 },
+  submit: { marginTop: 24, alignItems: "center", paddingVertical: 12 },
+  submitText: { fontSize: 24, color: "#111827", fontFamily: "Gaegu", fontWeight: "700" },
 });

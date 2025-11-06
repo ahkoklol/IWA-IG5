@@ -10,7 +10,7 @@ export default function IntroScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigation.replace("Login"); // on remplace l'écran d'intro
-    }, 1700);
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, [navigation]);

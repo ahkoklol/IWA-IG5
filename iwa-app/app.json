@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "iwa-app",
-    "slug": "iwa-app",
+    "name": "Bonne Graine",
+    "slug": "bonne-graine",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
