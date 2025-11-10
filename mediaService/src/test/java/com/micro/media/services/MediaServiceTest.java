@@ -1,12 +1,13 @@
 package com.micro.media.services;
 
-import com.micro.media.repository.S3bgRepository;
+import com.micro.media.repository.ImageRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
+import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -19,138 +20,138 @@ class MediaServiceTest {
     private MediaService mediaService;
 
     @Mock
-    private S3bgRepository s3bgRepository;
+    private ImageRepository imageRepository;
 
     @Mock
     private AIService aiValidationService;
 
     @Test
-    void uploadImage_Approved_Flow_OK_and_tempFile_deleted() {
+    void uploadPostImage_Approved_Flow_OK_and_tempFile_deleted() throws IOException {
         byte[] imageBytes = {1, 2, 3};
         String filename = "photo.png";
         String contentType = "image/png";
 
-        when(s3bgRepository.uploadToPendingFolder(any(File.class), anyString()))
+        when(imageRepository.uploadPostPicture(any(File.class), anyString()))
                 .thenReturn("https://pending/url");
         AIService.AIServiceResult aiRes = mock(AIService.AIServiceResult.class);
         when(aiValidationService.sendToAIService(any(File.class), eq("https://pending/url")))
                 .thenReturn(aiRes);
         when(aiValidationService.validateAIResult(aiRes)).thenReturn(true);
-        when(s3bgRepository.moveToApprovedFolder(anyString()))
+        when(imageRepository.approvePostPicture(anyString()))
                 .thenAnswer(inv -> "https://final/approved/" + inv.getArgument(0));
 
         ArgumentCaptor<File> tempFileCaptor = ArgumentCaptor.forClass(File.class);
-        String finalUrl = mediaService.uploadImage(imageBytes, filename, contentType);
+        String finalUrl = mediaService.uploadPostImage(imageBytes, filename, contentType);
 
         assertThat(finalUrl).startsWith("https://final/approved/");
 
-        verify(s3bgRepository).uploadToPendingFolder(tempFileCaptor.capture(), anyString());
+        verify(imageRepository).uploadPostPicture(tempFileCaptor.capture(), anyString());
         verify(aiValidationService).sendToAIService(any(File.class), eq("https://pending/url"));
         verify(aiValidationService).validateAIResult(aiRes);
-        verify(s3bgRepository).moveToApprovedFolder(anyString());
-        verify(s3bgRepository, never()).moveToRejectedFolder(anyString());
+        verify(imageRepository).approvePostPicture(anyString());
+        verify(imageRepository, never()).rejectPostPicture(anyString());
 
         assertThat(tempFileCaptor.getValue().exists()).isFalse();
     }
 
     @Test
-    void uploadImage_Rejected_Flow_OK() {
+    void uploadPostImage_Rejected_Flow_OK() throws IOException {
         byte[] imageBytes = {1, 2, 3};
         String filename = "photo.png";
         String contentType = "image/png";
 
-        when(s3bgRepository.uploadToPendingFolder(any(File.class), anyString()))
+        when(imageRepository.uploadPostPicture(any(File.class), anyString()))
                 .thenReturn("https://pending/url");
         AIService.AIServiceResult aiRes = mock(AIService.AIServiceResult.class);
         when(aiValidationService.sendToAIService(any(File.class), anyString()))
                 .thenReturn(aiRes);
         when(aiValidationService.validateAIResult(aiRes)).thenReturn(false);
-        when(s3bgRepository.moveToRejectedFolder(anyString()))
+        when(imageRepository.rejectPostPicture(anyString()))
                 .thenAnswer(inv -> "https://final/rejected/" + inv.getArgument(0));
 
-        String finalUrl = mediaService.uploadImage(imageBytes, filename, contentType);
+        String finalUrl = mediaService.uploadPostImage(imageBytes, filename, contentType);
 
         assertThat(finalUrl).startsWith("https://final/rejected/");
-        verify(s3bgRepository).moveToRejectedFolder(anyString());
-        verify(s3bgRepository, never()).moveToApprovedFolder(anyString());
+        verify(imageRepository).rejectPostPicture(anyString());
+        verify(imageRepository, never()).approvePostPicture(anyString());
     }
 
     @Test
-    void uploadImage_EmptyBytes_throws() {
-        assertThatThrownBy(() -> mediaService.uploadImage(
+    void uploadPostImage_EmptyBytes_throws() {
+        assertThatThrownBy(() -> mediaService.uploadPostImage(
                 new byte[0], "photo.png", "image/png"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Fichier vide");
-        verifyNoInteractions(s3bgRepository, aiValidationService);
+        verifyNoInteractions(imageRepository, aiValidationService);
     }
 
     @Test
-    void uploadImage_NullBytes_throws() {
-        assertThatThrownBy(() -> mediaService.uploadImage(
+    void uploadPostImage_NullBytes_throws() {
+        assertThatThrownBy(() -> mediaService.uploadPostImage(
                 null, "photo.png", "image/png"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Fichier vide");
-        verifyNoInteractions(s3bgRepository, aiValidationService);
+        verifyNoInteractions(imageRepository, aiValidationService);
     }
 
     @Test
-    void uploadImage_WrongMime_throws() {
+    void uploadPostImage_WrongMime_throws() {
         byte[] bytes = {1, 2, 3};
-        assertThatThrownBy(() -> mediaService.uploadImage(
+        assertThatThrownBy(() -> mediaService.uploadPostImage(
                 bytes, "note.txt", "text/plain"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("image");
-        verifyNoInteractions(s3bgRepository, aiValidationService);
+        verifyNoInteractions(imageRepository, aiValidationService);
     }
 
     @Test
-    void uploadImage_NullContentType_throws() {
+    void uploadPostImage_NullContentType_throws() {
         byte[] bytes = {1, 2, 3};
-        assertThatThrownBy(() -> mediaService.uploadImage(
+        assertThatThrownBy(() -> mediaService.uploadPostImage(
                 bytes, "photo.png", null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("image");
-        verifyNoInteractions(s3bgRepository, aiValidationService);
+        verifyNoInteractions(imageRepository, aiValidationService);
     }
 
     @Test
-    void uploadImage_GifFormat_throws() {
+    void uploadPostImage_GifFormat_throws() {
         byte[] bytes = {1, 2, 3};
-        assertThatThrownBy(() -> mediaService.uploadImage(
+        assertThatThrownBy(() -> mediaService.uploadPostImage(
                 bytes, "animation.gif", "image/gif"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("image");
-        verifyNoInteractions(s3bgRepository, aiValidationService);
+        verifyNoInteractions(imageRepository, aiValidationService);
     }
 
     @Test
-    void uploadImage_TooLarge_throws() {
+    void uploadPostImage_TooLarge_throws() {
         byte[] bigBytes = new byte[11 * 1024 * 1024];
-        assertThatThrownBy(() -> mediaService.uploadImage(
+        assertThatThrownBy(() -> mediaService.uploadPostImage(
                 bigBytes, "huge.png", "image/png"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("trop volumineux");
-        verifyNoInteractions(s3bgRepository, aiValidationService);
+        verifyNoInteractions(imageRepository, aiValidationService);
     }
 
     @Test
-    void uploadImage_ExactlyMaxSize_OK() {
+    void uploadPostImage_ExactlyMaxSize_OK() throws IOException {
         byte[] maxBytes = new byte[10 * 1024 * 1024];
-        when(s3bgRepository.uploadToPendingFolder(any(File.class), anyString()))
+        when(imageRepository.uploadPostPicture(any(File.class), anyString()))
                 .thenReturn("https://pending/url");
         AIService.AIServiceResult aiRes = mock(AIService.AIServiceResult.class);
         when(aiValidationService.sendToAIService(any(File.class), anyString()))
                 .thenReturn(aiRes);
         when(aiValidationService.validateAIResult(aiRes)).thenReturn(true);
-        when(s3bgRepository.moveToApprovedFolder(anyString()))
+        when(imageRepository.approvePostPicture(anyString()))
                 .thenReturn("https://final/approved/xxx");
 
-        assertThatCode(() -> mediaService.uploadImage(maxBytes, "max.png", "image/png"))
+        assertThatCode(() -> mediaService.uploadPostImage(maxBytes, "max.png", "image/png"))
                 .doesNotThrowAnyException();
     }
 
     @Test
-    void uploadImage_ValidImageFormats_OK() {
+    void uploadPostImage_ValidImageFormats_OK() throws IOException {
         String[][] validFormats = {
                 {"image/png", "test.png"},
                 {"image/jpeg", "test.jpeg"},
@@ -163,25 +164,25 @@ class MediaServiceTest {
             String filename = format[1];
 
             byte[] bytes = {1, 2, 3};
-            when(s3bgRepository.uploadToPendingFolder(any(File.class), anyString()))
+            when(imageRepository.uploadPostPicture(any(File.class), anyString()))
                     .thenReturn("https://pending/url");
             AIService.AIServiceResult aiRes = mock(AIService.AIServiceResult.class);
             when(aiValidationService.sendToAIService(any(File.class), anyString()))
                     .thenReturn(aiRes);
             when(aiValidationService.validateAIResult(aiRes)).thenReturn(true);
-            when(s3bgRepository.moveToApprovedFolder(anyString()))
+            when(imageRepository.approvePostPicture(anyString()))
                     .thenReturn("https://final/approved/xxx");
 
-            assertThatCode(() -> mediaService.uploadImage(bytes, filename, contentType))
+            assertThatCode(() -> mediaService.uploadPostImage(bytes, filename, contentType))
                     .as("Format %s devrait être accepté", contentType)
                     .doesNotThrowAnyException();
 
-            clearInvocations(s3bgRepository, aiValidationService);
+            clearInvocations(imageRepository, aiValidationService);
         }
     }
 
     @Test
-    void uploadImage_InvalidImageFormats_throws() {
+    void uploadPostImage_InvalidImageFormats_throws() {
         String[][] invalidFormats = {
                 {"image/gif", "test.gif"},
                 {"image/svg+xml", "test.svg"},
@@ -194,11 +195,50 @@ class MediaServiceTest {
             String filename = format[1];
 
             byte[] bytes = {1, 2, 3};
-            assertThatThrownBy(() -> mediaService.uploadImage(bytes, filename, contentType))
+            assertThatThrownBy(() -> mediaService.uploadPostImage(bytes, filename, contentType))
                     .as("Format %s devrait être rejeté", contentType)
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("image");
         }
-        verifyNoInteractions(s3bgRepository, aiValidationService);
+        verifyNoInteractions(imageRepository, aiValidationService);
+    }
+
+    @Test
+    void uploadProfileImage_OK() throws IOException {
+        byte[] imageBytes = {1, 2, 3};
+        String filename = "profile.png";
+        String contentType = "image/png";
+
+        when(imageRepository.uploadProfilePicture(any(File.class), anyString()))
+                .thenReturn("https://profile/url/xxx.png");
+
+        ArgumentCaptor<File> tempFileCaptor = ArgumentCaptor.forClass(File.class);
+        String finalUrl = mediaService.uploadProfileImage(imageBytes, filename, contentType);
+
+        assertThat(finalUrl).isEqualTo("https://profile/url/xxx.png");
+
+        verify(imageRepository).uploadProfilePicture(tempFileCaptor.capture(), anyString());
+        verifyNoInteractions(aiValidationService);
+
+        assertThat(tempFileCaptor.getValue().exists()).isFalse();
+    }
+
+    @Test
+    void uploadProfileImage_EmptyBytes_throws() {
+        assertThatThrownBy(() -> mediaService.uploadProfileImage(
+                new byte[0], "profile.png", "image/png"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Fichier vide");
+        verifyNoInteractions(imageRepository, aiValidationService);
+    }
+
+    @Test
+    void uploadProfileImage_InvalidFormat_throws() {
+        byte[] bytes = {1, 2, 3};
+        assertThatThrownBy(() -> mediaService.uploadProfileImage(
+                bytes, "profile.gif", "image/gif"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("image");
+        verifyNoInteractions(imageRepository, aiValidationService);
     }
 }

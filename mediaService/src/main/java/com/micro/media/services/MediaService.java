@@ -1,6 +1,6 @@
 package com.micro.media.services;
 
-import com.micro.media.repository.S3bgRepository;
+import com.micro.media.repository.ImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,57 +15,53 @@ import java.util.UUID;
 public class MediaService {
 
     @Autowired
-    private S3bgRepository s3bgRepository;
+    private ImageRepository imageRepository;
 
     @Autowired
     private AIService aiValidationService;
 
     /**
-     * Upload d'image via gRPC (bytes bruts)
+     * Upload d'image de post via gRPC (avec validation IA)
      */
-    public String uploadImage(byte[] imageBytes, String originalFilename, String contentType) {
-        // 1. Validation
+    public String uploadPostImage(byte[] imageBytes, String originalFilename, String contentType) throws IOException {
         validateImageBytes(imageBytes, contentType);
-
-        // 2. Fichier temporaire
         File tempFile = createTemporaryFile(imageBytes, originalFilename);
 
         try {
-            // 3. Nom unique
             String uniqueFileName = generateUniqueFileName(originalFilename);
-
-            // 4. Upload pending
-            String pendingUrl = uploadToPending(tempFile, uniqueFileName);
-
-            // 5. Validation IA
+            String pendingUrl = imageRepository.uploadPostPicture(tempFile, uniqueFileName);
             AIService.AIServiceResult aiResult = sendImageToAI(tempFile, pendingUrl);
-
-            // 6. Traitement résultat
             boolean isImageApproved = processAIValidationResult(aiResult);
-
-            // 7. Destination finale
             return moveToFinalDestination(uniqueFileName, isImageApproved);
-
         } finally {
-            // 8. Nettoyage
             cleanupTemporaryFile(tempFile);
         }
     }
 
     /**
-     * Validation des bytes d'image
+     * Upload d'image de profil via gRPC (sans validation IA)
      */
+    public String uploadProfileImage(byte[] imageBytes, String originalFilename, String contentType) throws IOException {
+        validateImageBytes(imageBytes, contentType);
+        File tempFile = createTemporaryFile(imageBytes, originalFilename);
+
+        try {
+            String uniqueFileName = generateUniqueFileName(originalFilename);
+            return imageRepository.uploadProfilePicture(tempFile, uniqueFileName);
+        } finally {
+            cleanupTemporaryFile(tempFile);
+        }
+    }
+
     private void validateImageBytes(byte[] imageBytes, String contentType) {
         if (imageBytes == null || imageBytes.length == 0) {
             throw new IllegalArgumentException("Fichier vide");
         }
 
-        // Type MIME
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("Le fichier doit être une image");
         }
 
-        // Formats acceptés uniquement
         String[] allowedTypes = {"image/png", "image/jpeg", "image/jpg", "image/webp"};
         boolean isAllowed = false;
         for (String allowed : allowedTypes) {
@@ -78,18 +74,12 @@ public class MediaService {
             throw new IllegalArgumentException("Format d'image non supporté. Formats acceptés : PNG, JPEG, JPG, WEBP");
         }
 
-        // Taille max 10MB
         long maxSizeBytes = 10 * 1024 * 1024;
         if (imageBytes.length > maxSizeBytes) {
             throw new IllegalArgumentException("Fichier trop volumineux (max 10MB)");
         }
     }
 
-
-
-    /**
-     * Création fichier temporaire depuis bytes
-     */
     private File createTemporaryFile(byte[] imageBytes, String originalFilename) {
         try {
             Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
@@ -113,10 +103,6 @@ public class MediaService {
         return "";
     }
 
-    private String uploadToPending(File tempFile, String fileName) {
-        return s3bgRepository.uploadToPendingFolder(tempFile, fileName);
-    }
-
     private AIService.AIServiceResult sendImageToAI(File imageFile, String imageUrl) {
         return aiValidationService.sendToAIService(imageFile, imageUrl);
     }
@@ -125,10 +111,10 @@ public class MediaService {
         return aiValidationService.validateAIResult(aiResult);
     }
 
-    private String moveToFinalDestination(String fileName, boolean isApproved) {
+    private String moveToFinalDestination(String fileName, boolean isApproved) throws IOException {
         return isApproved
-                ? s3bgRepository.moveToApprovedFolder(fileName)
-                : s3bgRepository.moveToRejectedFolder(fileName);
+                ? imageRepository.approvePostPicture(fileName)
+                : imageRepository.rejectPostPicture(fileName);
     }
 
     private void cleanupTemporaryFile(File tempFile) {

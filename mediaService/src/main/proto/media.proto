@@ -4,7 +4,8 @@ option java_package = "com.micro.media.grpc";
 option java_outer_classname = "MediaProto";
 
 service MediaService {
-  rpc UploadImage(UploadRequest) returns (UploadResponse);
+  rpc UploadPostImage(UploadRequest) returns (UploadResponse);
+  rpc UploadProfileImage(UploadRequest) returns (UploadResponse);
 }
 
 message UploadRequest {
