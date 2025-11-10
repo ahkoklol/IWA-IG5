@@ -39,18 +39,14 @@ class TextAnalysisServiceTest {
     @Test
     void testExtractReasoning() {
         String llmResponse = "This text describes vegetables.\nTRUE";
-
         String reasoning = textAnalysisService.extractReasoning(llmResponse);
-
         assertEquals("This text describes vegetables.", reasoning);
     }
 
     @Test
     void testExtractReasoningWithMultipleLines() {
         String llmResponse = "Line one\nLine two\nFALSE";
-
         String reasoning = textAnalysisService.extractReasoning(llmResponse);
-
         assertEquals("Line one Line two", reasoning);
     }
 
@@ -62,14 +58,12 @@ class TextAnalysisServiceTest {
     @Test
     void testExtractVerdictTrue() {
         String llmResponse = "Reasoning here\nTRUE";
-
         assertTrue(textAnalysisService.extractVerdictText(llmResponse));
     }
 
     @Test
     void testExtractVerdictFalse() {
         String llmResponse = "Reasoning here\nFALSE";
-
         assertFalse(textAnalysisService.extractVerdictText(llmResponse));
     }
 
