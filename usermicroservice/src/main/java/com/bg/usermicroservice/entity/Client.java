@@ -22,6 +22,9 @@ public class Client {
     private String phone;
     private String photo;
 
+    @Column(name = "stripe_id")
+    private String stripeId;
+
     @Column(name = "date_modified")
     private Date dateModified;
 
