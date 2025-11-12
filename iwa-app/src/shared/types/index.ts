@@ -28,14 +28,15 @@ export interface Product {
   images: string[];
   description: string;
   category: string;
-  plantingPeriod: string[];
-  floweringPeriod: string[];
+  plantingPeriod: string;
+  floweringPeriod: string;
   edible: boolean;
   harvestDate: string;
   seller: User;
   isFavorite?: boolean;
   removedByAI?: boolean;
 }
+
 
 export type Category =
   | "Légumes"

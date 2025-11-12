@@ -30,7 +30,8 @@ export default function ProductCard({ product, onClick, onToggleFavorite }: Prop
         ) : (
           <Pressable
             onPress={(e) => {
-              e.stopPropagation();
+              // @ts-ignore: stopPropagation existe sur RN SyntheticEvent
+              e.stopPropagation?.();
               onToggleFavorite();
             }}
             style={styles.heartBtn}
@@ -58,9 +59,7 @@ export default function ProductCard({ product, onClick, onToggleFavorite }: Prop
 }
 
 const styles = StyleSheet.create({
-  card: {
-    flex: 1,
-  },
+  card: { flex: 1 },
   imageWrap: {
     position: "relative",
     width: "100%",
@@ -69,19 +68,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: "#F3F4F6",
   },
-  image: {
-    width: "100%",
-    height: "100%",
-  },
-  fallback: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#ECECF0",
-  },
-  fallbackText: {
-    color: "#9CA3AF",
-  },
+  image: { width: "100%", height: "100%" },
+  fallback: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#ECECF0" },
+  fallbackText: { color: "#9CA3AF" },
   removedBanner: {
     position: "absolute",
     left: 0,
@@ -91,11 +80,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     alignItems: "center",
   },
-  removedText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
-  },
+  removedText: { color: "#FFFFFF", fontSize: 12, fontWeight: "600" },
   heartBtn: {
     position: "absolute",
     right: 8,
@@ -106,28 +91,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
-    elevation: 2, // Android
-    shadowColor: "#000", // iOS
+    elevation: 2,
+    shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 2,
   },
-  meta: {
-    marginTop: 8,
-  },
-  name: {
-    color: "#111827",
-    fontSize: 14,
-  },
-  quantity: {
-    color: "#6B7280",
-    fontSize: 12,
-    marginTop: 2,
-  },
-  price: {
-    color: "#111827",
-    fontSize: 14,
-    marginTop: 4,
-    fontWeight: "600",
-  },
+  meta: { marginTop: 8 },
+  name: { color: "#111827", fontSize: 14 },
+  quantity: { color: "#6B7280", fontSize: 12, marginTop: 2 },
+  price: { color: "#111827", fontSize: 14, marginTop: 4, fontWeight: "600" },
 });

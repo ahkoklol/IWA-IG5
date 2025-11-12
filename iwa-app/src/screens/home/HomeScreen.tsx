@@ -10,36 +10,55 @@ import {
 } from "react-native";
 import { Search } from "lucide-react-native";
 import ProductCard from "../../components/product/ProductCard";
-import type { Product } from "../../shared/types/index";
+import type { Product } from "../../shared/types";
+import { allProducts } from "../../mocks/products";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../../navigation/RootNavigator";
 
 type Props = {
-  products: Product[];
-  onProductClick: (product: Product) => void;
-  onToggleFavorite: (productId: number) => void;
+  products?: Product[];
+  onProductClick?: (product: Product) => void;
+  onToggleFavorite?: (productId: number) => void;
 };
-
 export default function HomeScreen({
   products,
   onProductClick,
   onToggleFavorite,
 }: Props) {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  // Données : utilise les mocks si rien passé en prop
+  const data = products ?? allProducts;
+
+  // ✅ La fonction que tu demandes
+  const handleClick = (p: Product) => {
+    // si un handler custom est fourni, on le laisse faire,
+    // sinon on navigue par défaut
+    if (onProductClick) return onProductClick(p);
+    navigation.navigate("ProductDetail", { productId: String(p.id) });
+  };
+
+  const handleFav = onToggleFavorite ?? (() => {});
+
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return products;
-    return products.filter(
+    if (!q) return data;
+    return data.filter(
       (p) =>
         p.name.toLowerCase().includes(q) ||
         p.seller?.username?.toLowerCase().includes(q)
     );
-  }, [products, query]);
+  }, [data, query]);
 
   const renderItem: ListRenderItem<Product> = ({ item }) => (
     <ProductCard
       product={item}
-      onClick={() => onProductClick(item)}
-      onToggleFavorite={() => onToggleFavorite(item.id)}
+      onClick={() => handleClick(item)}
+      onToggleFavorite={() => handleFav(item.id)}
     />
   );
 
@@ -88,10 +107,7 @@ export default function HomeScreen({
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
+  root: { flex: 1, backgroundColor: "#FFFFFF" },
   notch: {
     width: 128,
     height: 32,
@@ -132,16 +148,12 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 32,
   },
-  columns: {
-    gap: 16,
-  },
+  columns: { gap: 16 },
   empty: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
   },
-  emptyText: {
-    color: "#6B7280",
-  },
+  emptyText: { color: "#6B7280" },
 });
