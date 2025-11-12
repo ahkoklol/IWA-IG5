@@ -12,6 +12,7 @@ import com.bondgraine.listingmicroservice.grpc.GetPostResponse;
 import com.stripe.model.PaymentIntent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -32,7 +33,7 @@ public class TransactionService {
 
     private final UserClient userClient;
 
-    public TransactionService(TransactionRepository transactionRepository, ListingClient listingClient, StripeService stripeService, UserClient userClient) {
+    public TransactionService(TransactionRepository transactionRepository, ListingClient listingClient, @Lazy StripeService stripeService, UserClient userClient) {
         this.transactionRepository = transactionRepository;
         this.listingClient = listingClient;
         this.stripeService = stripeService;
