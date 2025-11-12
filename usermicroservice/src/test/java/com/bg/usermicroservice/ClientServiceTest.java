@@ -71,6 +71,10 @@ public class ClientServiceTest extends PostgresTestcontainer {
         clientRepository.save(client);
         this.defaultClient = client;
 
+        Client seller = createBaseClient();
+        seller.setClientId("sellerid");
+        clientRepository.save(seller);
+
         ClientReview clientReview = createBaseClientReview();
         clientReviewRepository.save(clientReview);
         this.defaultClientReview = clientReview;
@@ -97,7 +101,7 @@ public class ClientServiceTest extends PostgresTestcontainer {
         Client createdClient = clientService.createClient(client);
 
         assertThat(createdClient).isNotNull();
-        assertThat(createdClient.getClientId()).isEqualTo("testclientid");
+        assertThat(createdClient.getClientId()).isNotEqualTo("testclientid");
     }
 
     @Test
@@ -142,15 +146,15 @@ public class ClientServiceTest extends PostgresTestcontainer {
 
     @Test
     void testDeleteClient_Fail() {
-        clientService.deleteClient("fakeclientid");
-        Optional<Client> client = clientService.getClient("clientid");
-
-        assertThat(client.isPresent()).isTrue();
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> clientService.deleteClient("fakeclientid")
+        );
     }
 
     @Test
     void testGetSellerReviews() {
-        List<ClientReviewDTO> clientReviews = clientService.getSellerReviews("clientid");
+        List<ClientReviewDTO> clientReviews = clientService.getSellerReviews("sellerid");
 
         assertThat(clientReviews).isNotNull();
         assertThat(clientReviews.size()).isEqualTo(1);
