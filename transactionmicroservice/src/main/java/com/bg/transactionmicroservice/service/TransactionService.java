@@ -23,12 +23,18 @@ public class TransactionService {
 
     private final ListingClient listingClient;
 
-    public TransactionService(TransactionRepository transactionRepository, ListingClient listingClient) {
+    private final StripeService stripeService;
+
+    public TransactionService(TransactionRepository transactionRepository, ListingClient listingClient, StripeService stripeService) {
         this.transactionRepository = transactionRepository;
         this.listingClient = listingClient;
+        this.stripeService = stripeService;
     }
 
     public Transaction purchase(Transaction transaction) {
+        double platformCommission = 0.05; // 5%
+        double stripeFlatCommission = 0.25; // 0.25cents
+        double stripePercentageCommission = 0.015; // 1.5%
         if (!checkPurchaseTransactionContent(transaction)) {
             log.error("Invalid purchase transaction content");
             throw new IllegalArgumentException("Invalid purchase transaction content");
@@ -36,7 +42,6 @@ public class TransactionService {
         transaction.setTransactionId(UUID.randomUUID().toString());
         transaction.setDate(new Date());
         transaction.setStatus("completed");
-        // TODO: set commission and set stripe commission
 
         // get post from listing service
         GetPostRequest getPostRequest = GetPostRequest.newBuilder()
@@ -48,9 +53,23 @@ public class TransactionService {
         PostDTO post = new PostDTO();
         post.setPostId(transaction.getPostId());
         post.setClientId(getPostResponse.getClientId()); // because transaction.clientId is the buyer, listing.clientId is the seller
+        post.setPrice(getPostResponse.getPrice());
+
+        // set commissions
+        transaction.setCommission(post.getPrice() * platformCommission);
+        transaction.setStripeCommission(post.getPrice() * stripePercentageCommission + stripeFlatCommission);
+        double total = post.getPrice() + transaction.getStripeCommission() + transaction.getCommission()
+        transaction.setTotal(total);
+
+        // get stripeId, paymentMethodId from webhook
+
+        // make the stripe payment
+        long amountInCents = (long) (total * 100);
+        stripeService.createDestinationPaymentIntent();
+
 
         // from postDTO.clientId get client from user service
-
+        stripeService.createDestinationPaymentIntent();
 
         // from clientDTO.stripeId save transactions
         return transactionRepository.save(transaction);

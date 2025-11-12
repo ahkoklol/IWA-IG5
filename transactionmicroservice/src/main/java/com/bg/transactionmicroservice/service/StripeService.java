@@ -7,9 +7,11 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.Account;
 import com.stripe.model.AccountLink;
 import com.stripe.model.Event;
+import com.stripe.model.PaymentIntent;
 import com.stripe.net.Webhook;
 import com.stripe.param.AccountCreateParams;
 import com.stripe.param.AccountLinkCreateParams;
+import com.stripe.param.PaymentIntentCreateParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -155,5 +157,43 @@ public class StripeService {
             log.error("Failed to create Stripe Account Link for account {}.", stripeAccountId, e);
             throw new RuntimeException("Failed to create Stripe Account Link: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Creates a PaymentIntent with a Destination Charge.
+     * Charges the buyer and transfers the net amount to the seller, holding the application fee.
+     * @param amountInCents The total amount to charge the customer (in cents).
+     * @param sellerStripeAccountId The connected account ID of the seller.
+     * @param paymentMethodId The ID of the buyer's PaymentMethod.
+     * @param applicationFeeAmountInCents The commission amount for the platform (in cents).
+     * @return The created Stripe PaymentIntent object.
+     */
+    public PaymentIntent createDestinationPaymentIntent(long amountInCents, String sellerStripeAccountId, String paymentMethodId, long applicationFeeAmountInCents, String platformTransactionId) throws StripeException {
+        Stripe.apiKey = stripeSecretKey;
+
+        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+                .setCurrency("eur") // Change to your currency
+                .setAmount(amountInCents)
+                .setPaymentMethod(paymentMethodId)
+                .setOffSession(false)
+                .setConfirm(true)
+                .setAutomaticPaymentMethods(
+                        PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                                .setEnabled(true)
+                                .build()
+                )
+                // 1. Destination Charge: Transfer the total amount to the seller's account.
+                .setTransferData(
+                        PaymentIntentCreateParams.TransferData.builder()
+                                .setDestination(sellerStripeAccountId)
+                                .build()
+                )
+                // 2. Application Fee: This is the platform's commission, deducted from the transfer.
+                .setApplicationFeeAmount(applicationFeeAmountInCents)
+                // 3. Metadata for easy tracking
+                .putMetadata("platform_transaction_id", platformTransactionId)
+                .build();
+
+        return PaymentIntent.create(params);
     }
 }

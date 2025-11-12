@@ -24,5 +24,5 @@ public class Transaction {
     private double stripeCommission;
     private String clientId; // buyer id
     private String postId;
-
+    private double total;
 }
