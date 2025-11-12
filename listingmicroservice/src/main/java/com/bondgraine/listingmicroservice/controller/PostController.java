@@ -95,7 +95,7 @@ public class PostController {
     @GetMapping("/{clientId}/soldList")
     public ResponseEntity<List<Post>> getSoldPosts(@PathVariable String clientId) {
         log.info("Received request to get sold posts for client {}", clientId);
-        List<Post> visiblePosts = postService.getSellPosts(clientId);
+        List<Post> visiblePosts = postService.getSoldPosts(clientId);
         return ResponseEntity.ok(visiblePosts);
     }
 
