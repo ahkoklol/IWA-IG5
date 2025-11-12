@@ -2,8 +2,8 @@ package com.bg.transactionmicroservice.service;
 
 import com.bg.transactionmicroservice.client.UserClient;
 import com.bg.transactionmicroservice.entity.ClientDTO;
+import com.bg.transactionmicroservice.entity.Transaction;
 import com.bg.usermicroservice.grpc.UpdateStripeIdRequest;
-import com.bg.usermicroservice.grpc.UpdateStripeIdResponse;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
@@ -112,7 +112,12 @@ public class StripeService {
             log.error("PaymentIntent {} succeeded but is missing 'platform_transaction_id' metadata.", paymentIntent.getId());
             return;
         }
-        transactionService.updateTransactionStatusToCompleted(internalTransactionId, true);
+        Transaction transaction = new Transaction();
+        transaction.setTransactionId(internalTransactionId);
+        transaction.setPaymentMethodId(paymentIntent.getMetadata().get("payment_method_id"));
+        transaction.setStripePaymentIntentId(paymentIntent.getMetadata().get("stripe_payment_intent_id"));
+        transactionService.updateStripeData(transaction);
+        transactionService.updateTransactionToCompleted(internalTransactionId, true);
         log.info("PaymentIntent {} successful. Transaction {} fulfilled.", paymentIntent.getId(), internalTransactionId);
     }
 
@@ -126,7 +131,7 @@ public class StripeService {
             log.error("PaymentIntent {} failed but is missing 'platform_transaction_id' metadata.", paymentIntent.getId());
             return;
         }
-        transactionService.updateTransactionStatusToCompleted(internalTransactionId, false);
+        transactionService.updateTransactionToCompleted(internalTransactionId, false);
         log.warn("PaymentIntent {} failed. Transaction {} marked as failed.", paymentIntent.getId(), internalTransactionId);
     }
 

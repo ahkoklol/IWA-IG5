@@ -1,11 +1,15 @@
 package com.bg.transactionmicroservice.service;
 
 import com.bg.transactionmicroservice.client.ListingClient;
+import com.bg.transactionmicroservice.client.UserClient;
 import com.bg.transactionmicroservice.entity.PostDTO;
 import com.bg.transactionmicroservice.entity.Transaction;
 import com.bg.transactionmicroservice.repository.TransactionRepository;
+import com.bg.usermicroservice.grpc.GetStripeIdRequest;
+import com.bg.usermicroservice.grpc.GetStripeIdResponse;
 import com.bondgraine.listingmicroservice.grpc.GetPostRequest;
 import com.bondgraine.listingmicroservice.grpc.GetPostResponse;
+import com.stripe.model.PaymentIntent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -26,16 +30,20 @@ public class TransactionService {
 
     private final StripeService stripeService;
 
-    public TransactionService(TransactionRepository transactionRepository, ListingClient listingClient, StripeService stripeService) {
+    private final UserClient userClient;
+
+    public TransactionService(TransactionRepository transactionRepository, ListingClient listingClient, StripeService stripeService, UserClient userClient) {
         this.transactionRepository = transactionRepository;
         this.listingClient = listingClient;
         this.stripeService = stripeService;
+        this.userClient = userClient;
     }
 
     public Transaction purchase(Transaction transaction) {
         double platformCommission = 0.05; // 5%
         double stripeFlatCommission = 0.25; // 0.25cents
         double stripePercentageCommission = 0.015; // 1.5%
+
         if (!checkPurchaseTransactionContent(transaction)) {
             log.error("Invalid purchase transaction content");
             throw new IllegalArgumentException("Invalid purchase transaction content");
@@ -57,28 +65,45 @@ public class TransactionService {
         post.setPrice(getPostResponse.getPrice());
 
         // set commissions
-        transaction.setCommission(post.getPrice() * platformCommission);
-        transaction.setStripeCommission(post.getPrice() * stripePercentageCommission + stripeFlatCommission);
-        double total = post.getPrice() + transaction.getStripeCommission() + transaction.getCommission();
+        transaction.setCommission(getPostResponse.getPrice() * platformCommission);
+        transaction.setStripeCommission(getPostResponse.getPrice() * stripePercentageCommission + stripeFlatCommission);
+        double total = getPostResponse.getPrice() + transaction.getStripeCommission() + transaction.getCommission();
         transaction.setTotal(total);
 
-        // get stripeId, paymentMethodId from webhook
-
         // make the stripe payment
-        long amountInCents = (long) (total * 100);
-        //stripeService.createDestinationPaymentIntent();
+        GetStripeIdRequest request = GetStripeIdRequest.newBuilder()
+                .setClientId(transaction.getClientId())
+                .build();
+        GetStripeIdResponse response = userClient.getStripeId(request);
 
+        try {
+            long amountInCents = (long) (transaction.getTotal() * 100);
+            long applicationFeeAmountInCents = (long) (transaction.getCommission() * 100);
 
-        // from postDTO.clientId get client from user service
-        //stripeService.createDestinationPaymentIntent();
-
-        // from clientDTO.stripeId save transactions
+            PaymentIntent paymentIntent = stripeService.createDestinationPaymentIntent(
+                    amountInCents,
+                    response.getStripeId(),
+                    transaction.getPaymentMethodId(),
+                    applicationFeeAmountInCents,
+                    transaction.getTransactionId()
+            );
+            // Save Stripe tracking IDs and update status based on Intent result
+            transaction.setStripePaymentIntentId(paymentIntent.getId());
+            // Check if the Intent requires further action (like 3D Secure)
+            if ("requires_action".equals(paymentIntent.getStatus())) {
+                transaction.setStatus("requires_action");
+            }
+        } catch (Exception e) {
+            log.error("Failed to create Stripe Payment Intent for transaction {}.", transaction.getTransactionId(), e);
+            transaction.setStatus("failed");
+        }
         return transactionRepository.save(transaction);
     }
 
     boolean checkPurchaseTransactionContent(Transaction transaction) {
         if (transaction.getPostId() == null || transaction.getPostId().isEmpty()) return false;
         if (transaction.getClientId() == null || transaction.getClientId().isEmpty()) return false;
+        if (transaction.getPaymentMethodId() == null || transaction.getPaymentMethodId().isEmpty()) return false;
         return true;
     }
 
@@ -93,11 +118,26 @@ public class TransactionService {
     }
 
     /**
-     * Updates a Transaction status
+     * Updates the stripe data in a Transaction
+     * @param transaction a Trnasaction object
+     */
+    public void updateStripeData(Transaction transaction) {
+        Optional<Transaction> optionalTransaction = getTransaction(transaction.getTransactionId());
+        if (optionalTransaction.isEmpty()) {
+            log.error("Transaction with id {} not found", transaction.getTransactionId());
+            throw new IllegalArgumentException("Transaction with id " + transaction.getTransactionId() + " not found");
+        }
+        optionalTransaction.get().setPaymentMethodId(transaction.getPaymentMethodId());
+        optionalTransaction.get().setStripePaymentIntentId(transaction.getStripePaymentIntentId());
+        transactionRepository.save(optionalTransaction.get());
+    }
+
+    /**
+     * Updates a Transaction to completed
      * @param transactionId the id of the Transaction
      * @param completed the status of the transaction
      */
-    public void updateTransactionStatusToCompleted(String transactionId, boolean completed) {
+    public void updateTransactionToCompleted(String transactionId, boolean completed) {
         Optional<Transaction> optionalTransaction = getTransaction(transactionId);
         if (optionalTransaction.isEmpty()) {
             log.error("Transaction with id {} not found", transactionId);
@@ -107,8 +147,13 @@ public class TransactionService {
             log.warn("Transaction with id {} already completed", transactionId);
             throw new IllegalArgumentException("Transaction with id " + transactionId + " already completed");
         }
-        optionalTransaction.get().setStatus("completed");
-        transactionRepository.save(optionalTransaction.get());
+        Transaction transaction = optionalTransaction.get();
+
+        // from postDTO.clientId get client from user service
+        //stripeService.createDestinationPaymentIntent();
+
+        transaction.setStatus("completed");
+        transactionRepository.save(transaction));
     }
 
     // stripe balance per clientId

@@ -1,8 +1,6 @@
 package com.bg.transactionmicroservice.client;
 
-import com.bg.usermicroservice.grpc.UpdateStripeIdRequest;
-import com.bg.usermicroservice.grpc.UpdateStripeIdResponse;
-import com.bg.usermicroservice.grpc.UserServiceGrpc;
+import com.bg.usermicroservice.grpc.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,5 +16,9 @@ public class UserClient {
 
     public UpdateStripeIdResponse updateStripeId(UpdateStripeIdRequest updateStripeIdRequest) {
         return userClientStub.updateStripeId(updateStripeIdRequest);
+    }
+
+    public GetStripeIdResponse getStripeId(GetStripeIdRequest getStripeIdRequest) {
+        return userClientStub.getStripeId(getStripeIdRequest);
     }
 }
