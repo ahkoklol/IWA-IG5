@@ -153,7 +153,7 @@ public class TransactionService {
         //stripeService.createDestinationPaymentIntent();
 
         transaction.setStatus("completed");
-        transactionRepository.save(transaction));
+        transactionRepository.save(transaction);
     }
 
     // stripe balance per clientId
