@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.grpc.server.service.GrpcService;
 
 @GrpcService
-public class TransactionServiceImpl extends TransactionServiceGrpc.TransactionServiceImplBase {
+public class TransactionServiceImpl {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionServiceImpl.class);
 
@@ -22,7 +22,6 @@ public class TransactionServiceImpl extends TransactionServiceGrpc.TransactionSe
         this.transactionService = transactionService;
     }
 
-    @Override
     public void purchase(PurchaseRequest purchaseRequest, StreamObserver<PurchaseResponse> responseObserver) {
         Transaction transaction = new Transaction();
         transaction.setStatus("pending");
@@ -55,12 +54,4 @@ public class TransactionServiceImpl extends TransactionServiceGrpc.TransactionSe
             responseObserver.onError(e);
         }
     }
-
-    @Override
-    public PurchaseResponse purchase(PurchaseRequest buyPostRequest) {
-        throw new StatusRuntimeException(Status.UNIMPLEMENTED.withDescription(
-                "Synchronous/Blocking method BuyPost is not implemented. Use the AsyncService contract."
-        ));
-    }
-
 }
