@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -41,7 +42,7 @@ public class TransactionService {
         }
         transaction.setTransactionId(UUID.randomUUID().toString());
         transaction.setDate(new Date());
-        transaction.setStatus("completed");
+        transaction.setStatus("initiated");
 
         // get post from listing service
         GetPostRequest getPostRequest = GetPostRequest.newBuilder()
@@ -58,18 +59,18 @@ public class TransactionService {
         // set commissions
         transaction.setCommission(post.getPrice() * platformCommission);
         transaction.setStripeCommission(post.getPrice() * stripePercentageCommission + stripeFlatCommission);
-        double total = post.getPrice() + transaction.getStripeCommission() + transaction.getCommission()
+        double total = post.getPrice() + transaction.getStripeCommission() + transaction.getCommission();
         transaction.setTotal(total);
 
         // get stripeId, paymentMethodId from webhook
 
         // make the stripe payment
         long amountInCents = (long) (total * 100);
-        stripeService.createDestinationPaymentIntent();
+        //stripeService.createDestinationPaymentIntent();
 
 
         // from postDTO.clientId get client from user service
-        stripeService.createDestinationPaymentIntent();
+        //stripeService.createDestinationPaymentIntent();
 
         // from clientDTO.stripeId save transactions
         return transactionRepository.save(transaction);
@@ -85,6 +86,29 @@ public class TransactionService {
         List<Transaction> list = transactionRepository.findByClientId(clientId);
         log.info("Found {} transactions for client {}", list.size(), clientId);
         return list;
+    }
+
+    private Optional<Transaction> getTransaction(String transactionId) {
+        return transactionRepository.findById(transactionId);
+    }
+
+    /**
+     * Updates a Transaction status
+     * @param transactionId the id of the Transaction
+     * @param completed the status of the transaction
+     */
+    public void updateTransactionStatusToCompleted(String transactionId, boolean completed) {
+        Optional<Transaction> optionalTransaction = getTransaction(transactionId);
+        if (optionalTransaction.isEmpty()) {
+            log.error("Transaction with id {} not found", transactionId);
+            throw new IllegalArgumentException("Transaction with id " + transactionId + " not found");
+        }
+        if (optionalTransaction.get().getStatus().equals("completed")) {
+            log.warn("Transaction with id {} already completed", transactionId);
+            throw new IllegalArgumentException("Transaction with id " + transactionId + " already completed");
+        }
+        optionalTransaction.get().setStatus("completed");
+        transactionRepository.save(optionalTransaction.get());
     }
 
     // stripe balance per clientId

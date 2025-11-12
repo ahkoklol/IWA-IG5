@@ -5,10 +5,7 @@ import com.bg.transactionmicroservice.service.StripeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -38,5 +35,20 @@ public class StripeController {
         }
         Map<String, String> response = stripeService.createAccountLink(clientDTO.getStripeId());
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/webhook")
+    public ResponseEntity<Void> handleStripeWebhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) {
+        try {
+            // Delegate the raw payload and signature to the service layer
+            stripeService.handleWebhookEvent(payload, sigHeader);
+            // Stripe expects a 200 OK response to acknowledge receipt
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            // Log the error details
+            System.err.println("Webhook processing failed: " + e.getMessage());
+            // Return an HTTP 400 or 500 to signal failure to Stripe (Stripe will retry)
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

@@ -41,21 +41,4 @@ public class TransactionController {
         return ResponseEntity.ok(transactionList);
     }
 
-    @PostMapping("/stripe")
-    public ResponseEntity<Void> handleStripeWebhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) {
-        try {
-            // Delegate the raw payload and signature to the service layer
-            stripeService.handleWebhookEvent(payload, sigHeader);
-
-            // Stripe expects a 200 OK response to acknowledge receipt
-            return ResponseEntity.ok().build();
-
-        } catch (Exception e) {
-            // Log the error details
-            System.err.println("Webhook processing failed: " + e.getMessage());
-            // Return an HTTP 400 or 500 to signal failure to Stripe (Stripe will retry)
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
-
 }

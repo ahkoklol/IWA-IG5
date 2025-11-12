@@ -1,13 +1,13 @@
 package com.bg.transactionmicroservice.service;
 
+import com.bg.transactionmicroservice.client.UserClient;
 import com.bg.transactionmicroservice.entity.ClientDTO;
+import com.bg.usermicroservice.grpc.UpdateStripeIdRequest;
+import com.bg.usermicroservice.grpc.UpdateStripeIdResponse;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Account;
-import com.stripe.model.AccountLink;
-import com.stripe.model.Event;
-import com.stripe.model.PaymentIntent;
+import com.stripe.model.*;
 import com.stripe.net.Webhook;
 import com.stripe.param.AccountCreateParams;
 import com.stripe.param.AccountLinkCreateParams;
@@ -24,38 +24,61 @@ public class StripeService {
 
     private static final Logger log = LoggerFactory.getLogger(StripeService.class);
 
+    private final TransactionService transactionService;
+
+    private final UserClient userClient;
+
     @Value("${stripe.secret.key}")
     private String stripeSecretKey;
 
     @Value("${stripe.webhook.secret}")
     private String stripeWebhookSecret;
 
+    public StripeService(TransactionService transactionService, UserClient userClient) {
+        this.transactionService = transactionService;
+        this.userClient = userClient;
+    }
+
+    /**
+     * Webhook handler
+     * @param payload the payload
+     * @param sigHeader the signature header
+     * @throws Exception an exception
+     */
     public void handleWebhookEvent(String payload, String sigHeader) throws Exception {
         Event event;
 
         // check the webhook
         try {
+            Stripe.apiKey = stripeSecretKey; // Must set API key for the deserialization process
             event = Webhook.constructEvent(payload, sigHeader, stripeWebhookSecret);
         } catch (SignatureVerificationException e) {
             throw new RuntimeException("Webhook signature verification failed.", e);
         }
 
+        StripeObject dataObject = event.getDataObjectDeserializer().getObject()
+                .orElseThrow(() -> new RuntimeException("Could not deserialize object from webhook."));
+
         switch (event.getType()) {
             case "account.updated":
                 processAccountUpdated(event);
                 break;
-
-            // Handle other event types like 'payment_intent.succeeded' for order fulfillment
-            // case "payment_intent.succeeded":
-            //     // ... logic to fulfill order ...
-            //     break;
-
+            case "payment_intent.succeeded":
+                processPaymentIntentSucceeded((PaymentIntent) dataObject);
+                break;
+            case "payment_intent.payment_failed":
+                processPaymentIntentFailed((PaymentIntent) dataObject);
+                break;
             default:
                 System.out.println("Received unhandled event type: " + event.getType());
                 break;
         }
     }
 
+    /**
+     * Helper for account updates Event success webhook
+     * @param event the Event
+     */
     private void processAccountUpdated(Event event) {
         Account account = (Account) event.getDataObjectDeserializer().getObject()
                 .orElseThrow(() -> new RuntimeException("Could not deserialize Account object from webhook."));
@@ -64,16 +87,47 @@ public class StripeService {
         String stripeAccountId = account.getId();
 
         // seller id in my database
-        String internalSellerIdStr = account.getMetadata().get("internal_seller_id");
+        String internalSellerId = account.getMetadata().get("internal_seller_id");
 
-        if (internalSellerIdStr == null) {
+        if (internalSellerId == null) {
             throw new RuntimeException("Webhook 'account.updated' received but missing 'internal_seller_id' in metadata.");
         }
 
-        Long internalSellerId = Long.parseLong(internalSellerIdStr);
+        // stripeId changed, save it to Client database
+        UpdateStripeIdRequest request = UpdateStripeIdRequest.newBuilder()
+                .setClientId(internalSellerId)
+                .setStripeId(stripeAccountId)
+                .build();
 
-        // 3. **PERSISTENCE**: Save the ID to your database
-        saveStripeAccountId(internalSellerId, stripeAccountId);
+        userClient.updateStripeId(request);
+    }
+
+    /**
+     * Helper for PaymentIntent success webhook
+     * @param paymentIntent the PaymentIntent
+     */
+    private void processPaymentIntentSucceeded(PaymentIntent paymentIntent) {
+        String internalTransactionId = paymentIntent.getMetadata().get("platform_transaction_id");
+        if (internalTransactionId == null) {
+            log.error("PaymentIntent {} succeeded but is missing 'platform_transaction_id' metadata.", paymentIntent.getId());
+            return;
+        }
+        transactionService.updateTransactionStatusToCompleted(internalTransactionId, true);
+        log.info("PaymentIntent {} successful. Transaction {} fulfilled.", paymentIntent.getId(), internalTransactionId);
+    }
+
+    /**
+     * Helper for PaymentIntent fail webhook
+     * @param paymentIntent the PaymentIntent
+     */
+    private void processPaymentIntentFailed(PaymentIntent paymentIntent) {
+        String internalTransactionId = paymentIntent.getMetadata().get("platform_transaction_id");
+        if (internalTransactionId == null) {
+            log.error("PaymentIntent {} failed but is missing 'platform_transaction_id' metadata.", paymentIntent.getId());
+            return;
+        }
+        transactionService.updateTransactionStatusToCompleted(internalTransactionId, false);
+        log.warn("PaymentIntent {} failed. Transaction {} marked as failed.", paymentIntent.getId(), internalTransactionId);
     }
 
     /**
