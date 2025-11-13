@@ -1,6 +1,15 @@
-import { X, Star } from 'lucide-react';
-import { Product } from '../../shared/types';
-import { ImageWithFallback } from '../../figma/ImageWithFallBack';
+import React from "react";
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Image,
+} from "react-native";
+import { X, Star } from "lucide-react-native";
+import type { Product } from "../../shared/types";
 
 interface PurchaseConfirmationModalProps {
   product: Product;
@@ -8,108 +17,349 @@ interface PurchaseConfirmationModalProps {
   onConfirm: () => void;
 }
 
-export function PurchaseConfirmationModal({ product, onClose, onConfirm }: PurchaseConfirmationModalProps) {
-  // Calculate prices
-  const priceValue = parseFloat(product.price.replace(',', '.').replace(' €', ''));
-  const commission = priceValue * 0.10;
+export default function PurchaseConfirmationModal({
+  product,
+  onClose,
+  onConfirm,
+}: PurchaseConfirmationModalProps) {
+  if (!product) {
+    return null;
+  }
+
+  // --- Image principale : supporte string (URL) ou require() ---
+  const rawImage = Array.isArray(product.images) && product.images.length > 0
+    ? product.images[0]
+    : undefined;
+
+  const mainImageSource =
+    typeof rawImage === "string"
+      ? { uri: rawImage }
+      : rawImage
+      ? rawImage
+      : null;
+
+  // --- Parsing prix robuste ---
+  const rawPrice =
+    typeof product.price === "string" ? product.price : String(product.price ?? "0");
+  const numericPrice = parseFloat(
+    rawPrice
+      .replace(/\s/g, "") // retire espaces
+      .replace("€", "")
+      .replace(",", ".")
+  );
+  const priceValue = isNaN(numericPrice) ? 0 : numericPrice;
+  const commission = priceValue * 0.1;
   const total = priceValue + commission;
 
   const formatPrice = (value: number) => {
-    return value.toFixed(2).replace('.', ',') + ' €';
+    return value.toFixed(2).replace(".", ",") + " €";
   };
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }).map((_, index) => (
-      <Star
-        key={index}
-        className={`w-3 h-3 ${
-          index < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-        }`}
-      />
-    ));
+  const renderStars = (rating: number | undefined) => {
+    const r = Math.round(rating || 0);
+    return (
+      <View style={styles.starsRow}>
+        {Array.from({ length: 5 }).map((_, index) => {
+          const filled = index < r;
+          return (
+            <Star
+              key={index}
+              size={12}
+              color={filled ? "#FBBF24" : "#D1D5DB"}
+              fill={filled ? "#FBBF24" : "transparent"}
+              style={{ marginRight: 2 }}
+            />
+          );
+        })}
+      </View>
+    );
   };
+
+  const seller = product.seller || ({} as Product["seller"]);
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h2 className="text-base text-foreground">Confirmation d'achat</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center">
-            <X className="w-5 h-5 text-gray-800" />
-          </button>
-        </div>
+    <Modal visible transparent animationType="fade">
+      <View style={styles.overlay}>
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Confirmation d'achat</Text>
+            <TouchableOpacity
+              onPress={onClose}
+              style={styles.closeButton}
+              activeOpacity={0.7}
+            >
+              <X size={18} color="#111827" />
+            </TouchableOpacity>
+          </View>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-6">
-          {/* Product info */}
-          <div className="mb-6">
-            <h3 className="text-sm text-foreground mb-3">Article</h3>
-            <div className="flex items-center gap-3">
-              <ImageWithFallback
-                src={product.images[0]}
-                alt={product.name}
-                className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
-              />
-              <div className="flex-1">
-                <h4 className="text-sm text-foreground mb-1">{product.name}</h4>
-                <p className="text-xs text-muted-foreground">{product.quantity}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Seller info */}
-          <div className="mb-6">
-            <h3 className="text-sm text-foreground mb-3">Vendeur</h3>
-            <div className="flex items-center gap-3">
-              <ImageWithFallback
-                src={product.seller.avatar}
-                alt={product.seller.username}
-                className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-              />
-              <div className="flex-1">
-                <h4 className="text-sm text-foreground mb-1">{product.seller.username}</h4>
-                <div className="flex items-center gap-1">
-                  {renderStars(product.seller.rating)}
-                  <span className="text-xs text-muted-foreground ml-1">
-                    ({product.seller.reviewCount})
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Price breakdown */}
-          <div className="bg-gray-50 rounded-xl p-4">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-sm text-muted-foreground">Prix de vente</span>
-              <span className="text-sm text-foreground">{product.price}</span>
-            </div>
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-sm text-muted-foreground">Commission (10%)</span>
-              <span className="text-sm text-foreground">{formatPrice(commission)}</span>
-            </div>
-            <div className="pt-3 border-t border-border">
-              <div className="flex justify-between items-center">
-                <span className="text-base text-foreground">Total</span>
-                <span className="text-base text-foreground">{formatPrice(total)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Confirm button */}
-        <div className="px-6 py-4 border-t border-border">
-          <button 
-            onClick={onConfirm}
-            className="w-full bg-[#7BCCEB] text-white py-3.5 rounded-xl hover:bg-[#5BB8E0] transition-colors"
+          {/* Content */}
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
           >
-            Valider l'achat
-          </button>
-        </div>
-      </div>
-    </div>
+            {/* Product info */}
+            <View style={styles.block}>
+              <Text style={styles.blockTitle}>Article</Text>
+              <View style={styles.productRow}>
+                {mainImageSource ? (
+                  <Image source={mainImageSource} style={styles.productImage} />
+                ) : (
+                  <View style={[styles.productImage, styles.imageFallback]}>
+                    <Text style={styles.imageFallbackText}>Image</Text>
+                  </View>
+                )}
+                <View style={styles.productInfo}>
+                  <Text style={styles.productName}>{product.name ?? "—"}</Text>
+                  {!!product.quantity && (
+                    <Text style={styles.productQuantity}>{product.quantity}</Text>
+                  )}
+                </View>
+              </View>
+            </View>
+
+            {/* Seller info */}
+            <View style={styles.block}>
+              <Text style={styles.blockTitle}>Vendeur</Text>
+              <View style={styles.sellerRow}>
+                {seller?.avatar ? (
+                  <Image
+                    source={{ uri: seller.avatar }}
+                    style={styles.sellerAvatar}
+                  />
+                ) : (
+                  <View style={[styles.sellerAvatar, styles.avatarFallback]}>
+                    <Text style={styles.avatarFallbackText}>
+                      {seller?.username?.[0]?.toUpperCase() ?? "?"}
+                    </Text>
+                  </View>
+                )}
+                <View style={styles.sellerInfo}>
+                  <Text style={styles.sellerName}>{seller?.username ?? "—"}</Text>
+                  <View style={styles.sellerRatingRow}>
+                    {renderStars(seller?.rating)}
+                    {!!seller?.reviewCount && (
+                      <Text style={styles.sellerReviewCount}>
+                        ({seller.reviewCount})
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* Price breakdown */}
+            <View style={styles.priceCard}>
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>Prix de vente</Text>
+                <Text style={styles.priceValue}>{formatPrice(priceValue)}</Text>
+              </View>
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>Commission (10%)</Text>
+                <Text style={styles.priceValue}>
+                  {formatPrice(commission)}
+                </Text>
+              </View>
+              <View style={styles.priceTotalRow}>
+                <Text style={styles.priceTotalLabel}>Total</Text>
+                <Text style={styles.priceTotalValue}>
+                  {formatPrice(total)}
+                </Text>
+              </View>
+            </View>
+          </ScrollView>
+
+          {/* Confirm button */}
+          <View style={styles.footer}>
+            <TouchableOpacity
+              onPress={onConfirm}
+              activeOpacity={0.9}
+              style={styles.confirmButton}
+            >
+              <Text style={styles.confirmButtonText}>Valider l'achat</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
-export default PurchaseConfirmationModal;
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 16,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  container: {
+    width: "100%",
+    maxHeight: "90%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    overflow: "hidden",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#E5E7EB",
+  },
+  headerTitle: {
+    fontSize: 16,
+    color: "#111827",
+    fontWeight: "600",
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  block: {
+    marginBottom: 16,
+  },
+  blockTitle: {
+    fontSize: 14,
+    color: "#111827",
+    marginBottom: 8,
+  },
+  productRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  productImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    marginRight: 12,
+  },
+  imageFallback: {
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  imageFallbackText: {
+    color: "#9CA3AF",
+    fontSize: 12,
+  },
+  productInfo: {
+    flex: 1,
+  },
+  productName: {
+    fontSize: 14,
+    color: "#111827",
+    marginBottom: 4,
+  },
+  productQuantity: {
+    fontSize: 12,
+    color: "#6B7280",
+  },
+  sellerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  sellerAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 12,
+  },
+  avatarFallback: {
+    backgroundColor: "#E5E7EB",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarFallbackText: {
+    color: "#4B5563",
+    fontWeight: "600",
+  },
+  sellerInfo: {
+    flex: 1,
+  },
+  sellerName: {
+    fontSize: 14,
+    color: "#111827",
+    marginBottom: 2,
+  },
+  sellerRatingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  starsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  sellerReviewCount: {
+    fontSize: 12,
+    color: "#6B7280",
+    marginLeft: 4,
+  },
+  priceCard: {
+    backgroundColor: "#F9FAFB",
+    borderRadius: 16,
+    padding: 12,
+  },
+  priceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  priceLabel: {
+    fontSize: 13,
+    color: "#6B7280",
+  },
+  priceValue: {
+    fontSize: 13,
+    color: "#111827",
+  },
+  priceTotalRow: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#E5E7EB",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  priceTotalLabel: {
+    fontSize: 15,
+    color: "#111827",
+    fontWeight: "600",
+  },
+  priceTotalValue: {
+    fontSize: 15,
+    color: "#111827",
+    fontWeight: "600",
+  },
+  footer: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#E5E7EB",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  confirmButton: {
+    backgroundColor: "#7BCCEB",
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  confirmButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+});

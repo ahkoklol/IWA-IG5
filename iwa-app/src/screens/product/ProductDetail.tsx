@@ -9,6 +9,7 @@ import {
   Dimensions,
   StatusBar,
   Alert,
+  Platform,
 } from "react-native";
 import { ArrowLeft, ChevronRight, Star } from "lucide-react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -19,11 +20,18 @@ import type { RootStackParamList } from "../../navigation/RootNavigator";
 import type { Product } from "../../shared/types";
 import { demoProducts } from "../../mocks/products";
 
+import PurchaseConfirmationModal from "./PurchaseConfirmationModal";
+import PurchaseSuccessModal from "./PurchaseSuccessModal";
+
 type DetailRoute = RouteProp<RootStackParamList, "ProductDetail">;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 const DOT_SIZE = 6;
 const { width } = Dimensions.get("window");
+const HEADER_TOP = Platform.OS === "android"
+  ? (StatusBar.currentHeight || 0) + 16
+  : 24;
+
 
 function renderStars(rating: number) {
   return (
@@ -54,6 +62,8 @@ export default function ProductDetail() {
   );
 
   const [current, setCurrent] = useState(0);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   if (!product) {
     return (
@@ -75,7 +85,7 @@ export default function ProductDetail() {
       Alert.alert("Indisponible", "Cette annonce a été supprimée.");
       return;
     }
-    // navigation.navigate("PurchaseConfirmation", { productId: String(product.id) });
+    setShowPurchaseModal(true);
   };
 
   const planting = Array.isArray(product.plantingPeriod)
@@ -93,7 +103,11 @@ export default function ProductDetail() {
       <View style={styles.notch} />
 
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          style={styles.headerBtn}
+          onPress={() => navigation.goBack()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           <ArrowLeft size={18} color="#111827" />
         </TouchableOpacity>
         {!product.removedByAI && (
@@ -209,6 +223,21 @@ export default function ProductDetail() {
           )}
         </View>
       </ScrollView>
+      {showPurchaseModal && (
+        <PurchaseConfirmationModal
+          product={product}
+          onClose={() => setShowPurchaseModal(false)}
+          onConfirm={() => {
+            setShowPurchaseModal(false);   // fermer le premier modal
+            setShowSuccessModal(true);     // ouvrir le modal de succès
+          }}
+        />
+      )}
+      {showSuccessModal && (
+        <PurchaseSuccessModal
+          onClose={() => setShowSuccessModal(false)}
+        />
+      )}
     </View>
   );
 }
@@ -238,7 +267,7 @@ const styles = StyleSheet.create({
   },
   header: {
     position: "absolute",
-    top: 12,
+    top: HEADER_TOP,
     left: 12,
     right: 12,
     zIndex: 10,
