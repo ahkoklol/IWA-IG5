@@ -1,0 +1,47 @@
+package com.bondgraine.listingmicroservice.entity;
+
+import com.bondgraine.listingmicroservice.converter.StringListConverter;
+import jakarta.persistence.*;
+import lombok.Data;
+
+import java.util.Date;
+import java.util.List;
+
+@Data
+@Entity
+@Table(name = "post")
+public class Post {
+
+    @Id
+    @Column(name = "post_id")
+    private String postId;
+
+    @Column(name = "date_created")
+    private Date dateCreated;
+
+    @Column(name = "date_modified")
+    private Date dateModified;
+
+    private String description;
+
+    @Convert(converter = StringListConverter.class)
+    private List<String> photos;
+
+    private double weight;
+    private int quantity;
+    private String type;
+    private String season;
+    private boolean edible;
+
+    @Column(name = "flowering_season")
+    private String floweringSeason;
+
+    @Column(name = "harvest_date")
+    private Date harvestDate;
+
+    private double price;
+    private String status;
+
+    @Column(name = "client_id")
+    private String clientId;
+}
