@@ -160,25 +160,36 @@ public class PostService {
     }
 
     /**
-     * Hide a post - change status to "hidden"
-     * @param postId the id of the post
-     * @return true if the post was successfully hidden, false otherwise
+     * Centralized method to change a post's status.
+     * @param postId The ID of the post to modify.
+     * @param requiredStatus The status the post MUST currently have to proceed (for validation).
+     * @param targetStatus The new status to set on the post.
+     * @param actionDescription A phrase describing the action (e.g., "banned", "hidden").
      */
-    public boolean hidePost(String postId) {
+    private void updatePostStatus(String postId, String requiredStatus, String targetStatus, String actionDescription) {
         Optional<Post> optionalPost = getPostById(postId);
         if (optionalPost.isEmpty()) {
             log.error("No post found with id: {}", postId);
             throw new NoSuchElementException("Post not found with ID: " + postId);
         }
         Post post = optionalPost.get();
-        if (!post.getStatus().equals("visible")) {
-            log.error("Post {} is already hidden or sold", postId);
-            throw new IllegalStateException("Post with id " + postId + "cannot be hidden, status is {}" + post.getStatus());
+        if (!post.getStatus().equals(requiredStatus)) {
+            log.error("Post {} cannot be {} because its status is {}", postId, actionDescription, post.getStatus());
+            throw new IllegalStateException("Post with id " + postId + " cannot be " + actionDescription + ", status is " + post.getStatus());
         }
-        post.setStatus("hidden");
+        post.setStatus(targetStatus);
         post.setDateModified(new Date());
         postRepository.save(post);
-        log.info("Post {} successfully hidden", postId);
+        log.info("Post {} successfully {}", postId, actionDescription);
+    }
+
+    /**
+     * Hide a post - change status to "hidden"
+     * @param postId the id of the post
+     * @return true if the post was successfully hidden, false otherwise
+     */
+    public boolean hidePost(String postId) {
+        updatePostStatus(postId, "visible", "hidden", "hidden");
         return true;
     }
 
@@ -188,21 +199,27 @@ public class PostService {
      * @return true if the post was successfully unhidden, false otherwise
      */
     public boolean unhidePost(String postId) {
-        Optional<Post> optionalPost = getPostById(postId);
-        if (optionalPost.isEmpty()) {
-            log.error("No post found with id: {}", postId);
+        updatePostStatus(postId, "hidden", "visible", "unhidden");
+        return true;
+    }
+
+    private void validatePostAndFavoriteStatus(String postId, String clientId, boolean shouldExist, String action) {
+        Optional<Post> post = getPostById(postId);
+        if (post.isEmpty()) {
+            log.error("Post not found with ID: {}", postId);
             throw new NoSuchElementException("Post not found with ID: " + postId);
         }
-        Post post = optionalPost.get();
-        if (!post.getStatus().equals("hidden")) {
-            log.error("Post {} is already visible or sold", postId);
-            throw new IllegalStateException("Post with id " + postId + "cannot be unhidden, status is " + post.getStatus());
+
+        boolean exists = favouriteRepository.existsByIdPostIdAndIdClientId(postId, clientId);
+        if (shouldExist && !exists) {
+            log.error("Post {} is NOT in favourite, cannot {}", postId, action);
+            throw new IllegalStateException("Post with id " + postId + " is not favored, cannot " + action);
         }
-        post.setStatus("visible");
-        post.setDateModified(new Date());
-        postRepository.save(post);
-        log.info("Post {} successfully unhidden", postId);
-        return true;
+
+        if (!shouldExist && exists) {
+            log.error("Post {} is already IN favourite, cannot {}", postId, action);
+            throw new IllegalStateException("Post with id " + postId + " is already favored, cannot " + action);
+        }
     }
 
     /**
@@ -212,24 +229,18 @@ public class PostService {
      * @return true if the post was successfully favoured, false otherwise
      */
     public boolean favourite(String postId, String clientId) {
-        Optional<Post> post = getPostById(postId);
-        if (post.isEmpty()) {
-            log.error("Post not found with ID: " + postId);
-            throw new NoSuchElementException("Post not found with ID: " + postId);
-        }
-
-        boolean exists = favouriteRepository.existsByIdPostIdAndIdClientId(postId, clientId);
-        if (exists) {
-            log.error("Post {} is already in favourite", postId);
-            throw new IllegalStateException("Post with id " + postId + "cannot be favored, status is {}" + post.get().getStatus());
-        }
-
+        validatePostAndFavoriteStatus(postId, clientId, false, "favourite");
         Favourite favourite = new Favourite();
         favourite.setId(new FavouriteId(postId, clientId));
         favourite.setDate(new Date());
         favouriteRepository.save(favourite);
+        Optional<Post> post = getPostById(postId);
+        if (post.isEmpty()) {
+            log.error("Post not found with ID: {}", postId);
+            throw new NoSuchElementException("Post not found with ID: " + postId);
+        }
         eventProducer.sendPostEvent("POST_FAVOURITE", postId, clientId, post.get().getClientId());
-        log.info("Put post favourite with ID: " + postId + "and client ID: " + clientId);
+        log.info("Put post favourite with ID: {} and client ID: {}", postId, clientId);
         return true;
     }
 
@@ -240,20 +251,31 @@ public class PostService {
      * @return true if the post was successfully unfavored, false otherwise
      */
     public boolean unfavourite(String postId, String clientId) {
-        Optional<Post> post = getPostById(postId);
-        if (post.isEmpty()) {
-            log.error("Post not found with ID: " + postId);
-            throw new NoSuchElementException("Post not found with ID: " + postId);
-        }
-        boolean exists = favouriteRepository.existsByIdPostIdAndIdClientId(postId, clientId);
-        if (!exists) {
-            log.error("Post {} is not in favourite", postId);
-            throw new IllegalStateException("Post with id " + postId + "cannot be unfavored, status is {}" + post.get().getStatus());
-        }
+        validatePostAndFavoriteStatus(postId, clientId, true, "unfavourite");
         Favourite favourite = new Favourite();
         favourite.setId(new FavouriteId(postId, clientId));
         favouriteRepository.delete(favourite);
-        log.info("Removed post favourite with ID: " + postId + " and client ID: " + clientId);
+        log.info("Removed post favourite with ID: {} and client ID: {}", postId, clientId);
+        return true;
+    }
+
+    /**
+     * Make the Post status "banned"
+     * @param postId the id of the Post
+     * @return true if the post was updated, false otherwise
+     */
+    public boolean banPost(String postId) {
+        updatePostStatus(postId, "visible", "banned", "unbanned");
+        return true;
+    }
+
+    /**
+     * Make the Post status "banned"
+     * @param postId the id of the Post
+     * @return true if the post was updated, false otherwise
+     */
+    public boolean unbanPost(String postId) {
+        updatePostStatus(postId, "banned", "visible", "banned");
         return true;
     }
 

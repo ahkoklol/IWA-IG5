@@ -67,6 +67,24 @@ public class PostController {
         return ResponseEntity.ok().build(); // 200 ok if post was updated
     }
 
+    @PatchMapping("/{postId}/ban")
+    public ResponseEntity<Post> banPost(@PathVariable String postId) {
+        log.info("Received request to ban post: {}", postId);
+        if (!postService.banPost(postId)) {
+            return ResponseEntity.notFound().build(); // 404 not found id
+        }
+        return ResponseEntity.ok().build(); // 200 ok if post was updated
+    }
+
+    @PatchMapping("/{postId}/unban")
+    public ResponseEntity<Post> unbanPost(@PathVariable String postId) {
+        log.info("Received request to unban post: {}", postId);
+        if (!postService.unbanPost(postId)) {
+            return ResponseEntity.notFound().build(); // 404 not found id
+        }
+        return ResponseEntity.ok().build(); // 200 ok if post was updated
+    }
+
     @PostMapping("/{postId}/favourite")
     public ResponseEntity<Post> favouritePost(@PathVariable String postId, @RequestBody String clientId) {
         boolean result = postService.favourite(postId, clientId);
