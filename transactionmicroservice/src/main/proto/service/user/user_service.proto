@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package user.service;
+
+option java_package = "com.bg.usermicroservice.grpc";
+option java_multiple_files = true;
+
+import "service/user/update_stripe_id_request.proto";
+import "service/user/update_stripe_id_response.proto";
+import "service/user/get_stripe_id_request.proto";
+import "service/user/get_stripe_id_response.proto";
+
+service UserService {
+  rpc UpdateStripeId(UpdateStripeIdRequest) returns (UpdateStripeIdResponse);
+  rpc GetStripeId(GetStripeIdRequest) returns (GetStripeIdResponse);
+}

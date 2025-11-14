@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package user.service;
+
+option java_package = "com.bg.usermicroservice.grpc";
+option java_multiple_files = true;
+
+message GetStripeIdRequest {
+  string clientId = 1;
+}
