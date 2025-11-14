@@ -68,14 +68,4 @@ public class NotificationService {
     public Optional<Notification> getNotification(String notificationId) {
         return notificationRepository.findById(notificationId);
     }
-
-    /**
-     * Fetch all notifications for a client ordered by most to least recent
-     * @param clientId the id of the client
-     * @return a list of Notifications
-     */
-    public List<Notification> getNotifications(String clientId) {
-        return notificationRepository.findAllByClientIdOrderByDateDesc(clientId);
-    }
-
 }
