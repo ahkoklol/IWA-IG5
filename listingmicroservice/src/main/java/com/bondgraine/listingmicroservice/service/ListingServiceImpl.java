@@ -28,40 +28,6 @@ public class ListingServiceImpl {
         this.postService = postService;
     }
 
-    /**
-     * Implements the unary gRPC method to handle the purchase of a post.
-     * @param request The BuyPostRequest containing the postId.
-     * @param responseObserver The observer used to send the response back to the client.
-     */
-    public void buyPost(BuyPostRequest request, StreamObserver<BuyPostResponse> responseObserver) {
-        log.info("Received buyPost request for postId: {}", request.getPostId());
-        BuyPostResponse response;
-
-        try {
-            Post post = postService.buyPost(request.getPostId());
-
-            if (post.getStatus().equals("sold")) {
-                log.info("Post {} sold successfully.", request.getPostId());
-                response = BuyPostResponse.newBuilder()
-                        .setSuccess(true)
-                        .build();
-            } else {
-                log.info("Post {} purchase failed. Current status: {}.", request.getPostId(), post.getStatus());
-                response = BuyPostResponse.newBuilder()
-                        .setSuccess(false)
-                        .setErrorMessage("The post could not be bought, current status: " + post.getStatus())
-                        .build();
-            }
-
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
-
-        } catch (Exception e) {
-            log.error("Error processing buyPost request for postId: {}", request.getPostId(), e);
-            responseObserver.onError(e);
-        }
-    }
-
     public void getPost(GetPostRequest request, StreamObserver<GetPostResponse> responseObserver) {
         log.info("Received getPost request for postId: {}", request.getPostId());
 

@@ -100,9 +100,9 @@ public class PostController {
     }
 
     @PatchMapping("/{postId}/buy")
-    public ResponseEntity<Post> buyPost(@PathVariable String postId) {
+    public ResponseEntity<Post> buyPost(@PathVariable String postId, @RequestParam String buyerId) {
         log.info("Received request to buy post: {}", postId);
-        Post post = postService.buyPost(postId);
+        Post post = postService.buyPost(postId, buyerId);
         if (post == null) {
             return ResponseEntity.notFound().build();
         }

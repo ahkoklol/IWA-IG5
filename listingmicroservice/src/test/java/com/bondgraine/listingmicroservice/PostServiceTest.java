@@ -291,7 +291,7 @@ public class PostServiceTest extends PostgresTestcontainer {
 
     @Test
     void testBuyPost_Successful_MarksAsSold() {
-        Post updatedPost = postService.buyPost(defaultPostId);
+        Post updatedPost = postService.buyPost(defaultPostId, "testclientid");
 
         assertThat(updatedPost).isNotNull();
         assertThat(updatedPost.getStatus()).isEqualTo("sold");
@@ -304,7 +304,7 @@ public class PostServiceTest extends PostgresTestcontainer {
 
         // Expect a NoSuchElementException to be thrown when calling buyPost with a bad ID
         assertThrows(NoSuchElementException.class, () -> {
-            postService.buyPost(nonExistentPostId);
+            postService.buyPost(nonExistentPostId, "testclientid");
         });
     }
 
@@ -314,7 +314,7 @@ public class PostServiceTest extends PostgresTestcontainer {
 
         // The service should throw IllegalStateException because 'sold' is neither 'visible' nor 'hidden'
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            postService.buyPost(postId);
+            postService.buyPost(postId, "testclientid");
         });
 
         // Verify the exception message is descriptive
@@ -330,7 +330,7 @@ public class PostServiceTest extends PostgresTestcontainer {
 
         // Act & Assert: Expect an exception
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            postService.buyPost(postId);
+            postService.buyPost(postId, "testclientid");
         });
 
         // Verify the exception message is descriptive

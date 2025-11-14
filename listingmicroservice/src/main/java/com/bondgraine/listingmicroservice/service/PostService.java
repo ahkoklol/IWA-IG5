@@ -20,9 +20,12 @@ public class PostService {
 
     private final FavouriteRepository favouriteRepository;
 
-    public PostService(PostRepository postRepository, FavouriteRepository favouriteRepository) {
+    private final PostEventProducer eventProducer;
+
+    public PostService(PostRepository postRepository, FavouriteRepository favouriteRepository, PostEventProducer eventProducer) {
         this.postRepository = postRepository;
         this.favouriteRepository = favouriteRepository;
+        this.eventProducer = eventProducer;
     }
 
     /**
@@ -137,6 +140,11 @@ public class PostService {
         return postRepository.save(post);
     }
 
+    /**
+     * Helper to check the content of a post
+     * @param post a Post object
+     * @return true if all fields were sent, false otherwise
+     */
     boolean checkCreatePostContent(Post post) {
         if (post.getDescription() == null || post.getDescription().isEmpty()) return false;
         if (post.getPhotos() == null || post.getPhotos().isEmpty()) return false;
@@ -209,16 +217,18 @@ public class PostService {
             log.error("Post not found with ID: " + postId);
             throw new NoSuchElementException("Post not found with ID: " + postId);
         }
+
         boolean exists = favouriteRepository.existsByIdPostIdAndIdClientId(postId, clientId);
         if (exists) {
             log.error("Post {} is already in favourite", postId);
             throw new IllegalStateException("Post with id " + postId + "cannot be favored, status is {}" + post.get().getStatus());
-
         }
+
         Favourite favourite = new Favourite();
         favourite.setId(new FavouriteId(postId, clientId));
         favourite.setDate(new Date());
         favouriteRepository.save(favourite);
+        eventProducer.sendPostEvent("POST_FAVOURITE", postId, clientId, post.get().getClientId());
         log.info("Put post favourite with ID: " + postId + "and client ID: " + clientId);
         return true;
     }
@@ -272,9 +282,10 @@ public class PostService {
     /**
      * Mark the Post as sold
      * @param postId the id of the post
+     * @param buyerId the id of the buyer
      * @return an updated Post object
      */
-    public Post buyPost(String postId) {
+    public Post buyPost(String postId, String buyerId) {
         Optional<Post> post = getPostById(postId);
         if (post.isEmpty()) {
             log.error("Post not found with ID: " + postId);
@@ -286,6 +297,23 @@ public class PostService {
         }
         post.get().setStatus("sold");
         log.info("Post with id {} marked as sold", postId);
+
+        // send notification for each client that had the post as favourite
+        List<Favourite> listFavourite = getAllFavouritesForPost(postId);
+        listFavourite.forEach(favourite -> {
+            eventProducer.sendPostEvent("POST_FAVOURITE_SOLD", postId, post.get().getClientId(), favourite.getId().toString());
+        });
+        eventProducer.sendPostEvent("POST_BOUGHT", postId,post.get().getClientId(), buyerId);
+
         return postRepository.save(post.get());
+    }
+
+    /**
+     * Helper to get all favourites for a post
+     * @param postId
+     * @return
+     */
+    private List<Favourite> getAllFavouritesForPost(String postId) {
+        return favouriteRepository.findById_PostId(postId);
     }
 }

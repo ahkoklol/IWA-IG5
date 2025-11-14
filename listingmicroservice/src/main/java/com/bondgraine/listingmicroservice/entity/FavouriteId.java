@@ -9,7 +9,7 @@ import java.io.Serializable;
 @Embeddable
 public class FavouriteId implements Serializable {
 
-    private String clientId;
+    private String clientId; // client that favored the post
 
     private String postId;
 
