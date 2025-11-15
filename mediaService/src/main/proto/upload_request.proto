@@ -1,0 +1,10 @@
+syntax = "proto3";
+package media;
+option java_package = "com.micro.media.grpc";
+option java_outer_classname = "UploadRequestProto";
+
+message UploadRequest {
+  bytes image = 1;
+  string filename = 2;
+  string content_type = 3;
+}
