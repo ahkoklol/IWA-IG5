@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 
+
+
 @Repository
 public class S3bgRepository implements ImageRepository {
 
@@ -17,10 +19,7 @@ public class S3bgRepository implements ImageRepository {
     private final String region;
     private final S3Client s3Client;
 
-    private static final String PENDING_FOLDER = "posts/";
-    private static final String APPROVED_FOLDER = "archive/";
-    private static final String REJECTED_FOLDER = "banned/";
-    private static final String PROFILE_FOLDER = "profile/";
+
 
     public S3bgRepository(
             S3Client s3Client,
@@ -32,31 +31,6 @@ public class S3bgRepository implements ImageRepository {
         this.region = region;
     }
 
-    @Override
-    public String uploadPostPicture(File file, String fileName) {
-        return uploadFile(file, PENDING_FOLDER, fileName);
-    }
-
-    @Override
-    public String uploadProfilePicture(File file, String fileName) {
-        return uploadFile(file, PROFILE_FOLDER, fileName);
-    }
-
-    @Override
-    public String approvePostPicture(String fileName) {
-        String oldKey = PENDING_FOLDER + fileName;
-        String newKey = APPROVED_FOLDER + fileName;
-        moveFileInS3(oldKey, newKey);
-        return getPublicUrl(newKey);
-    }
-
-    @Override
-    public String rejectPostPicture(String fileName) {
-        String oldKey = PENDING_FOLDER + fileName;
-        String newKey = REJECTED_FOLDER + fileName;
-        moveFileInS3(oldKey, newKey);
-        return getPublicUrl(newKey);
-    }
 
     @Override
     public String uploadFile(File file, String folder, String fileName) {
@@ -128,6 +102,14 @@ public class S3bgRepository implements ImageRepository {
         s3Client.copyObject(copyRequest);
 
         delete(sourceKey);
+    }
+
+    @Override
+    public String move(String sourceFolder, String sourceFileName, String destinationFolder, String destinationFileName) throws IOException {
+        String sourceKey = sourceFolder + sourceFileName;
+        String destinationKey = destinationFolder + destinationFileName;
+        moveFileInS3(sourceKey, destinationKey);
+        return getPublicUrl(destinationKey);
     }
 
     public String getBucketName() {

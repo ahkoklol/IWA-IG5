@@ -11,8 +11,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+/**
+ * Service de gestion des médias (images de profil et de posts).
+ * Gère l'upload, la validation et le déplacement des images via le repository.
+ */
 @Service
 public class MediaService {
+
+    private static final String PENDING_FOLDER = "posts/";
+    private static final String APPROVED_FOLDER = "archive/";
+    private static final String REJECTED_FOLDER = "banned/";
+    private static final String PROFILE_FOLDER = "profile/";
 
     @Autowired
     private ImageRepository imageRepository;
@@ -21,7 +30,16 @@ public class MediaService {
     private AIService aiValidationService;
 
     /**
-     * Upload d'image de post via gRPC (avec validation IA)
+     * Upload une image de post avec validation IA.
+     * L'image est d'abord uploadée dans un dossier temporaire (pending),
+     * validée par l'IA, puis déplacée vers archive/ (approuvée) ou banned/ (rejetée).
+     *
+     * @param imageBytes contenu binaire de l'image
+     * @param originalFilename nom original du fichier
+     * @param contentType type MIME de l'image (ex: image/png)
+     * @return URL publique de l'image dans son dossier final
+     * @throws IOException en cas d'erreur d'upload ou de déplacement
+     * @throws IllegalArgumentException si l'image est invalide (format, taille, etc.)
      */
     public String uploadPostImage(byte[] imageBytes, String originalFilename, String contentType) throws IOException {
         validateImageBytes(imageBytes, contentType);
@@ -29,7 +47,7 @@ public class MediaService {
 
         try {
             String uniqueFileName = generateUniqueFileName(originalFilename);
-            String pendingUrl = imageRepository.uploadPostPicture(tempFile, uniqueFileName);
+            String pendingUrl = imageRepository.uploadFile(tempFile, PENDING_FOLDER, uniqueFileName);
             AIService.AIServiceResult aiResult = sendImageToAI(tempFile, pendingUrl);
             boolean isImageApproved = processAIValidationResult(aiResult);
             return moveToFinalDestination(uniqueFileName, isImageApproved);
@@ -39,7 +57,15 @@ public class MediaService {
     }
 
     /**
-     * Upload d'image de profil via gRPC (sans validation IA)
+     * Upload une image de profil sans validation IA.
+     * L'image est directement uploadée dans le dossier profile/.
+     *
+     * @param imageBytes contenu binaire de l'image
+     * @param originalFilename nom original du fichier
+     * @param contentType type MIME de l'image (ex: image/jpeg)
+     * @return URL publique de l'image de profil
+     * @throws IOException en cas d'erreur d'upload
+     * @throws IllegalArgumentException si l'image est invalide (format, taille, etc.)
      */
     public String uploadProfileImage(byte[] imageBytes, String originalFilename, String contentType) throws IOException {
         validateImageBytes(imageBytes, contentType);
@@ -47,12 +73,19 @@ public class MediaService {
 
         try {
             String uniqueFileName = generateUniqueFileName(originalFilename);
-            return imageRepository.uploadProfilePicture(tempFile, uniqueFileName);
+            return imageRepository.uploadFile(tempFile, PROFILE_FOLDER, uniqueFileName);
         } finally {
             cleanupTemporaryFile(tempFile);
         }
     }
 
+    /**
+     * Valide les bytes de l'image (taille, format, type MIME).
+     *
+     * @param imageBytes contenu binaire de l'image
+     * @param contentType type MIME de l'image
+     * @throws IllegalArgumentException si l'image est vide, trop volumineuse ou d'un format non supporté
+     */
     private void validateImageBytes(byte[] imageBytes, String contentType) {
         if (imageBytes == null || imageBytes.length == 0) {
             throw new IllegalArgumentException("Fichier vide");
@@ -80,6 +113,14 @@ public class MediaService {
         }
     }
 
+    /**
+     * Crée un fichier temporaire à partir des bytes de l'image.
+     *
+     * @param imageBytes contenu binaire de l'image
+     * @param originalFilename nom original du fichier (utilisé pour le suffixe)
+     * @return fichier temporaire créé
+     * @throws RuntimeException si la création échoue
+     */
     private File createTemporaryFile(byte[] imageBytes, String originalFilename) {
         try {
             Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
@@ -91,11 +132,23 @@ public class MediaService {
         }
     }
 
+    /**
+     * Génère un nom de fichier unique basé sur un UUID + extension d'origine.
+     *
+     * @param originalFilename nom original du fichier
+     * @return nom de fichier unique (UUID + extension)
+     */
     private String generateUniqueFileName(String originalFilename) {
         String extension = extractFileExtension(originalFilename);
         return UUID.randomUUID().toString() + extension;
     }
 
+    /**
+     * Extrait l'extension d'un nom de fichier.
+     *
+     * @param filename nom du fichier
+     * @return extension (avec le point), ou chaîne vide si aucune extension
+     */
     private String extractFileExtension(String filename) {
         if (filename != null && filename.contains(".")) {
             return filename.substring(filename.lastIndexOf("."));
@@ -103,20 +156,45 @@ public class MediaService {
         return "";
     }
 
+    /**
+     * Envoie l'image au service IA pour validation.
+     *
+     * @param imageFile fichier image à analyser
+     * @param imageUrl URL de l'image (pour référence)
+     * @return résultat de l'analyse IA
+     */
     private AIService.AIServiceResult sendImageToAI(File imageFile, String imageUrl) {
         return aiValidationService.sendToAIService(imageFile, imageUrl);
     }
 
+    /**
+     * Traite le résultat de l'analyse IA et détermine si l'image est approuvée.
+     *
+     * @param aiResult résultat de l'analyse IA
+     * @return true si l'image est approuvée, false sinon
+     */
     private boolean processAIValidationResult(AIService.AIServiceResult aiResult) {
         return aiValidationService.validateAIResult(aiResult);
     }
 
+    /**
+     * Déplace l'image vers son dossier final (archive/ ou banned/) selon l'approbation.
+     *
+     * @param fileName nom du fichier à déplacer
+     * @param isApproved true pour déplacer vers archive/, false pour banned/
+     * @return URL publique de l'image déplacée
+     * @throws IOException en cas d'erreur de déplacement
+     */
     private String moveToFinalDestination(String fileName, boolean isApproved) throws IOException {
-        return isApproved
-                ? imageRepository.approvePostPicture(fileName)
-                : imageRepository.rejectPostPicture(fileName);
+        String destinationFolder = isApproved ? APPROVED_FOLDER : REJECTED_FOLDER;
+        return imageRepository.move(PENDING_FOLDER, fileName, destinationFolder, fileName);
     }
 
+    /**
+     * Supprime le fichier temporaire après usage.
+     *
+     * @param tempFile fichier temporaire à supprimer
+     */
     private void cleanupTemporaryFile(File tempFile) {
         if (tempFile != null && tempFile.exists()) {
             boolean deleted = tempFile.delete();

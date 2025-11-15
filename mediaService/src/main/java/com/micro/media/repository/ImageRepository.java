@@ -10,35 +10,6 @@ import java.io.InputStream;
  */
 public interface ImageRepository {
 
-    /**
-     * Upload d'une image de post (avant validation).
-     * @param file fichier local
-     * @param fileName nom souhaité du fichier
-     * @return URL publique ou clé interne du fichier
-     */
-    String uploadPostPicture(File file, String fileName);
-
-    /**
-     * Upload d'une image de profil utilisateur.
-     * @param file fichier local
-     * @param fileName nom souhaité du fichier
-     * @return URL publique ou clé interne du fichier
-     */
-    String uploadProfilePicture(File file, String fileName);
-
-    /**
-     * Approuve une image de post (déplace vers archive).
-     * @param fileName nom du fichier
-     * @return URL publique ou clé interne du fichier déplacé
-     */
-    String approvePostPicture(String fileName);
-
-    /**
-     * Rejette une image de post (déplace vers banned).
-     * @param fileName nom du fichier
-     * @return URL publique ou clé interne du fichier déplacé
-     */
-    String rejectPostPicture(String fileName);
 
     /**
      * Upload générique depuis un File vers un dossier donné.
@@ -57,6 +28,17 @@ public interface ImageRepository {
      * @return URL publique ou clé interne du fichier
      */
     String uploadFile(InputStream stream, String folder, String fileName) throws IOException;
+
+    /**
+     * Déplace un fichier d'un dossier/nom vers un autre dossier/nom.
+     * @param sourceFolder dossier source
+     * @param sourceFileName nom du fichier source
+     * @param destinationFolder dossier destination
+     * @param destinationFileName nom du fichier destination
+     * @return URL publique du fichier déplacé
+     * @throws IOException en cas d'erreur
+     */
+    String move(String sourceFolder, String sourceFileName, String destinationFolder, String destinationFileName) throws IOException;
 
     /**
      * Supprime un fichier par sa clé ou chemin interne.
