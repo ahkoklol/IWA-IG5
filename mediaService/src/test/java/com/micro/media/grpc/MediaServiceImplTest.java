@@ -59,14 +59,14 @@ class MediaServiceImplTest {
         when(mediaService.uploadPostImage(any(byte[].class), eq("photo.png"), eq("image/png")))
                 .thenReturn("https://final/approved/uuid-photo.png");
 
-        MediaProto.UploadRequest request = MediaProto.UploadRequest.newBuilder()
+        UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                 .setImage(ByteString.copyFrom(imageData))
                 .setFilename("photo.png")
                 .setContentType("image/png")
                 .build();
 
         // Act
-        MediaProto.UploadResponse response = stub.uploadPostImage(request);
+        UploadResponseProto.UploadResponse response = stub.uploadPostImage(request);
 
         // Assert
         assertThat(response.getUrl()).isEqualTo("https://final/approved/uuid-photo.png");
@@ -80,7 +80,7 @@ class MediaServiceImplTest {
         when(mediaService.uploadPostImage(any(byte[].class), anyString(), anyString()))
                 .thenThrow(new IllegalArgumentException("Fichier vide"));
 
-        MediaProto.UploadRequest request = MediaProto.UploadRequest.newBuilder()
+        UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                 .setImage(ByteString.EMPTY)
                 .setFilename("photo.png")
                 .setContentType("image/png")
@@ -102,7 +102,7 @@ class MediaServiceImplTest {
     void uploadPostImage_EmptyFilename_ThrowsInvalidArgument() {
         // Arrange
         byte[] imageData = {1, 2, 3};
-        MediaProto.UploadRequest request = MediaProto.UploadRequest.newBuilder()
+        UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                 .setImage(ByteString.copyFrom(imageData))
                 .setFilename("")
                 .setContentType("image/png")
@@ -127,7 +127,7 @@ class MediaServiceImplTest {
         when(mediaService.uploadPostImage(any(byte[].class), anyString(), eq("text/plain")))
                 .thenThrow(new IllegalArgumentException("Le fichier doit être une image"));
 
-        MediaProto.UploadRequest request = MediaProto.UploadRequest.newBuilder()
+        UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                 .setImage(ByteString.copyFrom(imageData))
                 .setFilename("doc.txt")
                 .setContentType("text/plain")
@@ -150,7 +150,7 @@ class MediaServiceImplTest {
         when(mediaService.uploadPostImage(any(byte[].class), anyString(), anyString()))
                 .thenThrow(new IllegalArgumentException("Fichier trop volumineux (max 10MB)"));
 
-        MediaProto.UploadRequest request = MediaProto.UploadRequest.newBuilder()
+        UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                 .setImage(ByteString.copyFrom(largeImage))
                 .setFilename("huge.png")
                 .setContentType("image/png")
@@ -173,14 +173,14 @@ class MediaServiceImplTest {
         when(mediaService.uploadPostImage(any(byte[].class), eq("nsfw.png"), eq("image/png")))
                 .thenReturn("https://final/rejected/uuid-nsfw.png");
 
-        MediaProto.UploadRequest request = MediaProto.UploadRequest.newBuilder()
+        UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                 .setImage(ByteString.copyFrom(imageData))
                 .setFilename("nsfw.png")
                 .setContentType("image/png")
                 .build();
 
         // Act
-        MediaProto.UploadResponse response = stub.uploadPostImage(request);
+        UploadResponseProto.UploadResponse response = stub.uploadPostImage(request);
 
         // Assert
         assertThat(response.getUrl()).isEqualTo("https://final/rejected/uuid-nsfw.png");
@@ -198,14 +198,14 @@ class MediaServiceImplTest {
             when(mediaService.uploadPostImage(any(byte[].class), anyString(), eq(format)))
                     .thenReturn("https://final/approved/uuid." + format.split("/")[1]);
 
-            MediaProto.UploadRequest request = MediaProto.UploadRequest.newBuilder()
+            UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                     .setImage(ByteString.copyFrom(imageData))
                     .setFilename("photo." + format.split("/")[1])
                     .setContentType(format)
                     .build();
 
             // Act
-            MediaProto.UploadResponse response = stub.uploadPostImage(request);
+            UploadResponseProto.UploadResponse response = stub.uploadPostImage(request);
 
             // Assert
             assertThat(response.getUrl()).contains("approved");
@@ -220,7 +220,7 @@ class MediaServiceImplTest {
         when(mediaService.uploadPostImage(any(byte[].class), anyString(), anyString()))
                 .thenThrow(new IOException("S3 connection failed"));
 
-        MediaProto.UploadRequest request = MediaProto.UploadRequest.newBuilder()
+        UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                 .setImage(ByteString.copyFrom(imageData))
                 .setFilename("photo.png")
                 .setContentType("image/png")
@@ -245,14 +245,14 @@ class MediaServiceImplTest {
         when(mediaService.uploadProfileImage(any(byte[].class), eq("profile.png"), eq("image/png")))
                 .thenReturn("https://profile/uuid-profile.png");
 
-        MediaProto.UploadRequest request = MediaProto.UploadRequest.newBuilder()
+        UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                 .setImage(ByteString.copyFrom(imageData))
                 .setFilename("profile.png")
                 .setContentType("image/png")
                 .build();
 
         // Act
-        MediaProto.UploadResponse response = stub.uploadProfileImage(request);
+        UploadResponseProto.UploadResponse response = stub.uploadProfileImage(request);
 
         // Assert
         assertThat(response.getUrl()).isEqualTo("https://profile/uuid-profile.png");
@@ -266,7 +266,7 @@ class MediaServiceImplTest {
         when(mediaService.uploadProfileImage(any(byte[].class), anyString(), anyString()))
                 .thenThrow(new IllegalArgumentException("Fichier vide"));
 
-        MediaProto.UploadRequest request = MediaProto.UploadRequest.newBuilder()
+        UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                 .setImage(ByteString.EMPTY)
                 .setFilename("profile.png")
                 .setContentType("image/png")
@@ -286,7 +286,7 @@ class MediaServiceImplTest {
     void uploadProfileImage_EmptyFilename_ThrowsInvalidArgument() {
         // Arrange
         byte[] imageData = {1, 2, 3};
-        MediaProto.UploadRequest request = MediaProto.UploadRequest.newBuilder()
+        UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                 .setImage(ByteString.copyFrom(imageData))
                 .setFilename("")
                 .setContentType("image/png")
@@ -311,7 +311,7 @@ class MediaServiceImplTest {
         when(mediaService.uploadProfileImage(any(byte[].class), anyString(), eq("text/plain")))
                 .thenThrow(new IllegalArgumentException("Le fichier doit être une image"));
 
-        MediaProto.UploadRequest request = MediaProto.UploadRequest.newBuilder()
+        UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                 .setImage(ByteString.copyFrom(imageData))
                 .setFilename("doc.txt")
                 .setContentType("text/plain")
@@ -338,14 +338,14 @@ class MediaServiceImplTest {
             when(mediaService.uploadProfileImage(any(byte[].class), anyString(), eq(format)))
                     .thenReturn("https://profile/uuid." + format.split("/")[1]);
 
-            MediaProto.UploadRequest request = MediaProto.UploadRequest.newBuilder()
+            UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                     .setImage(ByteString.copyFrom(imageData))
                     .setFilename("profile." + format.split("/")[1])
                     .setContentType(format)
                     .build();
 
             // Act
-            MediaProto.UploadResponse response = stub.uploadProfileImage(request);
+            UploadResponseProto.UploadResponse response = stub.uploadProfileImage(request);
 
             // Assert
             assertThat(response.getUrl()).contains("profile");
@@ -360,7 +360,7 @@ class MediaServiceImplTest {
         when(mediaService.uploadProfileImage(any(byte[].class), anyString(), anyString()))
                 .thenThrow(new IOException("S3 connection failed"));
 
-        MediaProto.UploadRequest request = MediaProto.UploadRequest.newBuilder()
+        UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                 .setImage(ByteString.copyFrom(imageData))
                 .setFilename("profile.png")
                 .setContentType("image/png")
