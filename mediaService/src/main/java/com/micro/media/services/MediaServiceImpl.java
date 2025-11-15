@@ -9,16 +9,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 
+/**
+ * Implémentation gRPC du service MediaService.
+ * Gère les appels gRPC pour l'upload d'images (posts et profils).
+ * Délègue la logique métier à MediaService et transforme les exceptions en erreurs gRPC.
+ */
 @GrpcService
-public class MediaGrpcService extends MediaServiceGrpc.MediaServiceImplBase {
+public class MediaServiceImpl extends MediaServiceGrpc.MediaServiceImplBase {
 
     private final MediaService mediaService;
 
     @Autowired
-    public MediaGrpcService(MediaService mediaService) {
+    public MediaServiceImpl(MediaService mediaService) {
         this.mediaService = mediaService;
     }
 
+    /**
+     * Gère l'upload d'une image de post via gRPC.
+     * Reçoit les bytes de l'image, délègue le traitement (compression, validation IA, upload S3)
+     * au service métier et retourne l'URL finale.
+     *
+     * @param request requête gRPC contenant l'image (bytes), le nom de fichier et le type MIME
+     * @param responseObserver observer pour envoyer la réponse (URL) ou une erreur
+     */
     @Override
     public void uploadPostImage(MediaProto.UploadRequest request,
                                 StreamObserver<MediaProto.UploadResponse> responseObserver) {
@@ -59,6 +72,14 @@ public class MediaGrpcService extends MediaServiceGrpc.MediaServiceImplBase {
         }
     }
 
+    /**
+     * Gère l'upload d'une image de profil via gRPC.
+     * Reçoit les bytes de l'image, délègue le traitement (compression, validation IA, upload S3)
+     * au service métier et retourne l'URL finale.
+     *
+     * @param request requête gRPC contenant l'image (bytes), le nom de fichier et le type MIME
+     * @param responseObserver observer pour envoyer la réponse (URL) ou une erreur
+     */
     @Override
     public void uploadProfileImage(MediaProto.UploadRequest request,
                                    StreamObserver<MediaProto.UploadResponse> responseObserver) {

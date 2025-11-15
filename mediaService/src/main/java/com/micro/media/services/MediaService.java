@@ -48,8 +48,7 @@ public class MediaService {
         try {
             String uniqueFileName = generateUniqueFileName(originalFilename);
             String pendingUrl = imageRepository.uploadFile(tempFile, PENDING_FOLDER, uniqueFileName);
-            AIService.AIServiceResult aiResult = sendImageToAI(tempFile, pendingUrl);
-            boolean isImageApproved = processAIValidationResult(aiResult);
+            boolean isImageApproved = aiValidationService.validateImage(tempFile, pendingUrl);
             return moveToFinalDestination(uniqueFileName, isImageApproved);
         } finally {
             cleanupTemporaryFile(tempFile);
@@ -156,26 +155,6 @@ public class MediaService {
         return "";
     }
 
-    /**
-     * Envoie l'image au service IA pour validation.
-     *
-     * @param imageFile fichier image à analyser
-     * @param imageUrl URL de l'image (pour référence)
-     * @return résultat de l'analyse IA
-     */
-    private AIService.AIServiceResult sendImageToAI(File imageFile, String imageUrl) {
-        return aiValidationService.sendToAIService(imageFile, imageUrl);
-    }
-
-    /**
-     * Traite le résultat de l'analyse IA et détermine si l'image est approuvée.
-     *
-     * @param aiResult résultat de l'analyse IA
-     * @return true si l'image est approuvée, false sinon
-     */
-    private boolean processAIValidationResult(AIService.AIServiceResult aiResult) {
-        return aiValidationService.validateAIResult(aiResult);
-    }
 
     /**
      * Déplace l'image vers son dossier final (archive/ ou banned/) selon l'approbation.

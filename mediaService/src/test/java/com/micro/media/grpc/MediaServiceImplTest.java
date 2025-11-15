@@ -1,7 +1,7 @@
 package com.micro.media.grpc;
 
 import com.google.protobuf.ByteString;
-import com.micro.media.services.MediaGrpcService;
+import com.micro.media.services.MediaServiceImpl;
 import com.micro.media.services.MediaService;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-class MediaGrpcServiceTest {
+class MediaServiceImplTest {
 
     private Server server;
     private ManagedChannel channel;
@@ -29,7 +29,7 @@ class MediaGrpcServiceTest {
         String serverName = InProcessServerBuilder.generateName();
 
         mediaService = mock(MediaService.class);
-        MediaGrpcService grpcService = new MediaGrpcService(mediaService);
+        MediaServiceImpl grpcService = new MediaServiceImpl(mediaService);
 
         server = InProcessServerBuilder.forName(serverName)
                 .addService(grpcService)

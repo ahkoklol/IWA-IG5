@@ -1,5 +1,6 @@
 package com.micro.media.services;
 
+import com.micro.media.entity.AiResultDTO;
 import com.micro.media.repository.ImageRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,25 +32,22 @@ class MediaServiceTest {
         String filename = "photo.png";
         String contentType = "image/png";
 
-        when(imageRepository.uploadPostPicture(any(File.class), anyString()))
+        when(imageRepository.uploadFile(any(File.class), eq("posts/"), anyString()))
                 .thenReturn("https://pending/url");
-        AIService.AIServiceResult aiRes = mock(AIService.AIServiceResult.class);
-        when(aiValidationService.sendToAIService(any(File.class), eq("https://pending/url")))
-                .thenReturn(aiRes);
-        when(aiValidationService.validateAIResult(aiRes)).thenReturn(true);
-        when(imageRepository.approvePostPicture(anyString()))
-                .thenAnswer(inv -> "https://final/approved/" + inv.getArgument(0));
+        when(aiValidationService.validateImage(any(File.class), eq("https://pending/url")))
+                .thenReturn(true);
+        when(imageRepository.move(eq("posts/"), anyString(), eq("archive/"), anyString()))
+                .thenAnswer(inv -> "https://final/approved/" + inv.getArgument(1));
 
         ArgumentCaptor<File> tempFileCaptor = ArgumentCaptor.forClass(File.class);
         String finalUrl = mediaService.uploadPostImage(imageBytes, filename, contentType);
 
         assertThat(finalUrl).startsWith("https://final/approved/");
 
-        verify(imageRepository).uploadPostPicture(tempFileCaptor.capture(), anyString());
-        verify(aiValidationService).sendToAIService(any(File.class), eq("https://pending/url"));
-        verify(aiValidationService).validateAIResult(aiRes);
-        verify(imageRepository).approvePostPicture(anyString());
-        verify(imageRepository, never()).rejectPostPicture(anyString());
+        verify(imageRepository).uploadFile(tempFileCaptor.capture(), eq("posts/"), anyString());
+        verify(aiValidationService).validateImage(any(File.class), eq("https://pending/url"));
+        verify(imageRepository).move(eq("posts/"), anyString(), eq("archive/"), anyString());
+        verify(imageRepository, never()).move(eq("posts/"), anyString(), eq("banned/"), anyString());
 
         assertThat(tempFileCaptor.getValue().exists()).isFalse();
     }
@@ -60,20 +58,18 @@ class MediaServiceTest {
         String filename = "photo.png";
         String contentType = "image/png";
 
-        when(imageRepository.uploadPostPicture(any(File.class), anyString()))
+        when(imageRepository.uploadFile(any(File.class), eq("posts/"), anyString()))
                 .thenReturn("https://pending/url");
-        AIService.AIServiceResult aiRes = mock(AIService.AIServiceResult.class);
-        when(aiValidationService.sendToAIService(any(File.class), anyString()))
-                .thenReturn(aiRes);
-        when(aiValidationService.validateAIResult(aiRes)).thenReturn(false);
-        when(imageRepository.rejectPostPicture(anyString()))
-                .thenAnswer(inv -> "https://final/rejected/" + inv.getArgument(0));
+        when(aiValidationService.validateImage(any(File.class), anyString()))
+                .thenReturn(false);
+        when(imageRepository.move(eq("posts/"), anyString(), eq("banned/"), anyString()))
+                .thenAnswer(inv -> "https://final/rejected/" + inv.getArgument(1));
 
         String finalUrl = mediaService.uploadPostImage(imageBytes, filename, contentType);
 
         assertThat(finalUrl).startsWith("https://final/rejected/");
-        verify(imageRepository).rejectPostPicture(anyString());
-        verify(imageRepository, never()).approvePostPicture(anyString());
+        verify(imageRepository).move(eq("posts/"), anyString(), eq("banned/"), anyString());
+        verify(imageRepository, never()).move(eq("posts/"), anyString(), eq("archive/"), anyString());
     }
 
     @Test
@@ -120,7 +116,7 @@ class MediaServiceTest {
         assertThatThrownBy(() -> mediaService.uploadPostImage(
                 bytes, "animation.gif", "image/gif"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("image");
+                .hasMessageContaining("Format d'image non supporté");
         verifyNoInteractions(imageRepository, aiValidationService);
     }
 
@@ -137,13 +133,11 @@ class MediaServiceTest {
     @Test
     void uploadPostImage_ExactlyMaxSize_OK() throws IOException {
         byte[] maxBytes = new byte[10 * 1024 * 1024];
-        when(imageRepository.uploadPostPicture(any(File.class), anyString()))
+        when(imageRepository.uploadFile(any(File.class), eq("posts/"), anyString()))
                 .thenReturn("https://pending/url");
-        AIService.AIServiceResult aiRes = mock(AIService.AIServiceResult.class);
-        when(aiValidationService.sendToAIService(any(File.class), anyString()))
-                .thenReturn(aiRes);
-        when(aiValidationService.validateAIResult(aiRes)).thenReturn(true);
-        when(imageRepository.approvePostPicture(anyString()))
+        when(aiValidationService.validateImage(any(File.class), anyString()))
+                .thenReturn(true);
+        when(imageRepository.move(eq("posts/"), anyString(), eq("archive/"), anyString()))
                 .thenReturn("https://final/approved/xxx");
 
         assertThatCode(() -> mediaService.uploadPostImage(maxBytes, "max.png", "image/png"))
@@ -164,13 +158,11 @@ class MediaServiceTest {
             String filename = format[1];
 
             byte[] bytes = {1, 2, 3};
-            when(imageRepository.uploadPostPicture(any(File.class), anyString()))
+            when(imageRepository.uploadFile(any(File.class), eq("posts/"), anyString()))
                     .thenReturn("https://pending/url");
-            AIService.AIServiceResult aiRes = mock(AIService.AIServiceResult.class);
-            when(aiValidationService.sendToAIService(any(File.class), anyString()))
-                    .thenReturn(aiRes);
-            when(aiValidationService.validateAIResult(aiRes)).thenReturn(true);
-            when(imageRepository.approvePostPicture(anyString()))
+            when(aiValidationService.validateImage(any(File.class), anyString()))
+                    .thenReturn(true);
+            when(imageRepository.move(eq("posts/"), anyString(), eq("archive/"), anyString()))
                     .thenReturn("https://final/approved/xxx");
 
             assertThatCode(() -> mediaService.uploadPostImage(bytes, filename, contentType))
@@ -198,7 +190,7 @@ class MediaServiceTest {
             assertThatThrownBy(() -> mediaService.uploadPostImage(bytes, filename, contentType))
                     .as("Format %s devrait être rejeté", contentType)
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("image");
+                    .hasMessageContaining("Format d'image non supporté");
         }
         verifyNoInteractions(imageRepository, aiValidationService);
     }
@@ -209,7 +201,7 @@ class MediaServiceTest {
         String filename = "profile.png";
         String contentType = "image/png";
 
-        when(imageRepository.uploadProfilePicture(any(File.class), anyString()))
+        when(imageRepository.uploadFile(any(File.class), eq("profile/"), anyString()))
                 .thenReturn("https://profile/url/xxx.png");
 
         ArgumentCaptor<File> tempFileCaptor = ArgumentCaptor.forClass(File.class);
@@ -217,7 +209,7 @@ class MediaServiceTest {
 
         assertThat(finalUrl).isEqualTo("https://profile/url/xxx.png");
 
-        verify(imageRepository).uploadProfilePicture(tempFileCaptor.capture(), anyString());
+        verify(imageRepository).uploadFile(tempFileCaptor.capture(), eq("profile/"), anyString());
         verifyNoInteractions(aiValidationService);
 
         assertThat(tempFileCaptor.getValue().exists()).isFalse();
@@ -238,7 +230,7 @@ class MediaServiceTest {
         assertThatThrownBy(() -> mediaService.uploadProfileImage(
                 bytes, "profile.gif", "image/gif"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("image");
+                .hasMessageContaining("Format d'image non supporté");
         verifyNoInteractions(imageRepository, aiValidationService);
     }
 }

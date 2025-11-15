@@ -45,7 +45,14 @@
 	</dependencyManagement>
 
 	<dependencies>
-		<!-- Spring Boot Web (peut être retiré si vous n'utilisez que gRPC) -->
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Spring Boot Web (peut être retiré si que gRPC) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
