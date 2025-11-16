@@ -63,11 +63,17 @@ public class StripeService {
             case "account.updated":
                 processAccountUpdated(event);
                 break;
+            case "payment_intent.payment_created":
+                processPaymentIntentCreated((PaymentIntent) dataObject);
+                break;
             case "payment_intent.succeeded":
                 processPaymentIntentSucceeded((PaymentIntent) dataObject);
                 break;
             case "payment_intent.payment_failed":
                 processPaymentIntentFailed((PaymentIntent) dataObject);
+                break;
+            case "charge.succeeded":
+                processChargeSucceeded((Charge) dataObject);
                 break;
             default:
                 System.out.println("Received unhandled event type: " + event.getType());
@@ -103,6 +109,20 @@ public class StripeService {
     }
 
     /**
+     * Helper to process the PaymentIntentCreated event
+     * @param paymentIntent the PaymentIntent
+     */
+    private void processPaymentIntentCreated(PaymentIntent paymentIntent) {
+        String internalTransactionId = paymentIntent.getMetadata().get("platform_transaction_id");
+        if (internalTransactionId != null) {
+            log.info("PaymentIntent {} created. Transaction {} is initiated.", paymentIntent.getId(), internalTransactionId);
+            // transactionService.updateTransactionStatus(internalTransactionId, "PROCESSING");
+        } else {
+            log.warn("PaymentIntent {} created but is missing 'platform_transaction_id' metadata.", paymentIntent.getId());
+        }
+    }
+
+    /**
      * Helper for PaymentIntent success webhook
      * @param paymentIntent the PaymentIntent
      */
@@ -116,8 +136,8 @@ public class StripeService {
         transaction.setTransactionId(internalTransactionId);
         transaction.setPaymentMethodId(paymentIntent.getMetadata().get("payment_method_id"));
         transaction.setStripePaymentIntentId(paymentIntent.getMetadata().get("stripe_payment_intent_id"));
-        transactionService.updateStripeData(transaction);
-        transactionService.updateTransactionToCompleted(internalTransactionId, true);
+        //transactionService.updateStripeData(transaction);
+        //transactionService.updateTransactionToCompleted(internalTransactionId, true);
         log.info("PaymentIntent {} successful. Transaction {} fulfilled.", paymentIntent.getId(), internalTransactionId);
     }
 
@@ -133,6 +153,15 @@ public class StripeService {
         }
         transactionService.updateTransactionToCompleted(internalTransactionId, false);
         log.warn("PaymentIntent {} failed. Transaction {} marked as failed.", paymentIntent.getId(), internalTransactionId);
+    }
+
+    /**
+     * Helper to process ChargeSucceeded
+     * @param charge the Charge
+     */
+    private void processChargeSucceeded(Charge charge) {
+        String paymentIntentId = charge.getPaymentIntent();
+        log.info("Charge {} succeeded. PaymentIntent ID: {}. (Note: payment_intent.succeeded is usually preferred)", charge.getId(), paymentIntentId);
     }
 
     /**
