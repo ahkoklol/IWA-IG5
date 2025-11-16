@@ -36,10 +36,7 @@ public class RequestService {
         }
 
         request.setRequestId(UUID.randomUUID().toString());
-        request.setType(request.getType());
         request.setDate(new Date());
-        request.setDescription(request.getDescription());
-        request.setPostId(request.getPostId());
 
         return requestRepository.save(request);
     }
