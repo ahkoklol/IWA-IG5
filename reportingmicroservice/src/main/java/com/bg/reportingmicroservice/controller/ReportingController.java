@@ -68,7 +68,7 @@ public class ReportingController {
 
     @DeleteMapping("/request/{postId}")
     public ResponseEntity<Void> deleteRequest(@PathVariable("postId") String postId) {
-        reportService.deleteReport(postId);
+        requestService.deleteRequest(postId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
