@@ -1,3 +1,4 @@
+//iwa-app/src/mocks/products.ts
 import type { Product, User, Notification, Transaction,Review } from "../shared/types";
 
 const demoUser: User[] = [

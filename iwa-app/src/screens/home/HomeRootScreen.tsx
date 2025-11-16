@@ -1,11 +1,12 @@
-// src/screens/home/HomeRootScreen.tsx
+// iwa-app/src/screens/home/HomeRootScreen.tsx
+
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import HomeScreen from "./HomeScreen";
-import SearchScreen from "../search/SearchScreen";
+import { SearchScreen } from "../search/SearchScreen";
 import {
   demoProducts,
   currentUser as mockCurrentUser,
@@ -24,11 +25,9 @@ export default function HomeRootScreen() {
   const [products, setProducts] = useState(demoProducts);
   const [activeTab, setActiveTab] = useState<BottomTabId>("home");
 
-  // SÉLECTION D’UNE CATÉGORIE
+  // SÉLECTION D’UNE CATÉGORIE (tu peux encore t'en servir plus tard si besoin)
   const handleCategorySelect = (category: Category) => {
     console.log("Catégorie sélectionnée :", category);
-
-    // Exemple simple (plus tard tu pourras filtrer ou naviguer)
     alert("Tu as sélectionné : " + category);
   };
 
@@ -43,7 +42,6 @@ export default function HomeRootScreen() {
       prev.map((p) => (p.id === id ? { ...p, isFavorite: !p.isFavorite } : p))
     );
   };
-
 
   const handleProfileMenuSelect = (menuId: string) => {
     if (menuId === "myProfile") {
@@ -71,12 +69,12 @@ export default function HomeRootScreen() {
     console.log("Menu profil sélectionné :", menuId);
   };
 
-
-  // RENDU DES ONGLET (home / search / notif / profil)
+  // RENDU DES ONGLETS (home / search / notif / profil)
   const renderContent = () => {
     switch (activeTab) {
       case "search":
-        return <SearchScreen onCategorySelect={handleCategorySelect} />;
+        // 🔹 SearchScreen n'accepte plus de props
+        return <SearchScreen />;
 
       case "notifications":
         return <NotificationsScreen />;
@@ -88,11 +86,9 @@ export default function HomeRootScreen() {
             onMenuSelect={handleProfileMenuSelect}
             onLogout={() => {
               console.log("Logout");
-              // Plus tard : navigation vers login, reset state, etc.
             }}
             onDeleteAccount={() => {
               console.log("Delete account");
-              // Plus tard : modal + appel API
             }}
           />
         );

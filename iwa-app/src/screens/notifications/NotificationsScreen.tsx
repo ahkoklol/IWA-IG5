@@ -42,24 +42,33 @@ export function NotificationsScreen({ onNotificationClick }: NotificationsScreen
 
   const navigation = useNavigation<NavigationProp>();
 
-  const handlePress = (notification: Notification) => {
+    const handlePress = (notification: Notification) => {
     // Marquer comme lue dans le mock local
     setNotifications((prev) =>
-      prev.map((n) =>
+        prev.map((n) =>
         n.id === notification.id ? { ...n, read: true } : n
-      )
+        )
     );
 
-    // Navigation vers le détail du produit
-    navigation.navigate("ProductDetail", {
-      productId: String(notification.product.id),
-    });
+    if (notification.type === "review") {
+        // On ouvre le profil du vendeur directement sur l’onglet "Mes évaluations"
+        navigation.navigate("MyProfileScreen", {
+        user: notification.product.seller, // ⚠️ suppose que seller est bien le user du profil
+        initialTab: "reviews",
+        });
+    } else {
+        // Navigation vers le détail du produit pour les autres types
+        navigation.navigate("ProductDetail", {
+        productId: String(notification.product.id),
+        });
+    }
 
     // Remonter l’info si un callback est fourni
     if (onNotificationClick) {
-      onNotificationClick(notification);
+        onNotificationClick(notification);
     }
-  };
+    };
+
 
   return (
     <View style={styles.container}>

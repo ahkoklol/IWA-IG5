@@ -14,10 +14,13 @@ import { FavoritesScreen } from "../screens/profil/FavoritesScreen";
 import { MyProductsScreen } from "../screens/profil/MyProductsScreen";
 import { TransactionsScreen } from "../screens/profil/TransactionsScreen";
 import { SellerReviewScreen } from "../screens/profil/SellerReviewScreen";
-
 import { SettingsScreen } from "../screens/settings/SettingsScreen";
+import { SearchScreen } from "../screens/search/SearchScreen";
+import { CategoryResults } from "../screens/search/CategoryResults";
+import { FilterScreen } from "../screens/search/FilterScreen";
+import { FilterDetailScreen } from "../screens/search/FilterDetailScreen";
 
-import type { User } from "../shared/types";
+import type { User, Category, Filters } from "../shared/types";
 
 export type RootStackParamList = {
   Intro: undefined;
@@ -28,7 +31,24 @@ export type RootStackParamList = {
   Home: undefined;
 
   ProductDetail: { productId: string };
-  MyProfileScreen: { user: User };
+
+  SearchScreen: undefined;
+  CategoryResults: {
+    category?: Category | null;
+    searchQuery?: string;
+  };
+  FilterScreen: {
+    filters: Filters;
+  };
+  FilterDetailScreen: {
+    filterType: string;
+    selectedValues: string | string[] | null;
+  };
+
+  MyProfileScreen: {
+    user: User;
+    initialTab?: "profile" | "reviews";
+  };
 
   Favorites: undefined;
   MyProducts: undefined;
@@ -54,6 +74,10 @@ export default function RootNavigator() {
         <Stack.Screen name="Home" component={HomeRootScreen} />
         <Stack.Screen name="ProductDetail" component={ProductDetail} />
         <Stack.Screen name="MyProfileScreen" component={MyProfileScreen} />
+        <Stack.Screen name="SearchScreen" component={SearchScreen} />
+        <Stack.Screen name="CategoryResults" component={CategoryResults} />
+        <Stack.Screen name="FilterScreen" component={FilterScreen} />
+        <Stack.Screen name="FilterDetailScreen" component={FilterDetailScreen} />
 
         {/* Profil */}
         <Stack.Screen name="Favorites" component={FavoritesScreen} />

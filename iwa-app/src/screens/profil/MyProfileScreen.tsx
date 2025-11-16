@@ -27,7 +27,7 @@ import { EditProfileModal } from "./EditProfileModal";
 type Props = NativeStackScreenProps<RootStackParamList, "MyProfileScreen">;
 
 export function MyProfileScreen({ route, navigation }: Props) {
-  const { user } = route.params;
+    const { user, initialTab } = route.params;
 
   // User modifiable localement (nom, bio, localisation, avatar)
   const [currentUser, setCurrentUser] = useState(user);
@@ -46,8 +46,9 @@ export function MyProfileScreen({ route, navigation }: Props) {
   // Pour l’instant, pas encore de mock de reviews => tableau vide
   const [userReviews] = useState<Review[]>(reviewsByUser[user.id] ?? []);
 
-  const [activeTab, setActiveTab] = useState<"profile" | "reviews">("profile");
-
+    const [activeTab, setActiveTab] = useState<"profile" | "reviews">(
+    initialTab ?? "profile"
+  );
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }).map((_, index) => {
       const filled = index < rating;

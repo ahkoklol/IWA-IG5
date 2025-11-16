@@ -7,167 +7,162 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import { Search } from "lucide-react-native";
+import { Search as SearchIcon } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
+import type { RootStackParamList } from "../../navigation/RootNavigator";
 import type { Category } from "../../shared/types";
 
-type Props = {
-  onCategorySelect: (category: Category) => void;
-};
+type NavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "SearchScreen"
+>;
 
-export default function SearchScreen({ onCategorySelect }: Props) {
-  const [query, setQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+const CATEGORIES: Category[] = [
+  "Légumes",
+  "Fruits",
+  "Herbes aromatiques / épices",
+  "Plantes médicinales",
+  "Fleurs décoratives",
+  "Plantes exotiques / rares",
+];
 
-  const categories: Category[] = [
-    "Légumes",
-    "Fruits",
-    "Herbes aromatiques / épices",
-    "Plantes médicinales",
-    "Fleurs décoratives",
-    "Plantes exotiques / rares",
-  ];
+export function SearchScreen() {
+  const navigation = useNavigation<NavigationProp>();
+  const [searchValue, setSearchValue] = useState("");
 
-  const handleSelect = (category: Category) => {
-    setSelectedCategory(category);
-    onCategorySelect(category);
+  const handleCategoryPress = (category: Category) => {
+    navigation.navigate("CategoryResults", {
+      category,
+      searchQuery: undefined,
+    });
+  };
+
+  const handleSearchSubmit = () => {
+    if (!searchValue.trim()) return;
+    navigation.navigate("CategoryResults", {
+      category: null,
+      searchQuery: searchValue.trim(),
+    });
   };
 
   return (
-    <View style={styles.root}>
-      {/* Notch */}
+    <View style={styles.container}>
+      {/* Phone notch simulation */}
       <View style={styles.notch} />
+
+      {/* Header / titre */}
+      <View style={styles.header}>
+        <Text style={styles.title}>Rechercher</Text>
+      </View>
 
       {/* Barre de recherche */}
       <View style={styles.searchWrapper}>
-        <View style={styles.searchInner}>
-          <Search size={20} color="#9CA3AF" style={styles.searchIcon} />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Rechercher un article ou un membre"
-            placeholderTextColor="#9CA3AF"
-            style={styles.searchInput}
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="search"
-          />
-        </View>
+        <SearchIcon size={18} color="#9ca3af" style={styles.searchIcon} />
+        <TextInput
+          value={searchValue}
+          onChangeText={setSearchValue}
+          placeholder="Rechercher un article ou un membre"
+          placeholderTextColor="#9ca3af"
+          style={styles.searchInput}
+          returnKeyType="search"
+          onSubmitEditing={handleSearchSubmit}
+        />
       </View>
 
       {/* Catégories */}
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.categoriesContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {categories.map((category, index) => {
-          const isSelected = selectedCategory === category;
-
-          return (
+      <ScrollView contentContainerStyle={styles.categoriesContainer}>
+        <Text style={styles.sectionTitle}>Catégories</Text>
+        <View style={styles.categoriesGrid}>
+          {CATEGORIES.map((category) => (
             <TouchableOpacity
               key={category}
-              onPress={() => handleSelect(category)}
-              style={[
-                styles.categoryBtn,
-                index === categories.length - 1 && { borderBottomWidth: 0 },
-              ]}
-              activeOpacity={0.7}
+              style={styles.categoryCard}
+              onPress={() => handleCategoryPress(category)}
+              activeOpacity={0.8}
             >
               <Text style={styles.categoryText}>{category}</Text>
-
-              {/* Rond vide → rempli si sélectionné */}
-              <View style={styles.outerCircle}>
-                {isSelected && <View style={styles.innerCircle} />}
-              </View>
             </TouchableOpacity>
-          );
-        })}
+          ))}
+        </View>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#FFFFFF" },
-
+  container: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
   notch: {
     width: 128,
     height: 32,
-    backgroundColor: "#000",
+    backgroundColor: "#000000",
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
     alignSelf: "center",
     marginTop: 8,
   },
-
-  searchWrapper: {
+  header: {
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
-    backgroundColor: "#FFFFFF",
   },
-
-  searchInner: {
-    position: "relative",
+  title: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  searchWrapper: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    justifyContent: "center",
+  },
+  searchInput: {
     borderWidth: 2,
     borderColor: "#7BCCEB",
     borderRadius: 12,
-    backgroundColor: "#FFFFFF",
-    paddingLeft: 40,
+    paddingVertical: 8,
+    paddingLeft: 36,
+    paddingRight: 12,
+    fontSize: 14,
+    backgroundColor: "#ffffff",
   },
-
   searchIcon: {
     position: "absolute",
-    left: 12,
-    top: "50%",
-    marginTop: -10,
+    left: 10,
+    zIndex: 1,
   },
-
-  searchInput: {
-    height: 44,
-    fontSize: 14,
-    color: "#111827",
-    paddingRight: 12,
-  },
-
-  scroll: { flex: 1 },
-
   categoriesContainer: {
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: 16,
     paddingBottom: 32,
   },
-
-  categoryBtn: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderColor: "#E5E7EB",
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 12,
   },
-
+  categoriesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  categoryCard: {
+    width: "48%",
+    backgroundColor: "#f3f4f6",
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
   categoryText: {
     fontSize: 14,
     color: "#111827",
-  },
-
-  /* ROND vide */
-  outerCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#D1D5DB", // gris clair
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  /* ROND rempli */
-  innerCircle: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: "#7BCCEB", // couleur sélection
   },
 });
