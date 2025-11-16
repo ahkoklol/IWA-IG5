@@ -36,11 +36,7 @@ public class ReportService {
         }
 
         report.setReportId(UUID.randomUUID().toString());
-        report.setType(report.getType());
         report.setDate(new Date());
-        report.setDescription(report.getDescription());
-        report.setClientId(report.getClientId());
-        report.setPostId(report.getPostId());
 
         return reportRepository.save(report);
     }
