@@ -69,23 +69,6 @@ export default function HomeScreen({
       {/* Notch (simu maquette) */}
       <View style={styles.notch} />
 
-      {/* Barre de recherche (sticky) */}
-      <View style={styles.searchWrapper}>
-        <View style={styles.searchInner}>
-          <Search size={20} color="#9CA3AF" style={styles.searchIcon} />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Rechercher un article ou un membre"
-            placeholderTextColor="#9CA3AF"
-            style={styles.searchInput}
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="search"
-          />
-        </View>
-      </View>
-
       {/* Grille produits */}
       {filtered.length === 0 ? (
         <View style={styles.empty}>

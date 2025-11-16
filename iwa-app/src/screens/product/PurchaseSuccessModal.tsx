@@ -1,3 +1,4 @@
+//iwa-app/src/screens/product/PurchaseSuccessModal.tsx
 import React from "react";
 import {
   Modal,

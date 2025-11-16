@@ -9,6 +9,15 @@ import RegisterScreen2, { SignupData2 } from "../screens/(auth)/RegisterScreen2"
 import RegisterScreen3 from "../screens/(auth)/RegisterScreen3";
 import HomeRootScreen from "../screens/home/HomeRootScreen";
 import ProductDetail from "../screens/product/ProductDetail";
+import { MyProfileScreen } from "../screens/profil/MyProfileScreen";
+import { FavoritesScreen } from "../screens/profil/FavoritesScreen";
+import { MyProductsScreen } from "../screens/profil/MyProductsScreen";
+import { TransactionsScreen } from "../screens/profil/TransactionsScreen";
+import { SellerReviewScreen } from "../screens/profil/SellerReviewScreen";
+
+import { SettingsScreen } from "../screens/settings/SettingsScreen";
+
+import type { User } from "../shared/types";
 
 export type RootStackParamList = {
   Intro: undefined;
@@ -18,8 +27,17 @@ export type RootStackParamList = {
   Register3: { step1: SignupData1; step2: SignupData2 };
   Home: undefined;
 
-  // ✅ ProductDetail attend un paramètre
   ProductDetail: { productId: string };
+  MyProfileScreen: { user: User };
+
+  Favorites: undefined;
+  MyProducts: undefined;
+
+  Transactions: { reviewedTransactionId?: number } | undefined;
+
+  SellerReview: { transactionId: number };
+
+  Settings: { onDeleteAccount: () => void };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -35,6 +53,16 @@ export default function RootNavigator() {
         <Stack.Screen name="Register3" component={RegisterScreen3} />
         <Stack.Screen name="Home" component={HomeRootScreen} />
         <Stack.Screen name="ProductDetail" component={ProductDetail} />
+        <Stack.Screen name="MyProfileScreen" component={MyProfileScreen} />
+
+        {/* Profil */}
+        <Stack.Screen name="Favorites" component={FavoritesScreen} />
+        <Stack.Screen name="MyProducts" component={MyProductsScreen} />
+        <Stack.Screen name="Transactions" component={TransactionsScreen} />
+        <Stack.Screen name="SellerReview" component={SellerReviewScreen} />
+
+        {/* Réglages */}
+        <Stack.Screen name="Settings" component={SettingsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

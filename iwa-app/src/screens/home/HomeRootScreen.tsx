@@ -1,15 +1,20 @@
 // src/screens/home/HomeRootScreen.tsx
 import React, { useState } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import HomeScreen from "./HomeScreen";
-import SearchScreen from "../search/SearchScreen"; // ← import ici
-import { demoProducts } from "../../mocks/products";
+import SearchScreen from "../search/SearchScreen";
+import {
+  demoProducts,
+  currentUser as mockCurrentUser,
+} from "../../mocks/products";
+import type { Category } from "../../shared/types";
 import { BottomNavbar, BottomTabId } from "../../components/BottomNavbar";
 import { RootStackParamList } from "../../navigation/RootNavigator";
-import type { Category } from "../../shared/types";
+import NotificationsScreen from "../notifications/NotificationsScreen";
+import { ProfileMenuScreen } from "../profil/ProfileMenuScreen";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Home">;
 
@@ -23,12 +28,7 @@ export default function HomeRootScreen() {
   const handleCategorySelect = (category: Category) => {
     console.log("Catégorie sélectionnée :", category);
 
-    // Ici tu pourras plus tard :
-    // - naviguer vers CategoryResults
-    // - ou filtrer les produits
-    // - ou changer d'écran dans HomeRootScreen
-    
-    // Exemple simple :
+    // Exemple simple (plus tard tu pourras filtrer ou naviguer)
     alert("Tu as sélectionné : " + category);
   };
 
@@ -44,6 +44,34 @@ export default function HomeRootScreen() {
     );
   };
 
+
+  const handleProfileMenuSelect = (menuId: string) => {
+    if (menuId === "myProfile") {
+      navigation.navigate("MyProfileScreen", {
+        user: mockCurrentUser,
+      });
+      return;
+    }
+
+    if (menuId === "favorites") {
+      navigation.navigate("Favorites");
+      return;
+    }
+
+    if (menuId === "myProducts") {
+      navigation.navigate("MyProducts");
+      return;
+    }
+
+    if (menuId === "transactions") {
+      navigation.navigate("Transactions", {}); // param vide mais typé
+      return;
+    }
+
+    console.log("Menu profil sélectionné :", menuId);
+  };
+
+
   // RENDU DES ONGLET (home / search / notif / profil)
   const renderContent = () => {
     switch (activeTab) {
@@ -51,17 +79,22 @@ export default function HomeRootScreen() {
         return <SearchScreen onCategorySelect={handleCategorySelect} />;
 
       case "notifications":
-        return (
-          <View style={styles.placeholder}>
-            <Text>Notifications (TODO)</Text>
-          </View>
-        );
+        return <NotificationsScreen />;
 
       case "profile":
         return (
-          <View style={styles.placeholder}>
-            <Text>Profil (TODO)</Text>
-          </View>
+          <ProfileMenuScreen
+            currentUser={mockCurrentUser}
+            onMenuSelect={handleProfileMenuSelect}
+            onLogout={() => {
+              console.log("Logout");
+              // Plus tard : navigation vers login, reset state, etc.
+            }}
+            onDeleteAccount={() => {
+              console.log("Delete account");
+              // Plus tard : modal + appel API
+            }}
+          />
         );
 
       case "home":
@@ -76,19 +109,17 @@ export default function HomeRootScreen() {
     }
   };
 
-  // CHANGE D'ONGLET
-  const handleTabChange = (tab: BottomTabId) => {
-    if (tab === "sell") {
-      console.log("TODO: ouvrir modal d’ajout de produit");
-      return;
-    }
-    setActiveTab(tab);
-  };
-
   return (
     <View style={styles.container}>
       {renderContent()}
-      <BottomNavbar activeTab={activeTab} onTabChange={handleTabChange} />
+      <BottomNavbar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onAddProduct={(product) => {
+          console.log("Nouveau produit ajouté :", product);
+          // Plus tard : setProducts([...products, { ...product, id: ... }]);
+        }}
+      />
     </View>
   );
 }
