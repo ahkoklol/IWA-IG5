@@ -19,9 +19,9 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DB_URL: ${{ secrets.DB_URL }}
-      DB_USERNAME: ${{ secrets.DB_USERNAME }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_URL: ${{ secrets.USER_DB_URL }}
+      DB_USERNAME: ${{ secrets.USER_DB_USERNAME }}
+      DB_PASSWORD: ${{ secrets.USER_DB_PASSWORD }}
 
     steps:
       - name: Checkout Code
@@ -36,13 +36,11 @@ jobs:
 
       - name: Run Maven Build and Tests (Verify phase)
         working-directory: usermicroservice
-        # 'clean install' or 'clean verify' builds the package and runs all tests
         run: mvn clean verify
 
       - name: Find JAR Path
         id: find_jar
-        # Find the single non-original JAR file produced by the build
-        run: |
+        run:
           JAR_NAME=$(ls usermicroservice/target/*.jar | grep -v 'original')
           echo "JAR_PATH=$JAR_NAME" >> $GITHUB_OUTPUT
 
@@ -53,15 +51,12 @@ jobs:
           path: ${{ steps.find_jar.outputs.JAR_PATH }}
           retention-days: 1
 
-  ## --------------------------------------------------
-  ## JOB 2: PUSH DOCKER IMAGE
-  ## --------------------------------------------------
   push-to-dockerhub:
-    needs: build-and-test # This ensures tests must pass before deployment
+    needs: build-and-test
     runs-on: ubuntu-latest
 
     env:
-      DOCKER_REPOSITORY: 'your-docker-hub-username' # <-- IMPORTANT: CHANGE THIS
+      DOCKER_REPOSITORY: 'ahkoklol'
 
     steps:
       - name: Checkout Code (Needed for the Dockerfile)
@@ -85,18 +80,11 @@ jobs:
 
       - name: Build and Push usermicroservice Docker Image
         working-directory: usermicroservice
-        run: |
-          # Use the downloaded JAR for the Docker build
+        run:
           JAR_FILE_NAME=$(ls target/*.jar | grep -v 'original')
           IMAGE_NAME=${{ env.DOCKER_REPOSITORY }}/usermicroservice
           VERSION_TAG=${{ steps.tag.outputs.DOCKER_TAG }}
-          
-          # Build the image, passing the JAR file name as a build argument
           docker build --build-arg JAR_FILE=target/$JAR_FILE_NAME -t $IMAGE_NAME:$VERSION_TAG .
-          
-          # Push the tagged image
           docker push $IMAGE_NAME:$VERSION_TAG
-          
-          # Tag and push as 'latest'
           docker tag $IMAGE_NAME:$VERSION_TAG $IMAGE_NAME:latest
           docker push $IMAGE_NAME:latest
