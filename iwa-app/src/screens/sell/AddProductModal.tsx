@@ -216,6 +216,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: "90%",
+    flex: 1,              // ✅ le sheet occupe de la hauteur
     overflow: "hidden",
   },
   header: {
@@ -240,7 +241,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   content: {
-    flex: 1,
   },
   contentInner: {
     paddingHorizontal: 24,
