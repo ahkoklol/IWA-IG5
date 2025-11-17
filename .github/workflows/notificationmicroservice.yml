@@ -81,7 +81,7 @@ jobs:
       - name: Build and Push Notification Microservice Docker Image
         working-directory: notificationmicroservice
         run: |
-          JAR_FILE_NAME=$(ls target/*.jar | grep -v 'original')
+          JAR_FILE_NAME=$(ls target/*.jar | grep -v 'original' | xargs basename)
           IMAGE_NAME=${{ env.DOCKER_REPOSITORY }}/notificationmicroservice
           VERSION_TAG=${{ steps.tag.outputs.DOCKER_TAG }}
           docker build --build-arg JAR_FILE=target/$JAR_FILE_NAME -t $IMAGE_NAME:$VERSION_TAG .
