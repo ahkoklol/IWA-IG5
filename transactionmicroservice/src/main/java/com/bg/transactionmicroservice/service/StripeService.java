@@ -64,18 +64,6 @@ public class StripeService {
             case "account.updated":
                 processAccountUpdated(event);
                 break;
-            case "payment_intent.payment_created": // can be removed as checkout.session.completed was handled
-                processPaymentIntentCreated((PaymentIntent) dataObject);
-                break;
-            case "payment_intent.succeeded": // can be removed as checkout.session.completed was handled
-                processPaymentIntentSucceeded((PaymentIntent) dataObject);
-                break;
-            case "payment_intent.payment_failed": // can be removed as checkout.session.completed was handled
-                processPaymentIntentFailed((PaymentIntent) dataObject);
-                break;
-            case "charge.succeeded": // can be removed as checkout.session.completed was handled
-                processChargeSucceeded((Charge) dataObject);
-                break;
             case "checkout.session.completed":
                 processCheckoutSessionCompleted((Session) dataObject);
                 break;
@@ -110,62 +98,6 @@ public class StripeService {
                 .build();
 
         userClient.updateStripeId(request);
-    }
-
-    /**
-     * Helper to process the PaymentIntentCreated event
-     * @param paymentIntent the PaymentIntent
-     */
-    private void processPaymentIntentCreated(PaymentIntent paymentIntent) {
-        String internalTransactionId = paymentIntent.getMetadata().get("platform_transaction_id");
-        if (internalTransactionId != null) {
-            log.info("PaymentIntent {} created. Transaction {} is initiated.", paymentIntent.getId(), internalTransactionId);
-            // transactionService.updateTransactionStatus(internalTransactionId, "PROCESSING");
-        } else {
-            log.warn("PaymentIntent {} created but is missing 'platform_transaction_id' metadata.", paymentIntent.getId());
-        }
-    }
-
-    /**
-     * Helper for PaymentIntent success webhook
-     * @param paymentIntent the PaymentIntent
-     */
-    private void processPaymentIntentSucceeded(PaymentIntent paymentIntent) {
-        String internalTransactionId = paymentIntent.getMetadata().get("platform_transaction_id");
-        if (internalTransactionId == null) {
-            log.error("PaymentIntent {} succeeded but is missing 'platform_transaction_id' metadata.", paymentIntent.getId());
-            return;
-        }
-        Transaction transaction = new Transaction();
-        transaction.setTransactionId(internalTransactionId);
-        transaction.setPaymentMethodId(paymentIntent.getMetadata().get("payment_method_id"));
-        transaction.setStripePaymentIntentId(paymentIntent.getMetadata().get("stripe_payment_intent_id"));
-        //transactionService.updateStripeData(transaction);
-        //transactionService.updateTransactionToCompleted(internalTransactionId, true);
-        log.info("PaymentIntent {} successful. Transaction {} fulfilled.", paymentIntent.getId(), internalTransactionId);
-    }
-
-    /**
-     * Helper for PaymentIntent fail webhook
-     * @param paymentIntent the PaymentIntent
-     */
-    private void processPaymentIntentFailed(PaymentIntent paymentIntent) {
-        String internalTransactionId = paymentIntent.getMetadata().get("platform_transaction_id");
-        if (internalTransactionId == null) {
-            log.error("PaymentIntent {} failed but is missing 'platform_transaction_id' metadata.", paymentIntent.getId());
-            return;
-        }
-        transactionService.updateTransactionToCompleted(internalTransactionId, false);
-        log.warn("PaymentIntent {} failed. Transaction {} marked as failed.", paymentIntent.getId(), internalTransactionId);
-    }
-
-    /**
-     * Helper to process ChargeSucceeded
-     * @param charge the Charge
-     */
-    private void processChargeSucceeded(Charge charge) {
-        String paymentIntentId = charge.getPaymentIntent();
-        log.info("Charge {} succeeded. PaymentIntent ID: {}. (Note: payment_intent.succeeded is usually preferred)", charge.getId(), paymentIntentId);
     }
 
     /**
@@ -259,7 +191,6 @@ public class StripeService {
 
             // 2. Call the Stripe API
             AccountLink accountLink = AccountLink.create(params);
-
             log.info("Successfully created account link URL for Stripe Account {}.", stripeAccountId);
 
             // 3. Return the URL for the controller to send back to the frontend
