@@ -20,7 +20,7 @@ jobs:
 
     env:
       DB_URL: ${{ secrets.NOTIFICATION_DB_URL }}
-      DB_USERNAME: ${{ secrets.NOTIFICATION_DB_USERNAME }}
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
       DB_PASSWORD: ${{ secrets.NOTIFICATION_DB_PASSWORD }}
 
     steps:
