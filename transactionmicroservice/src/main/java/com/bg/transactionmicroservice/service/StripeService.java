@@ -8,6 +8,7 @@ import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
+import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.stripe.param.AccountCreateParams;
 import com.stripe.param.AccountLinkCreateParams;
@@ -63,17 +64,20 @@ public class StripeService {
             case "account.updated":
                 processAccountUpdated(event);
                 break;
-            case "payment_intent.payment_created":
+            case "payment_intent.payment_created": // can be removed as checkout.session.completed was handled
                 processPaymentIntentCreated((PaymentIntent) dataObject);
                 break;
-            case "payment_intent.succeeded":
+            case "payment_intent.succeeded": // can be removed as checkout.session.completed was handled
                 processPaymentIntentSucceeded((PaymentIntent) dataObject);
                 break;
-            case "payment_intent.payment_failed":
+            case "payment_intent.payment_failed": // can be removed as checkout.session.completed was handled
                 processPaymentIntentFailed((PaymentIntent) dataObject);
                 break;
-            case "charge.succeeded":
+            case "charge.succeeded": // can be removed as checkout.session.completed was handled
                 processChargeSucceeded((Charge) dataObject);
+                break;
+            case "checkout.session.completed":
+                processCheckoutSessionCompleted((Session) dataObject);
                 break;
             default:
                 System.out.println("Received unhandled event type: " + event.getType());
@@ -162,6 +166,26 @@ public class StripeService {
     private void processChargeSucceeded(Charge charge) {
         String paymentIntentId = charge.getPaymentIntent();
         log.info("Charge {} succeeded. PaymentIntent ID: {}. (Note: payment_intent.succeeded is usually preferred)", charge.getId(), paymentIntentId);
+    }
+
+    /**
+     * Helper to process CheckoutSessionCompleted
+     * @param session the checkout Session
+     */
+    private void processCheckoutSessionCompleted(Session session) {
+        try {
+            PaymentIntent pi = PaymentIntent.retrieve(session.getPaymentIntent());
+            String internalTransactionId = pi.getMetadata().get("platform_transaction_id");
+            if (internalTransactionId == null) {
+                log.error("Checkout completed but missing platform_transaction_id metadata");
+                return;
+            }
+            log.info("Checkout completed. PaymentIntent {}. Internal txn {}.",
+                    pi.getId(), internalTransactionId);
+            transactionService.updateTransactionToCompleted(internalTransactionId, true);
+        } catch (StripeException e) {
+            log.error("Failed to retrieve PaymentIntent for checkout.session.completed", e);
+        }
     }
 
     /**
