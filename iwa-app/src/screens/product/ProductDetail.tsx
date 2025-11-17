@@ -1,3 +1,4 @@
+//iwa-app/src/screens/product/ProductDetail.tsx
 import React, { useMemo, useState } from "react";
 import {
   View,
@@ -21,7 +22,6 @@ import type { Product } from "../../shared/types";
 import { demoProducts } from "../../mocks/products";
 
 import PurchaseConfirmationModal from "./PurchaseConfirmationModal";
-import PurchaseSuccessModal from "./PurchaseSuccessModal";
 
 type DetailRoute = RouteProp<RootStackParamList, "ProductDetail">;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -63,7 +63,6 @@ export default function ProductDetail() {
 
   const [current, setCurrent] = useState(0);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   if (!product) {
     return (
@@ -227,15 +226,13 @@ export default function ProductDetail() {
         <PurchaseConfirmationModal
           product={product}
           onClose={() => setShowPurchaseModal(false)}
-          onConfirm={() => {
-            setShowPurchaseModal(false);   // fermer le premier modal
-            setShowSuccessModal(true);     // ouvrir le modal de succès
+          onConfirm={(total) => {
+            setShowPurchaseModal(false);
+            navigation.navigate("Payment", {
+              product,
+              total,
+            });
           }}
-        />
-      )}
-      {showSuccessModal && (
-        <PurchaseSuccessModal
-          onClose={() => setShowSuccessModal(false)}
         />
       )}
     </View>

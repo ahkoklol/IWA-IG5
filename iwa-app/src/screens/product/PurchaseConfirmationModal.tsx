@@ -1,3 +1,4 @@
+//iwa-app/src/screens/product/PurchaseConfirmationModal.tsx
 import React from "react";
 import {
   Modal,
@@ -14,7 +15,7 @@ import type { Product } from "../../shared/types";
 interface PurchaseConfirmationModalProps {
   product: Product;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (total: number) => void;
 }
 
 export default function PurchaseConfirmationModal({
@@ -27,9 +28,10 @@ export default function PurchaseConfirmationModal({
   }
 
   // --- Image principale : supporte string (URL) ou require() ---
-  const rawImage = Array.isArray(product.images) && product.images.length > 0
-    ? product.images[0]
-    : undefined;
+  const rawImage =
+    Array.isArray(product.images) && product.images.length > 0
+      ? product.images[0]
+      : undefined;
 
   const mainImageSource =
     typeof rawImage === "string"
@@ -40,7 +42,9 @@ export default function PurchaseConfirmationModal({
 
   // --- Parsing prix robuste ---
   const rawPrice =
-    typeof product.price === "string" ? product.price : String(product.price ?? "0");
+    typeof product.price === "string"
+      ? product.price
+      : String(product.price ?? "0");
   const numericPrice = parseFloat(
     rawPrice
       .replace(/\s/g, "") // retire espaces
@@ -113,7 +117,9 @@ export default function PurchaseConfirmationModal({
                 <View style={styles.productInfo}>
                   <Text style={styles.productName}>{product.name ?? "—"}</Text>
                   {!!product.quantity && (
-                    <Text style={styles.productQuantity}>{product.quantity}</Text>
+                    <Text style={styles.productQuantity}>
+                      {product.quantity}
+                    </Text>
                   )}
                 </View>
               </View>
@@ -136,7 +142,9 @@ export default function PurchaseConfirmationModal({
                   </View>
                 )}
                 <View style={styles.sellerInfo}>
-                  <Text style={styles.sellerName}>{seller?.username ?? "—"}</Text>
+                  <Text style={styles.sellerName}>
+                    {seller?.username ?? "—"}
+                  </Text>
                   <View style={styles.sellerRatingRow}>
                     {renderStars(seller?.rating)}
                     {!!seller?.reviewCount && (
@@ -173,7 +181,7 @@ export default function PurchaseConfirmationModal({
           {/* Confirm button */}
           <View style={styles.footer}>
             <TouchableOpacity
-              onPress={onConfirm}
+              onPress={() => onConfirm(total)}
               activeOpacity={0.9}
               style={styles.confirmButton}
             >

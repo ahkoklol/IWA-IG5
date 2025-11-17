@@ -1,3 +1,4 @@
+//iwa-app/src/navigation/RootNavigator.tsx
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -9,6 +10,7 @@ import RegisterScreen2, { SignupData2 } from "../screens/(auth)/RegisterScreen2"
 import RegisterScreen3 from "../screens/(auth)/RegisterScreen3";
 import HomeRootScreen from "../screens/home/HomeRootScreen";
 import ProductDetail from "../screens/product/ProductDetail";
+import PaymentScreen from "../screens/product/PaymentScreen";
 import { MyProfileScreen } from "../screens/profil/MyProfileScreen";
 import { FavoritesScreen } from "../screens/profil/FavoritesScreen";
 import { MyProductsScreen } from "../screens/profil/MyProductsScreen";
@@ -20,7 +22,7 @@ import { CategoryResults } from "../screens/search/CategoryResults";
 import { FilterScreen } from "../screens/search/FilterScreen";
 import { FilterDetailScreen } from "../screens/search/FilterDetailScreen";
 
-import type { User, Category, Filters } from "../shared/types";
+import type { User, Category, Filters, Product } from "../shared/types";
 
 export type RootStackParamList = {
   Intro: undefined;
@@ -31,6 +33,11 @@ export type RootStackParamList = {
   Home: undefined;
 
   ProductDetail: { productId: string };
+
+  Payment: {
+    product: Product;
+    total: number; // montant total en euros
+  };
 
   SearchScreen: undefined;
   CategoryResults: {
@@ -73,11 +80,16 @@ export default function RootNavigator() {
         <Stack.Screen name="Register3" component={RegisterScreen3} />
         <Stack.Screen name="Home" component={HomeRootScreen} />
         <Stack.Screen name="ProductDetail" component={ProductDetail} />
+        <Stack.Screen name="Payment" component={PaymentScreen} />
+
         <Stack.Screen name="MyProfileScreen" component={MyProfileScreen} />
         <Stack.Screen name="SearchScreen" component={SearchScreen} />
         <Stack.Screen name="CategoryResults" component={CategoryResults} />
         <Stack.Screen name="FilterScreen" component={FilterScreen} />
-        <Stack.Screen name="FilterDetailScreen" component={FilterDetailScreen} />
+        <Stack.Screen
+          name="FilterDetailScreen"
+          component={FilterDetailScreen}
+        />
 
         {/* Profil */}
         <Stack.Screen name="Favorites" component={FavoritesScreen} />
