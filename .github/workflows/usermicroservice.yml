@@ -80,7 +80,7 @@ jobs:
 
       - name: Build and Push usermicroservice Docker Image
         working-directory: usermicroservice
-        run:
+        run: |
           JAR_FILE_NAME=$(ls target/*.jar | grep -v 'original')
           IMAGE_NAME=${{ env.DOCKER_REPOSITORY }}/usermicroservice
           VERSION_TAG=${{ steps.tag.outputs.DOCKER_TAG }}
