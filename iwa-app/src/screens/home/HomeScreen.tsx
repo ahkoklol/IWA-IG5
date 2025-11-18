@@ -15,6 +15,8 @@ import { allProducts } from "../../mocks/products";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
+import { Screen } from "../../components/Screen";
+
 
 type Props = {
   products?: Product[];
@@ -63,12 +65,8 @@ export default function HomeScreen({
   );
 
   return (
-    <View style={styles.root}>
+  <Screen>
       <StatusBar barStyle="dark-content" />
-
-      {/* Notch (simu maquette) */}
-      <View style={styles.notch} />
-
       {/* Grille produits */}
       {filtered.length === 0 ? (
         <View style={styles.empty}>
@@ -85,21 +83,12 @@ export default function HomeScreen({
           showsVerticalScrollIndicator={false}
         />
       )}
-    </View>
+      </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#FFFFFF" },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
-    marginTop: 8,
-  },
   searchWrapper: {
     paddingHorizontal: 16,
     paddingTop: 16,

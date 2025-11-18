@@ -13,6 +13,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import type { Category } from "../../shared/types";
+import { Screen } from "../../components/Screen";
 
 type NavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -48,11 +49,8 @@ export function SearchScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Phone notch simulation */}
-      <View style={styles.notch} />
-
-      {/* Header / titre */}
+    <Screen>
+  {/* Header / titre */}
       <View style={styles.header}>
         <Text style={styles.title}>Rechercher</Text>
       </View>
@@ -87,7 +85,7 @@ export function SearchScreen() {
           ))}
         </View>
       </ScrollView>
-    </View>
+    </Screen>
   );
 }
 
@@ -95,15 +93,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
-  },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
-    marginTop: 8,
   },
   header: {
     paddingHorizontal: 16,

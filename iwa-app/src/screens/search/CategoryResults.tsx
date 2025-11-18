@@ -16,6 +16,7 @@ import ProductCard from "../../components/product/ProductCard";
 import { demoProducts } from "../../mocks/products";
 import type { Product, Category, Filters } from "../../shared/types";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
+import { Screen } from "../../components/Screen";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CategoryResults">;
 
@@ -73,13 +74,11 @@ export function CategoryResults({ route, navigation }: Props) {
   };
 
   return (
+    <Screen>
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Phone notch simulation */}
-      <View style={styles.notch} />
-
       {/* Header with back and filter buttons */}
       <View style={styles.headerWrapper}>
         <View style={styles.headerRow}>
@@ -128,6 +127,7 @@ export function CategoryResults({ route, navigation }: Props) {
         </View>
       </View>
     </ScrollView>
+    </Screen>
   );
 }
 
@@ -139,15 +139,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingBottom: 32,
   },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
-    marginTop: 8,
-  },
+
   headerWrapper: {
     paddingHorizontal: 16,
     paddingTop: 16,

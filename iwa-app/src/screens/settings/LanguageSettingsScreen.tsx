@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
+import { Screen } from "../../components/Screen";
 
 interface LanguageSettingsScreenProps {
   onBack: () => void;
@@ -21,6 +22,7 @@ export function LanguageSettingsScreen({ onBack }: LanguageSettingsScreenProps) 
   ];
 
   return (
+    <Screen>
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -45,6 +47,7 @@ export function LanguageSettingsScreen({ onBack }: LanguageSettingsScreenProps) 
         ))}
       </ScrollView>
     </View>
+    </Screen>
   );
 }
 

@@ -14,6 +14,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { User } from "../../shared/types";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
+import { Screen } from "../../components/Screen";
 
 type Navigation = NativeStackNavigationProp<RootStackParamList>;
 
@@ -72,18 +73,12 @@ export function ProfileMenuScreen({
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-    >
-      {/* Phone notch simulation */}
-      <View style={styles.notch} />
-
+<Screen>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profil</Text>
       </View>
-
+    <ScrollView>
       {/* Menu items */}
       <View style={styles.menuContainer}>
         {menuItems.map((item) => (
@@ -118,7 +113,8 @@ export function ProfileMenuScreen({
           </View>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </Screen>
   );
 }
 
@@ -130,14 +126,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingBottom: 32,
   },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
-  },
+
   header: {
     paddingHorizontal: 16,
     paddingVertical: 16,

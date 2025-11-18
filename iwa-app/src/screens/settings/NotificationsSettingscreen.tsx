@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
+import { Screen } from "../../components/Screen";
 
 interface NotificationsSettingsScreenProps {
   onBack: () => void;
@@ -37,6 +38,7 @@ export function NotificationsSettingsScreen({ onBack }: NotificationsSettingsScr
   ];
 
   return (
+    <Screen>
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -62,6 +64,7 @@ export function NotificationsSettingsScreen({ onBack }: NotificationsSettingsScr
         ))}
       </ScrollView>
     </View>
+    </Screen>
   );
 }
 

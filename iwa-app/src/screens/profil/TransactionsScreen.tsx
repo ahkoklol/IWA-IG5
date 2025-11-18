@@ -13,6 +13,9 @@ import type { Transaction } from "../../shared/types";
 import { demoTransactions } from "../../mocks/products";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
+import { Screen } from "../../components/Screen";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Transactions">;
 
@@ -20,17 +23,12 @@ export function TransactionsScreen({ navigation, route }: Props) {
   const [transactions, setTransactions] =
     useState<Transaction[]>(demoTransactions);
 
-  // Quand on revient de l’écran d’évaluation avec reviewedTransactionId
-  useEffect(() => {
-    const reviewedId = route.params?.reviewedTransactionId;
-    if (!reviewedId) return;
-
-    setTransactions((prev) =>
-      prev.map((t) =>
-        t.id === reviewedId ? { ...t, reviewed: true } : t
-      )
-    );
-  }, [route.params?.reviewedTransactionId]);
+  useFocusEffect(
+    useCallback(() => {
+      // On se resynchronise avec les mocks mis à jour
+      setTransactions([...demoTransactions]);
+    }, [])
+  );
 
   const handleBack = () => {
     navigation.goBack();
@@ -48,13 +46,11 @@ export function TransactionsScreen({ navigation, route }: Props) {
   };
 
   return (
+    <Screen>
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Phone notch simulation */}
-      <View style={styles.notch} />
-
       {/* Header */}
       <View style={styles.headerWrapper}>
         <View style={styles.header}>
@@ -168,20 +164,14 @@ export function TransactionsScreen({ navigation, route }: Props) {
         )}
       </View>
     </ScrollView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFFFF" },
   contentContainer: { paddingBottom: 32 },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
-  },
+
   headerWrapper: {
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",

@@ -14,6 +14,7 @@ import ProductCard from "../../components/product/ProductCard";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import { demoProducts, currentUser } from "../../mocks/products";
+import { Screen } from "../../components/Screen";
 
 type Props = NativeStackScreenProps<RootStackParamList, "MyProducts">;
 
@@ -53,13 +54,11 @@ export function MyProductsScreen({ navigation }: Props) {
   };
 
   return (
+    <Screen>
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Phone notch simulation */}
-      <View style={styles.notch} />
-
       {/* Header */}
       <View style={styles.headerWrapper}>
         <View style={styles.header}>
@@ -140,6 +139,7 @@ export function MyProductsScreen({ navigation }: Props) {
         )}
       </View>
     </ScrollView>
+    </Screen>
   );
 }
 
@@ -150,14 +150,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingBottom: 32,
-  },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
   },
   headerWrapper: {
     borderBottomWidth: 1,

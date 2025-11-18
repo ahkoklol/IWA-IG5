@@ -15,6 +15,7 @@ import type {
   EdibleFilter,
 } from "../../shared/types";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
+import { Screen } from "../../components/Screen";
 
 type Props = NativeStackScreenProps<RootStackParamList, "FilterDetailScreen">;
 
@@ -133,10 +134,8 @@ export function FilterDetailScreen({ route, navigation }: Props) {
   const options = getOptions;
 
   return (
+    <Screen>
     <View style={styles.container}>
-      {/* Phone notch simulation */}
-      <View style={styles.notch} />
-
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -191,6 +190,7 @@ export function FilterDetailScreen({ route, navigation }: Props) {
         </TouchableOpacity>
       </View>
     </View>
+    </Screen>
   );
 }
 
@@ -199,15 +199,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#ffffff",
   },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
-    marginTop: 8,
-  },
+
   header: {
     flexDirection: "row",
     alignItems: "center",

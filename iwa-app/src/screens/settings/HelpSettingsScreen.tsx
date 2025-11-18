@@ -8,6 +8,7 @@ import {
   Linking,
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
+import { Screen } from "../../components/Screen";
 
 interface HelpSettingsScreenProps {
   onBack: () => void;
@@ -15,6 +16,7 @@ interface HelpSettingsScreenProps {
 
 export function HelpSettingsScreen({ onBack }: HelpSettingsScreenProps) {
   return (
+    <Screen>
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -57,6 +59,7 @@ export function HelpSettingsScreen({ onBack }: HelpSettingsScreenProps) {
         </Text>
       </ScrollView>
     </View>
+    </Screen>
   );
 }
 

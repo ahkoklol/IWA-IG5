@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
+import { Screen } from "../../components/Screen";
 
 interface PrivacySettingsScreenProps {
   onBack: () => void;
@@ -14,6 +15,7 @@ interface PrivacySettingsScreenProps {
 
 export function PrivacySettingsScreen({ onBack }: PrivacySettingsScreenProps) {
   return (
+    <Screen>
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -48,6 +50,7 @@ export function PrivacySettingsScreen({ onBack }: PrivacySettingsScreenProps) {
         </Text>
       </ScrollView>
     </View>
+    </Screen>
   );
 }
 

@@ -14,6 +14,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import { demoTransactions } from "../../mocks/products";
 import type { Transaction } from "../../shared/types";
+import { Screen } from "../../components/Screen";
 
 type Props = NativeStackScreenProps<RootStackParamList, "SellerReview">;
 
@@ -45,24 +46,30 @@ export function SellerReviewScreen({ navigation, route }: Props) {
   const handleSubmit = () => {
     // Plus tard : appel API pour enregistrer l'avis
 
-    // On revient sur la liste des transactions
-    // en indiquant laquelle vient d'être évaluée
-    navigation.navigate("Transactions", {
-      reviewedTransactionId: transaction.id,
-    });
+    // Met à jour directement le statut "reviewed" dans les mocks
+    const index = demoTransactions.findIndex((t) => t.id === transaction.id);
+    if (index !== -1) {
+      demoTransactions[index] = {
+        ...demoTransactions[index],
+        reviewed: true,
+      };
+    }
+
+    // Puis on revient simplement aux transactions (animation retour)
+    navigation.goBack();
   };
+
+
 
   const product = transaction.product;
   const firstImage = product.images?.[0];
 
   return (
+    <Screen>
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Phone notch simulation */}
-      <View style={styles.notch} />
-
       {/* Header */}
       <View style={styles.headerWrapper}>
         <View style={styles.header}>
@@ -165,6 +172,7 @@ export function SellerReviewScreen({ navigation, route }: Props) {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </Screen>
   );
 }
 
@@ -175,14 +183,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
-  },
+
   headerWrapper: {
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",

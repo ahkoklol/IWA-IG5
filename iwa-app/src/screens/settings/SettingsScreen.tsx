@@ -19,6 +19,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 
 import DeleteAccountConfirmationModal from "./DeleteAccountConfirmationModal";
+import { Screen } from "../../components/Screen";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Settings">;
 
@@ -99,6 +100,7 @@ export function SettingsScreen({ navigation, route }: Props) {
   /* ----------------------------- */
 
   return (
+    <Screen>
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -144,7 +146,7 @@ export function SettingsScreen({ navigation, route }: Props) {
         onConfirm={handleConfirmDelete}
       />
     </View>
-    
+    </Screen>
   );
 }
 

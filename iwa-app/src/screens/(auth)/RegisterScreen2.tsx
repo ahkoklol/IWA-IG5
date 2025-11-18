@@ -31,7 +31,7 @@ export default function RegisterScreen2() {
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.notch} />
+      
 
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.iconBtn}>
@@ -76,11 +76,7 @@ const BG = "#B9ECFF";
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  notch: {
-    width: 128, height: 32, backgroundColor: "#000",
-    borderBottomLeftRadius: 24, borderBottomRightRadius: 24,
-    alignSelf: "center", marginTop: 8,
-  },
+
   header: { paddingHorizontal: 16, paddingVertical: 12 },
   iconBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
   body: { flex: 1, paddingHorizontal: 24, justifyContent: "space-between", paddingBottom: 16 },

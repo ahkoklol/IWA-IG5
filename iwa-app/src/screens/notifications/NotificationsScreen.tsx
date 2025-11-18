@@ -14,6 +14,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { Notification } from "../../shared/types";
 import { demoNotifications } from "../../mocks/products";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
+import { Screen } from "../../components/Screen";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -71,10 +72,7 @@ export function NotificationsScreen({ onNotificationClick }: NotificationsScreen
 
 
   return (
-    <View style={styles.container}>
-      {/* Phone notch simulation */}
-      <View style={styles.notch} />
-
+      <Screen>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Notifications</Text>
@@ -119,7 +117,7 @@ export function NotificationsScreen({ onNotificationClick }: NotificationsScreen
           );
         })}
       </ScrollView>
-    </View>
+    </Screen>
   );
 }
 
@@ -129,14 +127,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-  },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
   },
   header: {
     paddingHorizontal: 16,

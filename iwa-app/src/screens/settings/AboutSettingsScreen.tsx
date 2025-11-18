@@ -8,6 +8,7 @@ import {
   Linking,
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
+import { Screen } from "../../components/Screen";
 
 interface AboutSettingsScreenProps {
   onBack: () => void;
@@ -15,6 +16,7 @@ interface AboutSettingsScreenProps {
 
 export function AboutSettingsScreen({ onBack }: AboutSettingsScreenProps) {
   return (
+    <Screen>
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -74,6 +76,7 @@ export function AboutSettingsScreen({ onBack }: AboutSettingsScreenProps) {
         </Text>
       </ScrollView>
     </View>
+    </Screen>
   );
 }
 

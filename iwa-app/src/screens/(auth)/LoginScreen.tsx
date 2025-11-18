@@ -25,7 +25,7 @@ const handleSubmit = () => {
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.notch} />
+      
 
       <KeyboardAvoidingView
         style={styles.container}
@@ -82,11 +82,6 @@ const BG = "#B9ECFF";
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  notch: {
-    width: 128, height: 32, backgroundColor: "#000",
-    borderBottomLeftRadius: 24, borderBottomRightRadius: 24,
-    alignSelf: "center", marginTop: 8,
-  },
   container: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
   title: {
     fontSize: 32, marginBottom: 48, color: "#111827", fontFamily: "Gaegu", fontWeight: "700", textAlign: "center",
