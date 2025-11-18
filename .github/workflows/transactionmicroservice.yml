@@ -42,9 +42,11 @@ jobs:
 
       - name: Find JAR Path
         id: find_jar
-        run:
-          JAR_NAME=$(ls transactionmicroservice/target/*.jar | grep -v 'original')
-          echo "JAR_PATH=$JAR_NAME" >> $GITHUB_OUTPUT
+        working-directory: transactionmicroservice
+        run: |
+          JAR_FILENAME=$(ls target/*.jar | grep -v 'original')
+          FULL_JAR_PATH="transactionmicroservice/$JAR_FILENAME"
+          echo "JAR_PATH=$FULL_JAR_PATH" >> $GITHUB_OUTPUT
 
       - name: Upload JAR Artifact
         uses: actions/upload-artifact@v4
