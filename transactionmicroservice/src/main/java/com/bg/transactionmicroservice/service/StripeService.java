@@ -15,11 +15,13 @@ import com.stripe.param.PaymentIntentCreateParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
 @Service
+@ConditionalOnProperty(name = "stripe.enabled", havingValue = "true")
 public class StripeService {
 
     private static final Logger log = LoggerFactory.getLogger(StripeService.class);

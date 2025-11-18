@@ -5,6 +5,7 @@ import com.bg.transactionmicroservice.service.StripeService;
 import com.bg.transactionmicroservice.service.TransactionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+@ConditionalOnProperty(name = "stripe.enabled", havingValue = "true")
 @RestController
 @RequestMapping("/transaction")
 public class TransactionController {
