@@ -84,7 +84,6 @@ jobs:
           JAR_FILE_NAME=$(ls target/*.jar | grep -v 'original' | xargs basename)
           IMAGE_NAME=${{ env.DOCKER_REPOSITORY }}/usermicroservice
           VERSION_TAG=${{ steps.tag.outputs.DOCKER_TAG }}
-          # The build-arg is now correctly assembled as JAR_FILE=target/usermicroservice-0.0.1-SNAPSHOT.jar
           docker build --build-arg JAR_FILE=target/$JAR_FILE_NAME -t $IMAGE_NAME:$VERSION_TAG .
           docker push $IMAGE_NAME:$VERSION_TAG
           docker tag $IMAGE_NAME:$VERSION_TAG $IMAGE_NAME:latest

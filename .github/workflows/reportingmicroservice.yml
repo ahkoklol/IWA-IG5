@@ -40,10 +40,12 @@ jobs:
 
       - name: Find JAR Path
         id: find_jar
+        working-directory: reportingmicroservice
         run: |
-          # Finds the JAR in the microservice's target folder
-          JAR_NAME=$(ls reportingmicroservice/target/*.jar | grep -v 'original')
-          echo "JAR_PATH=$JAR_NAME" >> $GITHUB_OUTPUT
+          JAR_FILENAME=$(ls target/*.jar | grep -v 'original')
+          FULL_JAR_PATH="reportingmicroservice/$JAR_FILENAME"
+          echo "JAR_PATH=$FULL_JAR_PATH" >> $GITHUB_OUTPUT 
+          echo "Found JAR at: $FULL_JAR_PATH"
 
       - name: Upload JAR Artifact
         uses: actions/upload-artifact@v4
@@ -82,16 +84,10 @@ jobs:
       - name: Build and Push Reporting Microservice Docker Image
         working-directory: reportingmicroservice
         run: |
-          JAR_FILE_NAME=$(ls target/*.jar | grep -v 'original')
+          JAR_FILE_NAME=$(ls target/*.jar | grep -v 'original' | xargs basename)
           IMAGE_NAME=${{ env.DOCKER_REPOSITORY }}/reportingmicroservice
           VERSION_TAG=${{ steps.tag.outputs.DOCKER_TAG }}
-          
-          # Build image using the tested JAR artifact
           docker build --build-arg JAR_FILE=target/$JAR_FILE_NAME -t $IMAGE_NAME:$VERSION_TAG .
-          
-          # Push specific SHA tag
           docker push $IMAGE_NAME:$VERSION_TAG
-          
-          # Tag and push 'latest'
           docker tag $IMAGE_NAME:$VERSION_TAG $IMAGE_NAME:latest
           docker push $IMAGE_NAME:latest
