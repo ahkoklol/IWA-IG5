@@ -6,6 +6,8 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.kafka.KafkaContainer;
+import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest
 @Testcontainers
@@ -18,6 +20,10 @@ public class PostgresTestcontainer {
             .withUsername("testuser")
             .withPassword("testpass");
 
+    // Define the Kafka container
+    @Container
+    public static KafkaContainer kafkaContainer = new KafkaContainer("apache/kafka-native:3.8.0");
+
     // DynamicPropertySource updates Spring's configuration
     @DynamicPropertySource
     static void setDatasourceProperties(DynamicPropertyRegistry registry) {
@@ -27,5 +33,6 @@ public class PostgresTestcontainer {
         registry.add("spring.datasource.password", postgresContainer::getPassword);
         // Important for table creation if you rely on JPA DDL generation
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.kafka.bootstrap-servers", kafkaContainer::getBootstrapServers);
     }
 }
