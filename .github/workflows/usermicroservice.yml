@@ -40,9 +40,8 @@ jobs:
 
       - name: Find JAR Path
         id: find_jar
-        working-directory: usermicroservice
-        run:
-          JAR_NAME=$(ls target/*.jar | grep -v 'original')
+        run: |
+          JAR_NAME=$(ls usermicroservice/target/*.jar | grep -v 'original')
           echo "JAR_PATH=$JAR_NAME" >> $GITHUB_OUTPUT
 
       - name: Upload JAR Artifact
