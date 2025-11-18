@@ -12,6 +12,7 @@ import com.bondgraine.listingmicroservice.grpc.GetPostResponse;
 import com.stripe.model.PaymentIntent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -102,9 +103,18 @@ public class TransactionService {
     }
 
     boolean checkPurchaseTransactionContent(Transaction transaction) {
-        if (transaction.getPostId() == null || transaction.getPostId().isEmpty()) return false;
-        if (transaction.getClientId() == null || transaction.getClientId().isEmpty()) return false;
-        if (transaction.getPaymentMethodId() == null || transaction.getPaymentMethodId().isEmpty()) return false;
+        if (transaction.getPostId() == null || transaction.getPostId().isEmpty()) {
+            log.warn("Invalid post id supplied");
+            return false;
+        }
+        if (transaction.getClientId() == null || transaction.getClientId().isEmpty()) {
+            log.warn("Invalid client id supplied");
+            return false;
+        }
+        if (transaction.getPaymentMethodId() == null || transaction.getPaymentMethodId().isEmpty()) {
+            log.warn("Invalid payment method supplied");
+            return false;
+        }
         return true;
     }
 
