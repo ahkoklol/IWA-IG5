@@ -84,10 +84,11 @@ jobs:
 
       - name: Build and Push transactionmicroservice Docker Image
         working-directory: transactionmicroservice
-        run:
+        run: |
           JAR_FILE_NAME=$(ls target/*.jar | grep -v 'original' | xargs basename)
           IMAGE_NAME=${{ env.DOCKER_REPOSITORY }}/transactionmicroservice
           VERSION_TAG=${{ steps.tag.outputs.DOCKER_TAG }}
+          echo "Building Docker image $IMAGE_NAME:$VERSION_TAG"
           docker build --build-arg JAR_FILE=target/$JAR_FILE_NAME -t $IMAGE_NAME:$VERSION_TAG .
           docker push $IMAGE_NAME:$VERSION_TAG
           docker tag $IMAGE_NAME:$VERSION_TAG $IMAGE_NAME:latest

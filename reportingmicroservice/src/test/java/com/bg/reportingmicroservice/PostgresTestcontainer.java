@@ -1,6 +1,7 @@
 package com.bg.reportingmicroservice;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -13,12 +14,14 @@ public class PostgresTestcontainer {
     // Define the container as a static field
     // The static modifier ensures the container is started only once for all tests in the same test suite.
     @Container
+    @ServiceConnection
     public static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15")
             .withDatabaseName("testdb")
             .withUsername("testuser")
             .withPassword("testpass");
 
     // DynamicPropertySource updates Spring's configuration
+    /*
     @DynamicPropertySource
     static void setDatasourceProperties(DynamicPropertyRegistry registry) {
         // These properties override what's in application.properties/yml
@@ -28,4 +31,5 @@ public class PostgresTestcontainer {
         // Important for table creation if you rely on JPA DDL generation
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
     }
+     */
 }
