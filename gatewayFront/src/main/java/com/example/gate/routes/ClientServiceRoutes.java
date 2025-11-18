@@ -16,7 +16,7 @@ import org.springframework.web.servlet.function.HandlerFunction;
 public class ClientServiceRoutes implements BaseRoutes {
 
     private static final Logger log = LoggerFactory.getLogger(ClientServiceRoutes.class);
-    private static final String USER_SERVICE_URI = "http://usermicroservice";
+    private static final String USER_SERVICE_URI = "lb://usermicroservice";
 
     @Bean("clientServiceRoutesBean")
     @Override
@@ -30,6 +30,7 @@ public class ClientServiceRoutes implements BaseRoutes {
                             request.method(), request.uri().getPath());
                     return request;
                 })
+                .route(RequestPredicates.GET("/user/hello"), userServiceHandler)
                 .route(RequestPredicates.GET("/user/{clientId}"), userServiceHandler)
                 .route(RequestPredicates.POST("/user/register"), userServiceHandler)
                 .route(RequestPredicates.PUT("/user/{clientId}"), userServiceHandler)
