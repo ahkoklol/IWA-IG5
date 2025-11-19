@@ -35,10 +35,8 @@ public class NotificationEventListener {
                 return;
             }
             Notification notification = createNotificationFromEvent(event);
-            if (notification != null) {
-                Notification savedNotification = notificationService.createNotification(notification);
-                log.info("Notification created for client {}. Type: {}", savedNotification.getClientId(), savedNotification.getType());
-            }
+            Notification savedNotification = notificationService.createNotification(notification);
+            log.info("Notification created for client {}. Type: {}", savedNotification.getClientId(), savedNotification.getType());
         } catch (Exception e) {
             log.error("Error processing Kafka message: {}", rawEventData, e);
         }

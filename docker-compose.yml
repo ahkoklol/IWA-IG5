@@ -48,6 +48,8 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - USER_DB_PASSWORD=${DB_PASSWORD}
       - SPRING_PORT=8081
+    ports:
+      - "8081:8081"
     #depends_on:
       #eureka-server:
         #condition: service_healthy
@@ -65,6 +67,8 @@ services:
       - LISTING_DB_PASSWORD=${DB_PASSWORD}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SPRING_PORT=8082
+    ports:
+      - "8082:8082"
     depends_on:
       kafka:
         condition: service_started
@@ -83,6 +87,8 @@ services:
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
       - SPRING_PORT=8084
+    ports:
+      - "8084:8084"
     networks:
       - bg-network
 
@@ -97,6 +103,8 @@ services:
       - NOTIFICATION_DB_PASSWORD=${DB_PASSWORD}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SPRING_PORT=8085
+    ports:
+      - "8085:8085"
     depends_on:
       kafka:
         condition: service_started
@@ -113,6 +121,8 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - REPORTING_DB_PASSWORD=${DB_PASSWORD}
       - SPRING_PORT=8087
+    ports:
+      - "8087:8087"
     networks:
       - bg-network
 
@@ -128,6 +138,8 @@ services:
       #- AWS_REGION=us-west-1
       #- AWS_ENDPOINT=http://localstack:4566
       #- SPRING_PORT=8089
+    #ports:
+      #- "8089:8089"
     #depends_on:
       #localstack:
         #condition: service_started
