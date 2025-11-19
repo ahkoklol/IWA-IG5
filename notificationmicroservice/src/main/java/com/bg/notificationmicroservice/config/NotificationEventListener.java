@@ -22,7 +22,7 @@ public class NotificationEventListener {
         this.notificationService = notificationService;
     }
 
-    @KafkaListener(topics = "${notification.kafka.topics}", groupId = "${spring.kafka.consumer.group-id}")
+    @KafkaListener(topics = "#{'${notification.kafka.topics}'.split(',')}", groupId = "${spring.kafka.consumer.group-id}")
     void listener(String rawEventData){
         log.info("Received raw event: {}", rawEventData);
         try {
