@@ -24,7 +24,7 @@ export interface Product {
   id: number;
   name: string;
   quantity: string;
-  price: string;          // ex: "4,50 €"
+  price: string; 
   images: string[];
   description: string;
   category: string;
@@ -78,3 +78,14 @@ export interface Transaction {
   status: TransactionStatus;
   reviewed: boolean;
 }
+
+export interface Report {
+  id: number;
+  productName: string;
+  productId: number;
+  reportCount: number;
+  date: string; // ISO string ou date lisible
+  description: string;
+  status: "pending" | "approved" | "rejected";
+}
+

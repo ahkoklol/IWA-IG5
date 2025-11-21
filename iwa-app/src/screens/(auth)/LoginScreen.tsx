@@ -74,6 +74,14 @@ const handleSubmit = () => {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+      <View style={styles.adminWrapper}>
+        <Pressable 
+          onPress={() => navigation.navigate("AdminLogin")}
+          hitSlop={10}
+        >
+          <Text style={styles.adminText}>Admin ?</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -93,4 +101,17 @@ const styles = StyleSheet.create({
   link: { color: "#111827", textDecorationLine: "underline", fontFamily: "Gaegu", fontWeight: "700", fontSize: 16 },
   submit: { marginTop: 24, alignItems: "center", paddingVertical: 12 },
   submitText: { fontSize: 24, color: "#111827", fontFamily: "Gaegu", fontWeight: "700" },
+    adminWrapper: {
+    position: "absolute",
+    bottom: 24,
+    width: "100%",
+    alignItems: "center",
+  },
+  adminText: {
+    fontSize: 14,
+    color: "#374151",
+    fontFamily: "Gaegu",
+    fontWeight: "700",
+    opacity: 0.7,
+  },
 });

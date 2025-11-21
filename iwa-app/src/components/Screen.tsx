@@ -2,11 +2,16 @@
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export function Screen({ children }: { children: React.ReactNode }) {
+interface ScreenProps {
+  children: React.ReactNode;
+  noTopSafeArea?: boolean;
+}
+
+export function Screen({ children, noTopSafeArea = false }: ScreenProps) {
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: "#FFFFFF" }}
-      edges={["top", "right", "left"]}
+      edges={noTopSafeArea ? ["left", "right"] : ["top", "right", "left"]}
     >
       {children}
     </SafeAreaView>

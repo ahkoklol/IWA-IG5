@@ -21,6 +21,12 @@ import { SearchScreen } from "../screens/search/SearchScreen";
 import { CategoryResults } from "../screens/search/CategoryResults";
 import { FilterScreen } from "../screens/search/FilterScreen";
 import { FilterDetailScreen } from "../screens/search/FilterDetailScreen";
+import { AdminLoginScreen } from "../screens/admin/AdminLoginScreen";
+import { AdminReportDetailScreen } from "../screens/admin/AdminReportDetailScreen";
+import { AdminRootScreen } from "../screens/admin/AdminRootScreen";
+import { AdminReportsScreen } from "../screens/admin/AdminReportsScreen";
+
+
 
 import type { User, Category, Filters, Product } from "../shared/types";
 
@@ -65,6 +71,11 @@ export type RootStackParamList = {
   SellerReview: { transactionId: number };
 
   Settings: { onDeleteAccount: () => void };
+
+  AdminLogin: undefined;
+  AdminReportDetail: { reportId: number };
+  AdminRoot: undefined;
+  AdminReports: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -99,6 +110,14 @@ export default function RootNavigator() {
 
         {/* Réglages */}
         <Stack.Screen name="Settings" component={SettingsScreen} />
+
+
+        {/* Admin */}
+        <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
+        <Stack.Screen name="AdminRoot" component={AdminRootScreen} />
+        <Stack.Screen name="AdminReportDetail" component={AdminReportDetailScreen} />
+        <Stack.Screen name="AdminReports" component={AdminReportsScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,5 +1,12 @@
 //iwa-app/src/mocks/products.ts
-import type { Product, User, Notification, Transaction,Review } from "../shared/types";
+import type {
+  Product,
+  User,
+  Notification,
+  Transaction,
+  Review,
+  Report,
+} from "../shared/types";
 
 const demoUser: User[] = [
   {
@@ -359,5 +366,39 @@ export const reviewsByUser: { [key: number]: Review[] } = {
     },
   ],
 };
+
+
+//Mock reports admin
+export const demoReports: Report[] = [
+  {
+    id: 1,
+    productName: demoProducts[0].name,
+    productId: demoProducts[0].id, // 1
+    reportCount: 5,
+    date: "2025-11-10",
+    description: "Signalements multiples pour contenu inapproprié.",
+    status: "pending",
+  },
+  {
+    id: 2,
+    productName: demoProducts[1].name,
+    productId: demoProducts[1].id, // 2
+    reportCount: 2,
+    date: "2025-11-08",
+    description: "Suspicions de fraude sur l’annonce.",
+    status: "approved",
+  },
+  {
+    id: 3,
+    productName: demoProducts[2].name,
+    productId: demoProducts[2].id, // 3
+    reportCount: 1,
+    date: "2025-11-05",
+    description: "Utilisateur signale un problème de description.",
+    status: "rejected",
+  },
+];
+
+
 
 
