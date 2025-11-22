@@ -27,7 +27,11 @@ const handleSubmit = () => {
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
-      
+      <View style={styles.langWrapper}>
+        <Pressable onPress={() => navigation.navigate("Language")} hitSlop={10}>
+          <Text style={styles.langText}>🌐</Text>
+        </Pressable>
+      </View>
 
       <KeyboardAvoidingView
         style={styles.container}
@@ -39,7 +43,7 @@ const handleSubmit = () => {
           <TextInput
             value={email}
             onChangeText={setEmail}
-            placeholder="Adresse e-mail"
+            placeholder={t("login_email")}
             placeholderTextColor="#9CA3AF"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -51,7 +55,7 @@ const handleSubmit = () => {
             <TextInput
               value={password}
               onChangeText={setPassword}
-              placeholder="Mot de passe"
+              placeholder={t("login_password")}
               placeholderTextColor="#9CA3AF"
               secureTextEntry={!showPassword}
               style={[styles.input, { paddingRight: 44 }]}
@@ -67,12 +71,12 @@ const handleSubmit = () => {
 
           <View style={{ alignItems: "flex-end", marginTop: 4 }}>
             <Pressable onPress={() => navigation.navigate("Register1")}>
-              <Text style={styles.link}>S'inscrire ?</Text>
+              <Text style={styles.link}>{t("login_signup_question")}</Text>
             </Pressable>
           </View>
 
           <Pressable onPress={handleSubmit} style={styles.submit}>
-            <Text style={styles.submitText}>Valider</Text>
+            <Text style={styles.submitText}>{t("login_submit")}</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -81,7 +85,7 @@ const handleSubmit = () => {
           onPress={() => navigation.navigate("AdminLogin")}
           hitSlop={10}
         >
-          <Text style={styles.adminText}>Admin ?</Text>
+          <Text style={styles.adminText}>{t("login_admin")}</Text>
         </Pressable>
       </View>
     </View>
@@ -91,6 +95,19 @@ const handleSubmit = () => {
 const BG = "#B9ECFF";
 
 const styles = StyleSheet.create({
+  langWrapper: {
+  position: "absolute",
+  top: 48,
+  right: 24,
+  zIndex: 20,
+  },
+
+  langText: {
+    fontSize: 22,
+    color: "#111827",
+    fontWeight: "700",
+  },
+
   root: { flex: 1, backgroundColor: BG },
   container: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
   title: {

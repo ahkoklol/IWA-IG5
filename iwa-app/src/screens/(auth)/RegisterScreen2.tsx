@@ -5,6 +5,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import type { SignupData1 } from "./RegisterScreen1";
+import { useTranslation } from "react-i18next";
 
 export interface SignupData2 {
   address: string;
@@ -22,6 +23,7 @@ export default function RegisterScreen2() {
   const [postalCode, setPostalCode] = useState("");
   const [country, setCountry] = useState("");
   const [nationality, setNationality] = useState("");
+  const { t } = useTranslation();
 
   const handleNext = () => {
     const step2: SignupData2 = { address, postalCode, country, nationality };
@@ -42,29 +44,29 @@ export default function RegisterScreen2() {
       <View style={styles.body}>
         <View style={{ gap: 14 }}>
           <View>
-            <Text style={styles.label}>Adresse</Text>
+            <Text style={styles.label}>{t("register_address")}</Text>
             <TextInput value={address} onChangeText={setAddress} style={styles.input} />
           </View>
 
           <View>
-            <Text style={styles.label}>Code Postal</Text>
+            <Text style={styles.label}>{t("register_postal_code")}</Text>
             <TextInput value={postalCode} onChangeText={setPostalCode} keyboardType="number-pad" style={styles.input} />
           </View>
 
           <View>
-            <Text style={styles.label}>Pays</Text>
-            <TextInput value={country} onChangeText={setCountry} placeholder="Ex: France" style={styles.input} />
+            <Text style={styles.label}>{t("register_country")}</Text>
+            <TextInput value={country} onChangeText={setCountry} placeholder={t("register_country_placeholder")} style={styles.input} />
           </View>
 
           <View>
-            <Text style={styles.label}>Nationalité</Text>
-            <TextInput value={nationality} onChangeText={setNationality} placeholder="Ex: Française" style={styles.input} />
+            <Text style={styles.label}>{t("register_nationality")}</Text>
+            <TextInput value={nationality} onChangeText={setNationality} placeholder={t("register_nationality_placeholder")}  style={styles.input} />
           </View>
         </View>
 
         <View style={styles.footer}>
           <Pressable onPress={handleNext}>
-            <Text style={styles.next}>Suivant</Text>
+            <Text style={styles.next}>{t("register_next")}</Text>
           </Pressable>
         </View>
       </View>

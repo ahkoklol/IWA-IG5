@@ -6,6 +6,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import type { SignupData1 } from "./RegisterScreen1";
 import type { SignupData2 } from "./RegisterScreen2";
+import { useTranslation } from "react-i18next";
 
 export default function RegisterScreen3() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -14,6 +15,7 @@ export default function RegisterScreen3() {
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const { t } = useTranslation();
 
 const handleComplete = () => {
   if (!password || password !== confirmPassword) {
@@ -45,17 +47,17 @@ const handleComplete = () => {
       <View style={styles.body}>
         <View style={{ gap: 14 }}>
           <View>
-            <Text style={styles.label}>Mot de passe</Text>
+            <Text style={styles.label}>{t("register_password")}</Text>
             <TextInput value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
           </View>
 
           <View>
-            <Text style={styles.label}>Confirmer le mot de passe</Text>
+            <Text style={styles.label}>{t("register_confirm_password")}</Text>
             <TextInput value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry style={styles.input} />
           </View>
 
           <Pressable onPress={handleComplete} style={styles.validateBtn}>
-            <Text style={styles.validateText}>Valider</Text>
+            <Text style={styles.validateText}>{t("login_submit")}</Text>
           </Pressable>
         </View>
       </View>

@@ -6,7 +6,7 @@
     "login_submit": "Bestätigen",
     "login_admin": "Admin?",
 
-        "register_title": "Registrierung",
+    "register_title": "Registrierung",
     "register_last_name": "Nachname",
     "register_first_name": "Vorname",
     "register_birthdate": "Geburtsdatum",
@@ -20,6 +20,8 @@
     "register_nationality": "Nationalität",
     "register_password": "Passwort",
     "register_confirm_password": "Passwort bestätigen",
+    "register_country_placeholder": "Z. B.: Frankreich",
+    "register_nationality_placeholder": "Z. B.: Französisch",
 
     "navbar_home": "Startseite",
     "navbar_search": "Suche",

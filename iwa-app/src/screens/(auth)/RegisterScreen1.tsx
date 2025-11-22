@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
+import { useTranslation } from "react-i18next";
 
 export interface SignupData1 {
   lastName: string;
@@ -25,6 +26,7 @@ export default function RegisterScreen1() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [username, setUsername] = useState("");
+  const { t } = useTranslation();
 
   const handleNext = () => {
     const birthDate = `${jj.padStart(2, "0")}/${mm.padStart(2, "0")}/${aaaa}`;
@@ -37,28 +39,37 @@ export default function RegisterScreen1() {
       <StatusBar barStyle="dark-content" />
       
 
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.iconBtn}>
-          <ArrowLeft size={24} color="#111827" />
-        </Pressable>
-      </View>
+    <View style={styles.header}>
+      <Pressable onPress={() => navigation.goBack()} style={styles.iconBtn}>
+        <ArrowLeft size={24} color="#111827" />
+      </Pressable>
+
+      <Pressable
+        onPress={() => navigation.navigate("Language")}
+        style={styles.langBtn}
+        hitSlop={10}
+      >
+        <Text style={styles.langTxt}>🌐</Text>
+      </Pressable>
+    </View>
+
 
       <View style={styles.body}>
-        <Text style={styles.title}>Inscription</Text>
+        <Text style={styles.title}>{t("register_title")}</Text>
 
         <View style={{ gap: 12 }}>
           <View>
-            <Text style={styles.label}>Nom</Text>
+            <Text style={styles.label}>{t("register_last_name")}</Text>
             <TextInput value={lastName} onChangeText={setLastName} style={styles.input} />
           </View>
 
           <View>
-            <Text style={styles.label}>Prénom</Text>
+            <Text style={styles.label}>{t("register_last_name")}</Text>
             <TextInput value={firstName} onChangeText={setFirstName} style={styles.input} />
           </View>
 
           <View>
-            <Text style={styles.label}>Date de naissance</Text>
+            <Text style={styles.label}>{t("register_birthdate")}</Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <TextInput
                 value={jj}
@@ -90,7 +101,7 @@ export default function RegisterScreen1() {
           </View>
 
           <View>
-            <Text style={styles.label}>Adresse e-mail</Text>
+            <Text style={styles.label}>{t("register_email")}</Text>
             <TextInput
               value={email}
               onChangeText={setEmail}
@@ -102,7 +113,7 @@ export default function RegisterScreen1() {
           </View>
 
           <View>
-            <Text style={styles.label}>Numéro de téléphone</Text>
+            <Text style={styles.label}>{t("register_phone")}</Text>
             <TextInput
               value={phone}
               onChangeText={setPhone}
@@ -112,7 +123,7 @@ export default function RegisterScreen1() {
           </View>
 
           <View>
-            <Text style={styles.label}>Pseudonyme</Text>
+            <Text style={styles.label}>{t("register_username")}</Text>
             <View style={{ position: "relative" }}>
               <Text style={styles.at}>@</Text>
               <TextInput
@@ -126,7 +137,7 @@ export default function RegisterScreen1() {
 
         <View style={styles.footer}>
           <Pressable onPress={handleNext}>
-            <Text style={styles.next}>Suivant</Text>
+            <Text style={styles.next}>{t("register_next")}</Text>
           </Pressable>
         </View>
       </View>
@@ -137,6 +148,21 @@ export default function RegisterScreen1() {
 const BG = "#B9ECFF";
 
 const styles = StyleSheet.create({
+  langBtn: {
+  position: "absolute",
+  right: 16,
+  top: 12,
+  width: 40,
+  height: 40,
+  justifyContent: "center",
+  alignItems: "center",
+  },
+
+  langTxt: {
+    fontSize: 22,
+    color: "#111827",
+    fontWeight: "700",
+  },
   root: { flex: 1, backgroundColor: BG },
   header: { paddingHorizontal: 16, paddingVertical: 12 },
   iconBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },

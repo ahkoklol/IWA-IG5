@@ -25,7 +25,7 @@ import { AdminLoginScreen } from "../screens/admin/AdminLoginScreen";
 import { AdminReportDetailScreen } from "../screens/admin/AdminReportDetailScreen";
 import { AdminRootScreen } from "../screens/admin/AdminRootScreen";
 import { AdminReportsScreen } from "../screens/admin/AdminReportsScreen";
-
+import LanguageScreen from "../screens/(auth)/LanguageScreen";
 
 
 import type { User, Category, Filters, Product } from "../shared/types";
@@ -33,6 +33,7 @@ import type { User, Category, Filters, Product } from "../shared/types";
 export type RootStackParamList = {
   Intro: undefined;
   Login: undefined;
+  Language: undefined;
   Register1: undefined;
   Register2: { step1: SignupData1 };
   Register3: { step1: SignupData1; step2: SignupData2 };
@@ -86,6 +87,8 @@ export default function RootNavigator() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Intro" component={IntroScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Language" component={LanguageScreen} />
+
         <Stack.Screen name="Register1" component={RegisterScreen1} />
         <Stack.Screen name="Register2" component={RegisterScreen2} />
         <Stack.Screen name="Register3" component={RegisterScreen3} />

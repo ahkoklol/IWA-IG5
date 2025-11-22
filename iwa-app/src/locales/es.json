@@ -20,6 +20,8 @@
     "register_nationality": "Nacionalidad",
     "register_password": "Contraseña",
     "register_confirm_password": "Confirmar contraseña",
+    "register_country_placeholder": "Ej.: Francia",
+    "register_nationality_placeholder": "Ej.: Francesa",
 
     "navbar_home": "Inicio",
     "navbar_search": "Buscar",
