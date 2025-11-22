@@ -1,3 +1,4 @@
+// src/screens/search/SearchScreen.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -10,6 +11,7 @@ import {
 import { Search as SearchIcon } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import type { Category } from "../../shared/types";
@@ -20,17 +22,18 @@ type NavigationProp = NativeStackNavigationProp<
   "SearchScreen"
 >;
 
-const CATEGORIES: Category[] = [
-  "Légumes",
-  "Fruits",
-  "Herbes aromatiques / épices",
-  "Plantes médicinales",
-  "Fleurs décoratives",
-  "Plantes exotiques / rares",
+const CATEGORIES: { value: Category; labelKey: string }[] = [
+  { value: "Légumes", labelKey: "search_cat_vegetables" },
+  { value: "Fruits", labelKey: "search_cat_fruits" },
+  { value: "Herbes aromatiques / épices", labelKey: "search_cat_herbs" },
+  { value: "Plantes médicinales", labelKey: "search_cat_medicinal" },
+  { value: "Fleurs décoratives", labelKey: "search_cat_flowers" },
+  { value: "Plantes exotiques / rares", labelKey: "search_cat_exotic" },
 ];
 
 export function SearchScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const { t } = useTranslation();
   const [searchValue, setSearchValue] = useState("");
 
   const handleCategoryPress = (category: Category) => {
@@ -50,9 +53,9 @@ export function SearchScreen() {
 
   return (
     <Screen>
-  {/* Header / titre */}
+      {/* Header / titre */}
       <View style={styles.header}>
-        <Text style={styles.title}>Rechercher</Text>
+        <Text style={styles.title}>{t("navbar_search")}</Text>
       </View>
 
       {/* Barre de recherche */}
@@ -61,7 +64,7 @@ export function SearchScreen() {
         <TextInput
           value={searchValue}
           onChangeText={setSearchValue}
-          placeholder="Rechercher un article ou un membre"
+          placeholder={t("search_placeholder")}
           placeholderTextColor="#9ca3af"
           style={styles.searchInput}
           returnKeyType="search"
@@ -71,16 +74,16 @@ export function SearchScreen() {
 
       {/* Catégories */}
       <ScrollView contentContainerStyle={styles.categoriesContainer}>
-        <Text style={styles.sectionTitle}>Catégories</Text>
+        <Text style={styles.sectionTitle}>{t("search_categories")}</Text>
         <View style={styles.categoriesGrid}>
           {CATEGORIES.map((category) => (
             <TouchableOpacity
-              key={category}
+              key={category.value}
               style={styles.categoryCard}
-              onPress={() => handleCategoryPress(category)}
+              onPress={() => handleCategoryPress(category.value)}
               activeOpacity={0.8}
             >
-              <Text style={styles.categoryText}>{category}</Text>
+              <Text style={styles.categoryText}>{t(category.labelKey)}</Text>
             </TouchableOpacity>
           ))}
         </View>

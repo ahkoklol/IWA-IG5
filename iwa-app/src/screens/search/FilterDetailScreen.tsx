@@ -1,3 +1,5 @@
+// iwa-app/src/screens/search/FilterDetailScreen.tsx
+
 import React, { useState, useMemo } from "react";
 import {
   View,
@@ -8,52 +10,16 @@ import {
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
-import type {
-  SortBy,
-  Category,
-  EdibleFilter,
-} from "../../shared/types";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import { Screen } from "../../components/Screen";
 
 type Props = NativeStackScreenProps<RootStackParamList, "FilterDetailScreen">;
 
-const MONTHS = [
-  "Janvier",
-  "Février",
-  "Mars",
-  "Avril",
-  "Mai",
-  "Juin",
-  "Juillet",
-  "Août",
-  "Septembre",
-  "Octobre",
-  "Novembre",
-  "Décembre",
-];
-
-const SORT_OPTIONS: SortBy[] = [
-  "Pertinence",
-  "Prix croissant",
-  "Prix décroissant",
-  "Le plus récent",
-];
-
-const CATEGORIES: Category[] = [
-  "Légumes",
-  "Fruits",
-  "Herbes aromatiques / épices",
-  "Plantes médicinales",
-  "Fleurs décoratives",
-  "Plantes exotiques / rares",
-];
-
-const EDIBLE_OPTIONS: EdibleFilter[] = ["Oui", "Non", "Peu importe"];
-
 export function FilterDetailScreen({ route, navigation }: Props) {
   const { filterType, selectedValues } = route.params;
+  const { t } = useTranslation();
 
   const isMultiSelect =
     filterType === "plantingPeriod" || filterType === "floweringPeriod";
@@ -65,36 +31,64 @@ export function FilterDetailScreen({ route, navigation }: Props) {
   const getTitle = useMemo(() => {
     switch (filterType) {
       case "sortBy":
-        return "Classer par";
+        return t("filter_sort_by");
       case "category":
-        return "Catégorie";
+        return t("ad_category");
       case "plantingPeriod":
-        return "Période de plantation";
+        return t("ad_planting_period");
       case "floweringPeriod":
-        return "Période de fructification";
+        return t("ad_fruiting_period");
       case "edible":
-        return "Comestible";
+        return t("ad_edible");
       default:
         return "";
     }
-  }, [filterType]);
+  }, [filterType, t]);
 
   const getOptions = useMemo(() => {
     switch (filterType) {
       case "sortBy":
-        return SORT_OPTIONS;
+        return [
+          t("filter_sort_relevance"),
+          t("filter_sort_price_asc"),
+          t("filter_sort_price_desc"),
+          t("filter_sort_most_recent"),
+        ];
       case "category":
-        return CATEGORIES;
+        return [
+          t("search_cat_vegetables"),
+          t("search_cat_fruits"),
+          t("search_cat_herbs"),
+          t("search_cat_medicinal"),
+          t("search_cat_flowers"),
+          t("search_cat_exotic"),
+        ];
       case "plantingPeriod":
-        return MONTHS;
       case "floweringPeriod":
-        return MONTHS;
+        return [
+          t("filter_january"),
+          t("filter_february"),
+          t("filter_march"),
+          t("filter_april"),
+          t("filter_may"),
+          t("filter_june"),
+          t("filter_july"),
+          t("filter_august"),
+          t("filter_september"),
+          t("filter_october"),
+          t("filter_november"),
+          t("filter_december"),
+        ];
       case "edible":
-        return EDIBLE_OPTIONS;
+        return [
+          t("filter_yes"),
+          t("filter_no"),
+          t("filter_any"),
+        ];
       default:
         return [];
     }
-  }, [filterType]);
+  }, [filterType, t]);
 
   const isSelected = (option: string) => {
     if (Array.isArray(localSelected)) {
@@ -126,8 +120,7 @@ export function FilterDetailScreen({ route, navigation }: Props) {
   };
 
   const handleApply = () => {
-    // Pour l'instant, on fait juste un retour.
-    // Tu pourras plus tard remonter localSelected via un store global ou context.
+    // TODO : remonter localSelected via un store ou un contexte si besoin
     navigation.goBack();
   };
 
@@ -135,61 +128,63 @@ export function FilterDetailScreen({ route, navigation }: Props) {
 
   return (
     <Screen>
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={handleBack}
-          style={styles.backButton}
-          activeOpacity={0.7}
-        >
-          <ArrowLeft size={20} color="#1F2937" />
-        </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>{getTitle}</Text>
-
-        <TouchableOpacity onPress={handleClear}>
-          <Text style={styles.headerClearText}>Effacer</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Options */}
-      <ScrollView
-        style={styles.optionsContainer}
-        contentContainerStyle={styles.optionsContent}
-      >
-        {options.map((option) => (
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
           <TouchableOpacity
-            key={option}
-            onPress={() => handleSelect(option)}
-            style={styles.optionRow}
+            onPress={handleBack}
+            style={styles.backButton}
+            activeOpacity={0.7}
           >
-            <Text style={styles.optionLabel}>{option}</Text>
-            <View
-              style={[
-                styles.radioOuter,
-                isSelected(option)
-                  ? styles.radioOuterSelected
-                  : styles.radioOuterUnselected,
-              ]}
-            >
-              {isSelected(option) && <View style={styles.radioInner} />}
-            </View>
+            <ArrowLeft size={20} color="#1F2937" />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
 
-      {/* Apply button */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          onPress={handleApply}
-          style={styles.applyButton}
-          activeOpacity={0.8}
+          <Text style={styles.headerTitle}>{getTitle}</Text>
+
+          <TouchableOpacity onPress={handleClear}>
+            <Text style={styles.headerClearText}>{t("filter_clear")}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Options */}
+        <ScrollView
+          style={styles.optionsContainer}
+          contentContainerStyle={styles.optionsContent}
         >
-          <Text style={styles.applyButtonText}>Afficher les résultats</Text>
-        </TouchableOpacity>
+          {options.map((option) => (
+            <TouchableOpacity
+              key={option}
+              onPress={() => handleSelect(option)}
+              style={styles.optionRow}
+            >
+              <Text style={styles.optionLabel}>{option}</Text>
+              <View
+                style={[
+                  styles.radioOuter,
+                  isSelected(option)
+                    ? styles.radioOuterSelected
+                    : styles.radioOuterUnselected,
+                ]}
+              >
+                {isSelected(option) && <View style={styles.radioInner} />}
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Apply button */}
+        <View style={styles.footer}>
+          <TouchableOpacity
+            onPress={handleApply}
+            style={styles.applyButton}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.applyButtonText}>
+              {t("filter_show_results")}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
     </Screen>
   );
 }

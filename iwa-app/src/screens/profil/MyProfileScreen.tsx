@@ -16,6 +16,7 @@ import {
   Users,
   MoreHorizontal,
 } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import type { Product, Review } from "../../shared/types";
 import ProductCard from "../../components/product/ProductCard";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -28,6 +29,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "MyProfileScreen">;
 
 export function MyProfileScreen({ route, navigation }: Props) {
   const { user, initialTab } = route.params;
+  const { t } = useTranslation();
 
   const [currentUser, setCurrentUser] = useState(user);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -117,7 +119,7 @@ export function MyProfileScreen({ route, navigation }: Props) {
                   : styles.tabTextInactive,
               ]}
             >
-              Mon profil
+              {t("profile_button_title")}
             </Text>
             {activeTab === "profile" && <View style={styles.tabIndicator} />}
           </TouchableOpacity>
@@ -135,7 +137,7 @@ export function MyProfileScreen({ route, navigation }: Props) {
                   : styles.tabTextInactive,
               ]}
             >
-              Mes évaluations
+              {t("profile_my_reviews")}
             </Text>
             {activeTab === "reviews" && <View style={styles.tabIndicator} />}
           </TouchableOpacity>
@@ -207,15 +209,19 @@ export function MyProfileScreen({ route, navigation }: Props) {
 
             {/* Bio */}
             <View style={styles.bioBlock}>
-              <Text style={styles.sectionTitle}>Profil</Text>
+              <Text style={styles.sectionTitle}>
+                {t("profile_button_title")}
+              </Text>
               <Text style={styles.bioText}>{currentUser.bio}</Text>
             </View>
 
             {/* User products */}
             <View style={styles.productsBlock}>
               <Text style={styles.sectionTitle}>
-                {userProducts.length} article
-                {userProducts.length > 1 ? "s" : ""}
+                {t("profile_x_items").replace(
+                  "X",
+                  String(userProducts.length)
+                )}
               </Text>
               <View style={styles.productsGrid}>
                 {userProducts.map((product) => (
@@ -244,15 +250,17 @@ export function MyProfileScreen({ route, navigation }: Props) {
                 {renderStars(Math.round(Number(averageRating)))}
               </View>
               <Text style={styles.averageSubtitle}>
-                {userReviews.length} évaluation
-                {userReviews.length > 1 ? "s" : ""}
+                {t("profile_x_reviews").replace(
+                  "X",
+                  String(userReviews.length)
+                )}
               </Text>
             </View>
 
             {/* Sort info */}
             <View style={styles.sortInfoBlock}>
               <Text style={styles.sortInfoText}>
-                Trié du plus récent au plus ancien
+                {t("profile_sorted_recent")}
               </Text>
             </View>
 

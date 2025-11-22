@@ -1,3 +1,5 @@
+// iwa-app/src/screens/search/FilterScreen.tsx
+
 import React from "react";
 import {
   View,
@@ -8,6 +10,7 @@ import {
 } from "react-native";
 import { ChevronRight } from "lucide-react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
 import type { Filters } from "../../shared/types";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
@@ -17,42 +20,64 @@ type Props = NativeStackScreenProps<RootStackParamList, "FilterScreen">;
 
 export function FilterScreen({ route, navigation }: Props) {
   const { filters } = route.params;
+  const { t } = useTranslation();
 
-  const getFilterValue = (filterType: string): string | null => {
-    switch (filterType) {
-      case "sortBy":
-        return filters.sortBy;
-      case "category":
-        return filters.category;
-      case "plantingPeriod":
-        return filters.plantingPeriod.length > 0
-          ? filters.plantingPeriod.join(", ")
-          : null;
-      case "floweringPeriod":
-        return filters.floweringPeriod.length > 0
-          ? filters.floweringPeriod.join(", ")
-          : null;
-      case "edible":
-        return filters.edible;
-      default:
-        return null;
+const mapCategoryToKey = (category?: string | null) => {
+  switch (category) {
+    case "Légumes":
+      return "search_cat_vegetables";
+    case "Fruits":
+      return "search_cat_fruits";
+    case "Herbes aromatiques / épices":
+      return "search_cat_herbs";
+    case "Plantes médicinales":
+      return "search_cat_medicinal";
+    case "Fleurs décoratives":
+      return "search_cat_flowers";
+    case "Plantes exotiques / rares":
+      return "search_cat_exotic";
+    default:
+      return null;
+  }
+};
+
+const getFilterValue = (filterType: string): string | null => {
+  switch (filterType) {
+    case "sortBy":
+      return filters.sortBy;
+    case "category": {
+      const key = mapCategoryToKey(filters.category);
+      return key ? t(key) : null;
     }
-  };
+    case "plantingPeriod":
+      return filters.plantingPeriod.length > 0
+        ? filters.plantingPeriod.join(", ")
+        : null;
+    case "floweringPeriod":
+      return filters.floweringPeriod.length > 0
+        ? filters.floweringPeriod.join(", ")
+        : null;
+    case "edible":
+      return filters.edible;
+    default:
+      return null;
+  }
+};
 
   const filterOptions = [
-    { id: "sortBy", label: "Classer par", value: getFilterValue("sortBy") },
-    { id: "category", label: "Catégorie", value: getFilterValue("category") },
+    { id: "sortBy", label: t("filter_sort_by"), value: getFilterValue("sortBy") },
+    { id: "category", label: t("ad_category"), value: getFilterValue("category") },
     {
       id: "plantingPeriod",
-      label: "Période de plantation",
+      label: t("ad_planting_period"),
       value: getFilterValue("plantingPeriod"),
     },
     {
       id: "floweringPeriod",
-      label: "Période de fructification",
+      label: t("ad_fruiting_period"),
       value: getFilterValue("floweringPeriod"),
     },
-    { id: "edible", label: "Comestible", value: getFilterValue("edible") },
+    { id: "edible", label: t("ad_edible"), value: getFilterValue("edible") },
   ];
 
   const handleClose = () => {
@@ -60,8 +85,7 @@ export function FilterScreen({ route, navigation }: Props) {
   };
 
   const handleClearAll = () => {
-    // Ici tu peux remettre des filtres par défaut
-    // puis éventuellement navigation.goBack()
+    // TODO: reset des filtres si besoin
   };
 
   const handleFilterSelect = (filterType: string) => {
@@ -92,54 +116,56 @@ export function FilterScreen({ route, navigation }: Props) {
 
   return (
     <Screen>
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleClose}>
-          <Text style={styles.headerButtonText}>Fermer</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Filtrer</Text>
-        <TouchableOpacity onPress={handleClearAll}>
-          <Text style={styles.headerClearText}>Effacer tout</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Filter options */}
-      <ScrollView
-        style={styles.optionsContainer}
-        contentContainerStyle={styles.optionsContent}
-      >
-        {filterOptions.map((option, index) => (
-          <TouchableOpacity
-            key={option.id}
-            onPress={() => handleFilterSelect(option.id)}
-            style={[
-              styles.optionRow,
-              index === filterOptions.length - 1 && styles.optionRowLast,
-            ]}
-          >
-            <Text style={styles.optionLabel}>{option.label}</Text>
-            <View style={styles.optionRight}>
-              {option.value && (
-                <Text style={styles.optionValue}>{option.value}</Text>
-              )}
-              <ChevronRight size={16} color="#6B7280" />
-            </View>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleClose}>
+            <Text style={styles.headerButtonText}>{t("filter_close")}</Text>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+          <Text style={styles.headerTitle}>{t("filter_title")}</Text>
+          <TouchableOpacity onPress={handleClearAll}>
+            <Text style={styles.headerClearText}>{t("filter_clear")}</Text>
+          </TouchableOpacity>
+        </View>
 
-      {/* Apply button */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          onPress={handleApplyFilters}
-          style={styles.applyButton}
-          activeOpacity={0.8}
+        {/* Filter options */}
+        <ScrollView
+          style={styles.optionsContainer}
+          contentContainerStyle={styles.optionsContent}
         >
-          <Text style={styles.applyButtonText}>Afficher les résultats</Text>
-        </TouchableOpacity>
+          {filterOptions.map((option, index) => (
+            <TouchableOpacity
+              key={option.id}
+              onPress={() => handleFilterSelect(option.id)}
+              style={[
+                styles.optionRow,
+                index === filterOptions.length - 1 && styles.optionRowLast,
+              ]}
+            >
+              <Text style={styles.optionLabel}>{option.label}</Text>
+              <View style={styles.optionRight}>
+                {option.value && (
+                  <Text style={styles.optionValue}>{option.value}</Text>
+                )}
+                <ChevronRight size={16} color="#6B7280" />
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Apply button */}
+        <View style={styles.footer}>
+          <TouchableOpacity
+            onPress={handleApplyFilters}
+            style={styles.applyButton}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.applyButtonText}>
+              {t("filter_show_results")}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
     </Screen>
   );
 }

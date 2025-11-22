@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import { ArrowLeft, Star } from "lucide-react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
+
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import { demoTransactions } from "../../mocks/products";
 import type { Transaction } from "../../shared/types";
@@ -19,10 +21,11 @@ import { Screen } from "../../components/Screen";
 type Props = NativeStackScreenProps<RootStackParamList, "SellerReview">;
 
 export function SellerReviewScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const { transactionId } = route.params;
 
   const transaction: Transaction | undefined = demoTransactions.find(
-    (t) => t.id === transactionId
+    (tItem) => tItem.id === transactionId
   );
 
   const [rating, setRating] = useState<number>(0);
@@ -30,12 +33,16 @@ export function SellerReviewScreen({ navigation, route }: Props) {
 
   if (!transaction) {
     return (
-      <View style={[styles.container, styles.center]}>
-        <Text>Transaction introuvable</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={{ color: "#7BCCEB", marginTop: 8 }}>Retour</Text>
-        </TouchableOpacity>
-      </View>
+      <Screen>
+        <View style={[styles.container, styles.center]}>
+          <Text>{t("transaction_not_found")}</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={{ color: "#7BCCEB", marginTop: 8 }}>
+              {t("common_back")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Screen>
     );
   }
 
@@ -47,7 +54,7 @@ export function SellerReviewScreen({ navigation, route }: Props) {
     // Plus tard : appel API pour enregistrer l'avis
 
     // Met à jour directement le statut "reviewed" dans les mocks
-    const index = demoTransactions.findIndex((t) => t.id === transaction.id);
+    const index = demoTransactions.findIndex((tItem) => tItem.id === transaction.id);
     if (index !== -1) {
       demoTransactions[index] = {
         ...demoTransactions[index],
@@ -59,119 +66,117 @@ export function SellerReviewScreen({ navigation, route }: Props) {
     navigation.goBack();
   };
 
-
-
   const product = transaction.product;
   const firstImage = product.images?.[0];
 
   return (
     <Screen>
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-    >
-      {/* Header */}
-      <View style={styles.headerWrapper}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={handleBack}
-            style={styles.backButton}
-            activeOpacity={0.7}
-          >
-            <ArrowLeft size={20} color="#1F2937" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Évaluer le vendeur</Text>
-          <View style={styles.headerRightPlaceholder} />
-        </View>
-      </View>
-
-      {/* Récap produit / vendeur */}
-      <View style={styles.card}>
-        <View style={styles.productRow}>
-          {firstImage ? (
-            <Image
-              source={{ uri: firstImage }}
-              style={styles.productImage}
-              resizeMode="cover"
-            />
-          ) : (
-            <View style={[styles.productImage, styles.imagePlaceholder]}>
-              <Text style={styles.imagePlaceholderText}>Image</Text>
-            </View>
-          )}
-
-          <View style={styles.productInfo}>
-            <Text style={styles.productName} numberOfLines={2}>
-              {product.name}
-            </Text>
-            <Text style={styles.productPrice}>{transaction.price}</Text>
-            <Text style={styles.sellerName}>
-              Vendeur : {product.seller.fullName}
-            </Text>
-            <Text style={styles.dateText}>{transaction.date}</Text>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      >
+        {/* Header */}
+        <View style={styles.headerWrapper}>
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={handleBack}
+              style={styles.backButton}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={20} color="#1F2937" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{t("common_review_seller")}</Text>
+            <View style={styles.headerRightPlaceholder} />
           </View>
         </View>
-      </View>
 
-      {/* Note en étoiles */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Note du vendeur</Text>
-        <View style={styles.starsRow}>
-          {[1, 2, 3, 4, 5].map((value) => {
-            const isActive = value <= rating;
-            return (
-              <TouchableOpacity
-                key={value}
-                onPress={() => setRating(value)}
-                activeOpacity={0.7}
-                style={styles.starButton}
-              >
-                <Star
-                  size={32}
-                  color={isActive ? "#FBBF24" : "#D1D5DB"}
-                  fill={isActive ? "#FBBF24" : "none"}
-                />
-              </TouchableOpacity>
-            );
-          })}
+        {/* Récap produit / vendeur */}
+        <View style={styles.card}>
+          <View style={styles.productRow}>
+            {firstImage ? (
+              <Image
+                source={{ uri: firstImage }}
+                style={styles.productImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[styles.productImage, styles.imagePlaceholder]}>
+                <Text style={styles.imagePlaceholderText}>Image</Text>
+              </View>
+            )}
+
+            <View style={styles.productInfo}>
+              <Text style={styles.productName} numberOfLines={2}>
+                {product.name}
+              </Text>
+              <Text style={styles.productPrice}>{transaction.price}</Text>
+              <Text style={styles.sellerName}>
+                {t("review_seller")} {product.seller.fullName}
+              </Text>
+              <Text style={styles.dateText}>{transaction.date}</Text>
+            </View>
+          </View>
         </View>
-      </View>
 
-      {/* Commentaire */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Commentaire</Text>
-        <TextInput
-          multiline
-          value={comment}
-          onChangeText={setComment}
-          placeholder="Décris ton expérience avec ce vendeur (optionnel)"
-          style={styles.textArea}
-          textAlignVertical="top"
-        />
-      </View>
+        {/* Note en étoiles */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t("review_seller_rating")}</Text>
+          <View style={styles.starsRow}>
+            {[1, 2, 3, 4, 5].map((value) => {
+              const isActive = value <= rating;
+              return (
+                <TouchableOpacity
+                  key={value}
+                  onPress={() => setRating(value)}
+                  activeOpacity={0.7}
+                  style={styles.starButton}
+                >
+                  <Star
+                    size={32}
+                    color={isActive ? "#FBBF24" : "#D1D5DB"}
+                    fill={isActive ? "#FBBF24" : "none"}
+                  />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
 
-      {/* Bouton valider */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={handleSubmit}
-          disabled={rating === 0}
-          style={[
-            styles.submitButton,
-            rating === 0 && styles.submitButtonDisabled,
-          ]}
-        >
-          <Text
+        {/* Commentaire */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t("review_comment_label")}</Text>
+          <TextInput
+            multiline
+            value={comment}
+            onChangeText={setComment}
+            placeholder={t("review_comment_placeholder")}
+            style={styles.textArea}
+            textAlignVertical="top"
+          />
+        </View>
+
+        {/* Bouton valider */}
+        <View style={styles.footer}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handleSubmit}
+            disabled={rating === 0}
             style={[
-              styles.submitButtonText,
-              rating === 0 && styles.submitButtonTextDisabled,
+              styles.submitButton,
+              rating === 0 && styles.submitButtonDisabled,
             ]}
           >
-            Envoyer l’évaluation
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+            <Text
+              style={[
+                styles.submitButtonText,
+                rating === 0 && styles.submitButtonTextDisabled,
+              ]}
+            >
+              {t("review_send")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </Screen>
   );
 }
@@ -180,6 +185,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFFFF" },
   contentContainer: { paddingBottom: 32 },
   center: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },

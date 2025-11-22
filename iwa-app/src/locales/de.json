@@ -104,7 +104,7 @@
     "notif_hours_ago": "Vor ... Stunde(n)",
     "notif_days_ago": "Vor ... Tag(en)",
     "notif_favorited": "hat Ihren Artikel zu den Favoriten hinzugefügt",
-    "notif_purchased": "Ihr Artikel wurde gekauft von ...",
+    "notif_purchased": "Ihr Artikel wurde von {{username}} gekauft",
     "notif_review_left": "... hat eine Bewertung auf Ihrem Profil hinterlassen",
 
     "profile_view_my_profile": "Mein Profil ansehen",
@@ -178,5 +178,33 @@
   "common_continue": "Weiter",
     "payment_cancelled_title": "Zahlung abgebrochen",
   "payment_cancelled_message": "Die Zahlung konnte nicht abgeschlossen werden.",
-  "common_ok": "OK"
+  "common_ok": "OK",
+    "search_results": "Ergebnisse",
+
+  "search_cat_unknown": "Kategorie",
+
+"filter_sort_relevance": "Relevanz",
+"filter_sort_price_asc": "Preis: aufsteigend",
+"filter_sort_price_desc": "Preis: absteigend",
+"filter_sort_most_recent": "Neueste zuerst",
+
+  "favorites_empty": "Keine Favoritenartikel",
+  "my_products_empty": "Keine Anzeige veröffentlicht",
+  "edit_profile_title": "Mein Profil bearbeiten",
+"edit_profile_change_photo_alert_title": "Foto ändern",
+"edit_profile_change_photo_alert_message": "Das Bearbeiten des Profilfotos wird bald verfügbar sein.",
+"edit_profile_change_photo": "Foto ändern",
+"edit_profile_username_label": "Benutzername",
+"edit_profile_fullname_label": "Vollständiger Name",
+"edit_profile_fullname_placeholder": "Ihr vollständiger Name",
+"edit_profile_location_label": "Ort",
+"edit_profile_location_placeholder": "Ihre Stadt / Region",
+"edit_profile_bio_label": "Bio",
+"edit_profile_bio_placeholder": "Erzählen Sie uns etwas über sich...",
+"edit_profile_save": "Speichern",
+"transaction_not_found": "Transaktion nicht gefunden",
+"common_back": "Zurück",
+"review_comment_label": "Kommentar"
+
+
 }

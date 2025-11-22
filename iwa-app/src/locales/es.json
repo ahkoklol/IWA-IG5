@@ -104,7 +104,8 @@
     "notif_hours_ago": "Hace ... hora(s)",
     "notif_days_ago": "Hace ... día(s)",
     "notif_favorited": "añadió tu artículo a favoritos",
-    "notif_purchased": "Tu artículo fue comprado por ...",
+"notif_purchased": "Tu artículo fue comprado por {{username}}",
+
     "notif_review_left": "... dejó una reseña en tu perfil",
 
     "profile_view_my_profile": "Ver mi perfil",
@@ -177,5 +178,29 @@
   "common_continue": "Continuar",
     "payment_cancelled_title": "Pago cancelado",
   "payment_cancelled_message": "El pago no se ha podido completar.",
-  "common_ok": "OK"
+  "common_ok": "OK",
+    "search_results": "Resultados",
+  "search_cat_unknown": "Categoría",
+    "filter_sort_relevance": "Relevancia",
+  "filter_sort_price_asc": "Precio: de menor a mayor",
+  "filter_sort_price_desc": "Precio: de mayor a menor",
+  "filter_sort_most_recent": "Más reciente",
+
+   "favorites_empty": "Ningún artículo en favoritos",
+   "my_products_empty": "Ningún anuncio publicado",
+   "edit_profile_title": "Editar mi perfil",
+"edit_profile_change_photo_alert_title": "Cambiar foto",
+"edit_profile_change_photo_alert_message": "La edición de la foto de perfil estará disponible pronto.",
+"edit_profile_change_photo": "Cambiar foto",
+"edit_profile_username_label": "Nombre de usuario",
+"edit_profile_fullname_label": "Nombre completo",
+"edit_profile_fullname_placeholder": "Tu nombre completo",
+"edit_profile_location_label": "Ubicación",
+"edit_profile_location_placeholder": "Tu ciudad / región",
+"edit_profile_bio_label": "Biografía",
+"edit_profile_bio_placeholder": "Háblanos de ti...",
+"edit_profile_save": "Guardar",
+"transaction_not_found": "Transacción no encontrada",
+"common_back": "Volver",
+"review_comment_label": "Comentario"
 }

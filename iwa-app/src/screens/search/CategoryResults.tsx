@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { ArrowLeft, Search, SlidersHorizontal } from "lucide-react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
 import ProductCard from "../../components/product/ProductCard";
 import { demoProducts } from "../../mocks/products";
@@ -22,6 +23,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "CategoryResults">;
 
 export function CategoryResults({ route, navigation }: Props) {
   const { category, searchQuery } = route.params;
+  const { t } = useTranslation();
 
   const [searchValue, setSearchValue] = useState(searchQuery ?? "");
   const [filters] = useState<Filters>({
@@ -41,22 +43,18 @@ export function CategoryResults({ route, navigation }: Props) {
   if (searchQuery) {
     const queryLower = searchQuery.toLowerCase();
     products = products.filter((p) =>
-      p.name.toLowerCase().includes(queryLower) // 🔹 ICI : name et pas title
+      p.name.toLowerCase().includes(queryLower)
     );
   }
 
-  const handleBack = () => {
-    navigation.goBack();
-  };
+  const handleBack = () => navigation.goBack();
 
   const handleProductClick = (product: Product) => {
-    // 🔹 Aligne avec ton HomeRootScreen : on passe productId
     navigation.navigate("ProductDetail", { productId: String(product.id) });
   };
 
-  const handleToggleFavorite = (productId: number) => {
-    // À brancher plus tard sur ton state / backend
-    console.log("Toggle favorite product", productId);
+  const handleToggleFavorite = (id: number) => {
+    console.log("Toggle favorite product", id);
   };
 
   const handleFilterClick = () => {
@@ -75,60 +73,84 @@ export function CategoryResults({ route, navigation }: Props) {
 
   return (
     <Screen>
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-    >
-      {/* Header with back and filter buttons */}
-      <View style={styles.headerWrapper}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
-            <ArrowLeft size={20} color="#1f2937" />
-          </TouchableOpacity>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      >
+        {/* Header */}
+        <View style={styles.headerWrapper}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
+              <ArrowLeft size={20} color="#1f2937" />
+            </TouchableOpacity>
 
-          <View style={styles.searchContainer}>
-            <Search size={18} color="#9ca3af" style={styles.searchIcon} />
-            <TextInput
-              value={searchValue}
-              onChangeText={setSearchValue}
-              placeholder="Rechercher un article ou un membre"
-              placeholderTextColor="#9ca3af"
-              style={styles.searchInput}
-              returnKeyType="search"
-              onSubmitEditing={handleSearchSubmit}
-            />
-          </View>
-
-          <TouchableOpacity
-            onPress={handleFilterClick}
-            style={styles.filterButton}
-          >
-            <SlidersHorizontal size={20} color="#1f2937" />
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.categoryLabel}>
-          {category ? String(category) : searchQuery ?? "Résultats"}
-        </Text>
-      </View>
-
-      {/* Products grid */}
-      <View style={styles.productsWrapper}>
-        <View style={styles.productsGrid}>
-          {products.map((product) => (
-            <View key={product.id} style={styles.cardWrapper}>
-              <ProductCard
-                product={product}
-                onClick={() => handleProductClick(product)}
-                onToggleFavorite={() => handleToggleFavorite(product.id)}
+            <View style={styles.searchContainer}>
+              <Search size={18} color="#9ca3af" style={styles.searchIcon} />
+              <TextInput
+                value={searchValue}
+                onChangeText={setSearchValue}
+                placeholder={t("search_placeholder")}
+                placeholderTextColor="#9ca3af"
+                style={styles.searchInput}
+                returnKeyType="search"
+                onSubmitEditing={handleSearchSubmit}
               />
             </View>
-          ))}
+
+            <TouchableOpacity
+              onPress={handleFilterClick}
+              style={styles.filterButton}
+            >
+              <SlidersHorizontal size={20} color="#1f2937" />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.categoryLabel}>
+            {category
+              ? t(`search_cat_${categoryKey(category)}`)
+              : searchQuery || t("search_results")}
+          </Text>
         </View>
-      </View>
-    </ScrollView>
+
+        {/* Products grid */}
+        <View style={styles.productsWrapper}>
+          <View style={styles.productsGrid}>
+            {products.map((product) => (
+              <View key={product.id} style={styles.cardWrapper}>
+                <ProductCard
+                  product={product}
+                  onClick={() => handleProductClick(product)}
+                  onToggleFavorite={() => handleToggleFavorite(product.id)}
+                />
+              </View>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
     </Screen>
   );
+}
+
+/**
+ * Convert category label to translation key suffix
+ */
+function categoryKey(cat: string): string {
+  switch (cat) {
+    case "Légumes":
+      return "vegetables";
+    case "Fruits":
+      return "fruits";
+    case "Herbes aromatiques / épices":
+      return "herbs";
+    case "Plantes médicinales":
+      return "medicinal";
+    case "Fleurs décoratives":
+      return "flowers";
+    case "Plantes exotiques / rares":
+      return "exotic";
+    default:
+      return "unknown";
+  }
 }
 
 const styles = StyleSheet.create({

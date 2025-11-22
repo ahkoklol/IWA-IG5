@@ -1,4 +1,4 @@
-//iwa-app/src/screens/profil/ProfileMenuScreen.tsx
+// iwa-app/src/screens/profil/ProfileMenuScreen.tsx
 import React from "react";
 import {
   View,
@@ -8,9 +8,10 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
-import { ChevronRight, LogOut} from "lucide-react-native";
+import { ChevronRight, LogOut } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
 import type { User } from "../../shared/types";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
@@ -32,22 +33,21 @@ export function ProfileMenuScreen({
   onDeleteAccount,
 }: ProfileMenuScreenProps) {
   const navigation = useNavigation<Navigation>();
+  const { t } = useTranslation();
 
   const menuItems = [
-    { id: "myProfile", label: "Voir mon profil", showAvatar: true },
-    { id: "favorites", label: "Favoris", showAvatar: false },
-    { id: "myProducts", label: "Mes graines", showAvatar: false },
-    { id: "transactions", label: "Mes transactions", showAvatar: false },
-    { id: "settings", label: "Réglages et préférences", showAvatar: false },
+    { id: "myProfile", label: t("profile_view_my_profile"), showAvatar: true },
+    { id: "favorites", label: t("profile_favorites"), showAvatar: false },
+    { id: "myProducts", label: t("profile_my_seeds"), showAvatar: false },
+    { id: "transactions", label: t("profile_transactions"), showAvatar: false },
+    { id: "settings", label: t("profile_settings"), showAvatar: false },
   ];
 
   const handleMenuPress = (id: string) => {
-    // On garde l'appel pour compatibilité avec le parent
     onMenuSelect(id);
 
     switch (id) {
       case "myProfile":
-        // On ouvre l'écran profil détaillé avec les infos du user
         navigation.navigate("MyProfileScreen", { user: currentUser });
         break;
 
@@ -73,46 +73,47 @@ export function ProfileMenuScreen({
   };
 
   return (
-<Screen>
+    <Screen>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profil</Text>
+        <Text style={styles.headerTitle}>{t("navbar_profile")}</Text>
       </View>
-    <ScrollView>
-      {/* Menu items */}
-      <View style={styles.menuContainer}>
-        {menuItems.map((item) => (
+
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        {/* Menu items */}
+        <View style={styles.menuContainer}>
+          {menuItems.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              onPress={() => handleMenuPress(item.id)}
+              style={styles.menuItem}
+              activeOpacity={0.7}
+            >
+              <View style={styles.menuLeft}>
+                {item.showAvatar && currentUser.avatar && (
+                  <Image
+                    source={{ uri: currentUser.avatar }}
+                    style={styles.avatar}
+                  />
+                )}
+                <Text style={styles.menuLabel}>{item.label}</Text>
+              </View>
+              <ChevronRight size={20} />
+            </TouchableOpacity>
+          ))}
+
+          {/* Logout button */}
           <TouchableOpacity
-            key={item.id}
-            onPress={() => handleMenuPress(item.id)}
-            style={styles.menuItem}
+            onPress={onLogout}
+            style={[styles.menuItem, styles.logoutItem]}
             activeOpacity={0.7}
           >
             <View style={styles.menuLeft}>
-              {item.showAvatar && currentUser.avatar && (
-                <Image
-                  source={{ uri: currentUser.avatar }}
-                  style={styles.avatar}
-                />
-              )}
-              <Text style={styles.menuLabel}>{item.label}</Text>
+              <LogOut size={20} color="#EF4444" />
+              <Text style={styles.logoutText}>{t("profile_logout")}</Text>
             </View>
-            <ChevronRight size={20} />
           </TouchableOpacity>
-        ))}
-
-        {/* Logout button */}
-        <TouchableOpacity
-          onPress={onLogout}
-          style={[styles.menuItem, styles.logoutItem]}
-          activeOpacity={0.7}
-        >
-          <View style={styles.menuLeft}>
-            <LogOut size={20} color="#EF4444" />
-            <Text style={styles.logoutText}>Se déconnecter</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+        </View>
       </ScrollView>
     </Screen>
   );
@@ -126,7 +127,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingBottom: 32,
   },
-
   header: {
     paddingHorizontal: 16,
     paddingVertical: 16,
@@ -171,3 +171,5 @@ const styles = StyleSheet.create({
     color: "#EF4444",
   },
 });
+
+export default ProfileMenuScreen;

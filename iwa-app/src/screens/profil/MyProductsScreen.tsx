@@ -9,6 +9,8 @@ import {
   Pressable,
 } from "react-native";
 import { ArrowLeft, MoreHorizontal } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
+
 import type { Product } from "../../shared/types";
 import ProductCard from "../../components/product/ProductCard";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -19,6 +21,8 @@ import { Screen } from "../../components/Screen";
 type Props = NativeStackScreenProps<RootStackParamList, "MyProducts">;
 
 export function MyProductsScreen({ navigation }: Props) {
+  const { t } = useTranslation();
+
   const [products, setProducts] = useState<Product[]>(
     demoProducts.filter((p) => p.seller.id === currentUser.id)
   );
@@ -42,7 +46,7 @@ export function MyProductsScreen({ navigation }: Props) {
 
   const handleEditProduct = (product: Product) => {
     console.log("Edit product", product.id);
-    // Plus tard : navigation vers un écran d'édition
+    // Later: navigate to an edit screen
   };
 
   const handleDeleteProduct = (productId: number) => {
@@ -55,90 +59,94 @@ export function MyProductsScreen({ navigation }: Props) {
 
   return (
     <Screen>
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-    >
-      {/* Header */}
-      <View style={styles.headerWrapper}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={handleBack}
-            style={styles.backButton}
-            activeOpacity={0.7}
-          >
-            <ArrowLeft size={20} color="#1F2937" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Mes graines</Text>
-          <View style={styles.headerRightPlaceholder} />
-        </View>
-      </View>
-
-      {/* Products grid */}
-      <View style={styles.content}>
-        {products.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>Aucune annonce publiée</Text>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      >
+        {/* Header */}
+        <View style={styles.headerWrapper}>
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={handleBack}
+              style={styles.backButton}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={20} color="#1F2937" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{t("profile_my_seeds")}</Text>
+            <View style={styles.headerRightPlaceholder} />
           </View>
-        ) : (
-          <View style={styles.grid}>
-            {products.map((product) => (
-              <View key={product.id} style={styles.productWrapper}>
-                <ProductCard
-                  product={product}
-                  onClick={() => handleProductClick(product)}
-                  onToggleFavorite={() => handleToggleFavorite(product.id)}
-                />
+        </View>
 
-                {/* Bouton menu (3 points) */}
-                <Pressable
-                  onPress={(e) => {
-                    // @ts-ignore
-                    e.stopPropagation?.();
-                    handleMenuToggle(product.id);
-                  }}
-                  style={styles.menuButton}
-                >
-                  <MoreHorizontal size={16} color="#1F2937" />
-                </Pressable>
+        {/* Products grid */}
+        <View style={styles.content}>
+          {products.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>{t("my_products_empty")}</Text>
+            </View>
+          ) : (
+            <View style={styles.grid}>
+              {products.map((product) => (
+                <View key={product.id} style={styles.productWrapper}>
+                  <ProductCard
+                    product={product}
+                    onClick={() => handleProductClick(product)}
+                    onToggleFavorite={() => handleToggleFavorite(product.id)}
+                  />
 
-                {/* Menu contextuel */}
-                {showMenu === product.id && (
-                  <View style={styles.menuContainer}>
-                    {!product.removedByAI && (
+                  {/* Context menu button (3 dots) */}
+                  <Pressable
+                    onPress={(e) => {
+                      // @ts-ignore
+                      e.stopPropagation?.();
+                      handleMenuToggle(product.id);
+                    }}
+                    style={styles.menuButton}
+                  >
+                    <MoreHorizontal size={16} color="#1F2937" />
+                  </Pressable>
+
+                  {/* Context menu */}
+                  {showMenu === product.id && (
+                    <View style={styles.menuContainer}>
+                      {!product.removedByAI && (
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          onPress={(e) => {
+                            // @ts-ignore
+                            e.stopPropagation?.();
+                            handleEditProduct(product);
+                            setShowMenu(null);
+                          }}
+                          style={styles.menuItem}
+                        >
+                          <Text style={styles.menuItemText}>
+                            {t("common_edit")}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
                       <TouchableOpacity
                         activeOpacity={0.7}
                         onPress={(e) => {
                           // @ts-ignore
                           e.stopPropagation?.();
-                          handleEditProduct(product);
+                          handleDeleteProduct(product.id);
                           setShowMenu(null);
                         }}
                         style={styles.menuItem}
                       >
-                        <Text style={styles.menuItemText}>Modifier</Text>
+                        <Text style={styles.menuItemTextDelete}>
+                          {t("common_delete")}
+                        </Text>
                       </TouchableOpacity>
-                    )}
-                    <TouchableOpacity
-                      activeOpacity={0.7}
-                      onPress={(e) => {
-                        // @ts-ignore
-                        e.stopPropagation?.();
-                        handleDeleteProduct(product.id);
-                        setShowMenu(null);
-                      }}
-                      style={styles.menuItem}
-                    >
-                      <Text style={styles.menuItemTextDelete}>Supprimer</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-    </ScrollView>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
     </Screen>
   );
 }

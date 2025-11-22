@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
 import type { Notification } from "../../shared/types";
 import { demoNotifications } from "../../mocks/products";
@@ -22,60 +23,61 @@ interface NotificationsScreenProps {
   onNotificationClick?: (notification: Notification) => void;
 }
 
-const getNotificationText = (notification: Notification) => {
-  switch (notification.type) {
-    case "favorite":
-      return `${notification.user.username} a ajouté votre article en favori`;
-    case "sale":
-      return `Votre article a été vendu à ${notification.user.username}`;
-    case "review":
-      return `${notification.user.username} a laissé une évaluation sur votre profil`;
-    case "removed":
-      return `Votre annonce a été supprimée car elle ne respectait pas nos conditions d'utilisation`;
-    default:
-      return "";
-  }
-};
-
 export function NotificationsScreen({ onNotificationClick }: NotificationsScreenProps) {
   const [notifications, setNotifications] =
     useState<Notification[]>(demoNotifications);
 
   const navigation = useNavigation<NavigationProp>();
+  const { t } = useTranslation();
 
-    const handlePress = (notification: Notification) => {
+  const getNotificationText = (notification: Notification) => {
+    switch (notification.type) {
+      case "favorite":
+        // "<username> a ajouté votre article en favori"
+        return `${notification.user.username} ${t("notif_favorited")}`;
+      case "sale":
+        return t("notif_purchased", { username: notification.user.username });
+      case "review":
+        // "... a laissée une évaluation sur votre profil" -> on remplace les points par le username
+        return t("notif_review_left").replace("...", notification.user.username);
+      case "removed":
+        return t("notif_deleted");
+      default:
+        return "";
+    }
+  };
+
+  const handlePress = (notification: Notification) => {
     // Marquer comme lue dans le mock local
     setNotifications((prev) =>
-        prev.map((n) =>
+      prev.map((n) =>
         n.id === notification.id ? { ...n, read: true } : n
-        )
+      )
     );
 
     if (notification.type === "review") {
-        // On ouvre le profil du vendeur directement sur l’onglet "Mes évaluations"
-        navigation.navigate("MyProfileScreen", {
-        user: notification.product.seller, // ⚠️ suppose que seller est bien le user du profil
+      // Ouvrir le profil du vendeur directement sur l’onglet "Mes évaluations"
+      navigation.navigate("MyProfileScreen", {
+        user: notification.product.seller,
         initialTab: "reviews",
-        });
+      });
     } else {
-        // Navigation vers le détail du produit pour les autres types
-        navigation.navigate("ProductDetail", {
+      // Navigation vers le détail du produit pour les autres types
+      navigation.navigate("ProductDetail", {
         productId: String(notification.product.id),
-        });
+      });
     }
 
-    // Remonter l’info si un callback est fourni
     if (onNotificationClick) {
-        onNotificationClick(notification);
+      onNotificationClick(notification);
     }
-    };
-
+  };
 
   return (
-      <Screen>
+    <Screen>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Notifications</Text>
+        <Text style={styles.headerTitle}>{t("navbar_notifications")}</Text>
       </View>
 
       {/* Notifications list */}

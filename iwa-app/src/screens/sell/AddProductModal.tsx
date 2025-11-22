@@ -10,6 +10,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { X, Image as ImageIcon } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import type { Category } from "../../shared/types";
 
 export interface NewListing {
@@ -25,7 +26,18 @@ interface AddProductModalProps {
   onAdd: (product: NewListing) => void;
 }
 
+const categoryOptions: { value: Category; labelKey: string }[] = [
+  { value: "Légumes", labelKey: "search_cat_vegetables" },
+  { value: "Fruits", labelKey: "search_cat_fruits" },
+  { value: "Herbes aromatiques / épices", labelKey: "search_cat_herbs" },
+  { value: "Plantes médicinales", labelKey: "search_cat_medicinal" },
+  { value: "Fleurs décoratives", labelKey: "search_cat_flowers" },
+  { value: "Plantes exotiques / rares", labelKey: "search_cat_exotic" },
+];
+
 export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
+  const { t } = useTranslation();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priceInput, setPriceInput] = useState("");
@@ -43,7 +55,7 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
     const parsedPrice = parsePrice(priceInput);
 
     if (!title || !parsedPrice || !category) {
-      // You can plug a toast or error message here
+      // TODO: show error / toast
       return;
     }
 
@@ -69,7 +81,7 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
         <View style={styles.sheet}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Vendre des graines</Text>
+            <Text style={styles.headerTitle}>{t("sell_title")}</Text>
             <TouchableOpacity
               onPress={onClose}
               style={styles.closeButton}
@@ -87,25 +99,25 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
           >
             {/* Photo upload (placeholder) */}
             <View style={styles.block}>
-              <Text style={styles.label}>Photos</Text>
+              <Text style={styles.label}>{t("sell_photos")}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <TouchableOpacity
                   activeOpacity={0.7}
                   style={styles.addPhotoButton}
                 >
                   <ImageIcon size={24} strokeWidth={1.8} color="#9CA3AF" />
-                  <Text style={styles.addPhotoText}>Ajouter</Text>
+                  <Text style={styles.addPhotoText}>{t("sell_add")}</Text>
                 </TouchableOpacity>
               </ScrollView>
             </View>
 
             {/* Title */}
             <View style={styles.block}>
-              <Text style={styles.label}>Titre</Text>
+              <Text style={styles.label}>{t("sell_title_label")}</Text>
               <TextInput
                 value={title}
                 onChangeText={setTitle}
-                placeholder="Ex : Graines de tomates anciennes"
+                placeholder={t("sell_title_placeholder")}
                 style={styles.input}
                 placeholderTextColor="#9CA3AF"
               />
@@ -113,11 +125,11 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
 
             {/* Description */}
             <View style={styles.block}>
-              <Text style={styles.label}>Description</Text>
+              <Text style={styles.label}>{t("sell_description")}</Text>
               <TextInput
                 value={description}
                 onChangeText={setDescription}
-                placeholder="Décrivez vos graines (variété, conseils de culture, origine...)"
+                placeholder={t("sell_description_placeholder")}
                 style={[styles.input, styles.textArea]}
                 placeholderTextColor="#9CA3AF"
                 multiline
@@ -126,27 +138,19 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
 
             {/* Category */}
             <View style={styles.block}>
-              <Text style={styles.label}>Catégorie</Text>
+              <Text style={styles.label}>{t("sell_category")}</Text>
 
-              {/* Simple fake select, tu pourras le remplacer par un vrai picker plus tard */}
               <View style={styles.categoryList}>
-                {([
-                  "Légumes",
-                  "Fruits",
-                  "Herbes aromatiques / épices",
-                  "Plantes médicinales",
-                  "Fleurs décoratives",
-                  "Plantes exotiques / rares",
-                ] as Category[]).map((cat) => {
-                  const isSelected = category === cat;
+                {categoryOptions.map((cat) => {
+                  const isSelected = category === cat.value;
                   return (
                     <TouchableOpacity
-                      key={cat}
+                      key={cat.value}
                       style={[
                         styles.categoryPill,
                         isSelected && styles.categoryPillSelected,
                       ]}
-                      onPress={() => setCategory(cat)}
+                      onPress={() => setCategory(cat.value)}
                       activeOpacity={0.7}
                     >
                       <Text
@@ -155,7 +159,7 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
                           isSelected && styles.categoryPillTextSelected,
                         ]}
                       >
-                        {cat}
+                        {t(cat.labelKey)}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -165,11 +169,11 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
 
             {/* Quantity */}
             <View style={styles.block}>
-              <Text style={styles.label}>Poids ou quantité</Text>
+              <Text style={styles.label}>{t("sell_quantity")}</Text>
               <TextInput
                 value={quantity}
                 onChangeText={setQuantity}
-                placeholder="Ex : 50 g ou 30 graines"
+                placeholder={t("sell_quantity_placeholder")}
                 style={styles.input}
                 placeholderTextColor="#9CA3AF"
               />
@@ -177,11 +181,11 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
 
             {/* Price */}
             <View style={styles.block}>
-              <Text style={styles.label}>Prix</Text>
+              <Text style={styles.label}>{t("sell_price")}</Text>
               <TextInput
                 value={priceInput}
                 onChangeText={setPriceInput}
-                placeholder="Ex : 5,00 €"
+                placeholder={t("sell_price_placeholder")}
                 style={styles.input}
                 placeholderTextColor="#9CA3AF"
                 keyboardType="decimal-pad"
@@ -196,7 +200,7 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
               activeOpacity={0.8}
               style={styles.submitButton}
             >
-              <Text style={styles.submitText}>Ajouter l’annonce</Text>
+              <Text style={styles.submitText}>{t("sell_submit")}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -216,7 +220,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: "90%",
-    flex: 1,              // ✅ le sheet occupe de la hauteur
+    flex: 1,
     overflow: "hidden",
   },
   header: {
@@ -240,8 +244,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  content: {
-  },
+  content: {},
   contentInner: {
     paddingHorizontal: 24,
     paddingVertical: 16,
