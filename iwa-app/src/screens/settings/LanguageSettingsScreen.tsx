@@ -1,3 +1,4 @@
+// src/screens/settings/LanguageSettingsScreen.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -7,52 +8,67 @@ import {
   StyleSheet,
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
+
 import { Screen } from "../../components/Screen";
+
+type LangCode = "fr" | "en" | "es" | "de";
 
 interface LanguageSettingsScreenProps {
   onBack: () => void;
 }
 
 export function LanguageSettingsScreen({ onBack }: LanguageSettingsScreenProps) {
-  const [selectedLanguage, setSelectedLanguage] = useState<"fr" | "en">("fr");
+  const { t, i18n } = useTranslation();
 
-  const languages = [
-    { code: "fr" as const, label: "Français" },
-    { code: "en" as const, label: "English" },
+  // Initialize selected language from i18n
+  const initialLang = (i18n.language?.split("-")[0] as LangCode) || "fr";
+  const [selectedLanguage, setSelectedLanguage] = useState<LangCode>(initialLang);
+
+  const languages: { code: LangCode; label: string }[] = [
+    { code: "fr", label: "Français" },
+    { code: "en", label: "English" },
+    { code: "es", label: "Español" },
+    { code: "de", label: "Deutsch" },
   ];
+
+  const handleSelectLanguage = (code: LangCode) => {
+    setSelectedLanguage(code);
+    i18n.changeLanguage(code);
+  };
 
   return (
     <Screen>
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <ArrowLeft size={22} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Langue</Text>
-      </View>
-
-      {/* Content */}
-      <ScrollView contentContainerStyle={styles.content}>
-        {languages.map((lang) => (
-          <TouchableOpacity
-            key={lang.code}
-            onPress={() => setSelectedLanguage(lang.code)}
-            style={styles.row}
-            activeOpacity={0.7}
-          >
-            <RadioCircle checked={selectedLanguage === lang.code} />
-            <Text style={styles.label}>{lang.label}</Text>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+            <ArrowLeft size={22} color="#000" />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </View>
+          <Text style={styles.headerTitle}>{t("settings_language")}</Text>
+        </View>
+
+        {/* Content */}
+        <ScrollView contentContainerStyle={styles.content}>
+          {languages.map((lang) => (
+            <TouchableOpacity
+              key={lang.code}
+              onPress={() => handleSelectLanguage(lang.code)}
+              style={styles.row}
+              activeOpacity={0.7}
+            >
+              <RadioCircle checked={selectedLanguage === lang.code} />
+              <Text style={styles.label}>{lang.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
     </Screen>
   );
 }
 
 /* ------------------------------- */
-/*    RADIO BUTTON ROND BLEU       */
+/*       BLUE ROUND RADIO BUTTON   */
 /* ------------------------------- */
 
 function RadioCircle({ checked }: { checked: boolean }) {

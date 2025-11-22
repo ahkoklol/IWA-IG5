@@ -1,7 +1,7 @@
-// src/components/BottomNavbar.tsx
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Home, Search, PlusCircle, Bell, User } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 import { AddProductModal, NewListing } from "../screens/sell/AddProductModal";
 
@@ -9,19 +9,20 @@ export type BottomTabId = "home" | "search" | "sell" | "notifications" | "profil
 
 interface BottomNavProps {
   activeTab: BottomTabId;
-  onTabChange: (tab: BottomTabId) => void;   // ← c’est ici que tu changeras l’écran
+  onTabChange: (tab: BottomTabId) => void;
   onAddProduct: (product: NewListing) => void;
 }
 
 export function BottomNavbar({ activeTab, onTabChange, onAddProduct }: BottomNavProps) {
   const [isSellModalOpen, setIsSellModalOpen] = useState(false);
+  const { t } = useTranslation();
 
-  const tabs: { id: BottomTabId; icon: any; label: string }[] = [
-    { id: "home", icon: Home, label: "Accueil" },
-    { id: "search", icon: Search, label: "Rechercher" },
-    { id: "sell", icon: PlusCircle, label: "Vendre" },
-    { id: "notifications", icon: Bell, label: "Notifications" },
-    { id: "profile", icon: User, label: "Profil" },
+  const tabs: { id: BottomTabId; icon: any; labelKey: string }[] = [
+    { id: "home", icon: Home, labelKey: "navbar_home" },
+    { id: "search", icon: Search, labelKey: "navbar_search" },
+    { id: "sell", icon: PlusCircle, labelKey: "navbar_sell" },
+    { id: "notifications", icon: Bell, labelKey: "navbar_notifications" },
+    { id: "profile", icon: User, labelKey: "navbar_profile" },
   ];
 
   const handleTabPress = (tabId: BottomTabId) => {
@@ -30,7 +31,7 @@ export function BottomNavbar({ activeTab, onTabChange, onAddProduct }: BottomNav
       return;
     }
 
-    onTabChange(tabId); // ← permet d’afficher NotificationsScreen.tsx
+    onTabChange(tabId);
   };
 
   return (
@@ -60,7 +61,7 @@ export function BottomNavbar({ activeTab, onTabChange, onAddProduct }: BottomNav
                   ]}
                   numberOfLines={1}
                 >
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -80,6 +81,7 @@ export function BottomNavbar({ activeTab, onTabChange, onAddProduct }: BottomNav
     </>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

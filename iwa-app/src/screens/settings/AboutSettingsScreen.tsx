@@ -65,7 +65,7 @@ export function AboutSettingsScreen({ onBack }: AboutSettingsScreenProps) {
             }
           >
             <Text style={styles.emailText}>
-              nouscontacter@bonnegraine.com
+              contact@bonnegraine.com
             </Text>
           </TouchableOpacity>
         </View>

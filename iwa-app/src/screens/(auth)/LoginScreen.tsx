@@ -6,12 +6,14 @@ import { Eye, EyeOff } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
+import { useTranslation } from "react-i18next";
 
 export default function LoginScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const { t } = useTranslation();
 
 const handleSubmit = () => {
   // TODO: login (optionnel)
@@ -31,7 +33,7 @@ const handleSubmit = () => {
         style={styles.container}
         behavior={Platform.select({ ios: "padding", android: undefined })}
       >
-        <Text style={styles.title}>Connexion</Text>
+        <Text style={styles.title}>{t("login_title")}</Text>
 
         <View style={styles.form}>
           <TextInput
