@@ -168,5 +168,15 @@
     "account_delete_warning_2": "• La suppression de toutes vos informations personnelles (profil, coordonnées, etc.).",
     "account_delete_warning_3": "• La suppression de toutes vos annonces publiées.",
     "account_delete_warning_4": "• La suppression de vos favoris, messages et évaluations associées à votre compte.",
-    "account_delete_warning_5": "Cette opération est irréversible. Êtes-vous sûre de vouloir continuer ?"
+    "account_delete_warning_5": "Cette opération est irréversible. Êtes-vous sûre de vouloir continuer ?",
+
+    "purchase_price": "Prix de vente",
+    "purchase_commission": "Commission (10%)",
+
+      "purchase_success_title": "Achat validé !",
+  "purchase_success_message": "Votre commande a été confirmée avec succès. Vous pouvez suivre le statut de votre commande dans l'onglet \"Mes transactions\" de votre profil.",
+  "common_continue": "Continuer",
+    "payment_cancelled_title": "Paiement annulé",
+  "payment_cancelled_message": "Le paiement n'a pas pu être mené à terme.",
+  "common_ok": "OK"
 }

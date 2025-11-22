@@ -1,14 +1,14 @@
 // src/screens/product/ReportModal.tsx
-import React, { useState } from "react";
+import React from "react";
 import {
   Modal,
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  TextInput,
 } from "react-native";
 import { X, Flag } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 interface ReportModalProps {
   visible: boolean;
@@ -19,19 +19,15 @@ interface ReportModalProps {
 export default function ReportModal({
   visible,
   onClose,
-  productName,
 }: ReportModalProps) {
-  const [reason, setReason] = useState("");
+  const { t } = useTranslation();
 
   const handleSend = () => {
-    // Later: call backend to send the report
-    // For now we just close the modal
-    setReason("");
+    // Plus tard : appel backend pour envoyer le signalement
     onClose();
   };
 
   const handleClose = () => {
-    setReason("");
     onClose();
   };
 
@@ -58,29 +54,9 @@ export default function ReportModal({
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.title}>Signaler cette annonce</Text>
+          <Text style={styles.title}>{t("report_this_ad")}</Text>
 
-          {productName ? (
-            <Text style={styles.subtitle}>
-              Vous êtes sur le point de signaler{" "}
-              <Text style={styles.subtitleBold}>{productName}</Text>. Merci de
-              nous indiquer ce qui ne va pas.
-            </Text>
-          ) : (
-            <Text style={styles.subtitle}>
-              Merci de nous indiquer ce qui ne va pas avec cette annonce.
-            </Text>
-          )}
-
-          <TextInput
-            value={reason}
-            onChangeText={setReason}
-            placeholder="Expliquez brièvement le problème (contenu inapproprié, arnaque, spam...)"
-            placeholderTextColor="#9CA3AF"
-            multiline
-            numberOfLines={4}
-            style={styles.textArea}
-          />
+          <Text style={styles.subtitle}>{t("report_warning")}</Text>
 
           <View style={styles.buttonsRow}>
             <TouchableOpacity
@@ -88,19 +64,15 @@ export default function ReportModal({
               onPress={handleClose}
               activeOpacity={0.8}
             >
-              <Text style={styles.cancelText}>Annuler</Text>
+              <Text style={styles.cancelText}>{t("report_cancel")}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                styles.confirmBtn,
-                !reason.trim() && styles.confirmBtnDisabled,
-              ]}
+              style={styles.confirmBtn}
               onPress={handleSend}
               activeOpacity={0.8}
-              disabled={!reason.trim()}
             >
-              <Text style={styles.confirmText}>Envoyer le signalement</Text>
+              <Text style={styles.confirmText}>{t("report_send")}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -157,21 +129,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#4B5563",
   },
-  subtitleBold: {
-    fontWeight: "600",
-  },
-  textArea: {
-    marginTop: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: "#111827",
-    textAlignVertical: "top",
-    minHeight: 100,
-  },
   buttonsRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
@@ -195,9 +152,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 999,
     backgroundColor: "#B91C1C",
-  },
-  confirmBtnDisabled: {
-    backgroundColor: "#FCA5A5",
   },
   confirmText: {
     fontSize: 13,

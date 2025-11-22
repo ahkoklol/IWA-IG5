@@ -25,6 +25,7 @@ import { demoProducts } from "../../mocks/products";
 import PurchaseConfirmationModal from "./PurchaseConfirmationModal";
 import ReportModal from "./ReportModal";
 import { Screen } from "../../components/Screen";
+import { useTranslation } from "react-i18next";
 
 
 type DetailRoute = RouteProp<RootStackParamList, "ProductDetail">;
@@ -73,6 +74,8 @@ export default function ProductDetail() {
   const [initialIndex, setInitialIndex] = useState(0);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const galleryScrollRef = useRef<ScrollView | null>(null);
+
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (isGalleryOpen && galleryScrollRef.current) {
@@ -137,7 +140,7 @@ export default function ProductDetail() {
             style={styles.reportBtn}
             onPress={() => setShowReportModal(true)}
           >
-            <Text style={styles.reportText}>Signaler</Text>
+            <Text style={styles.reportText}>{t("report_title")}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -185,7 +188,7 @@ export default function ProductDetail() {
               )}
               {product.removedByAI && (
                 <View>
-                  <Text>Annonce supprimée</Text>
+                  <Text>{t("profile_ad_deleted")}</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -213,23 +216,23 @@ export default function ProductDetail() {
           <Text style={styles.price}>{product.price}</Text>
 
           <View style={{ marginTop: 16 }}>
-            <Text style={styles.sectionTitle}>Description</Text>
+            <Text style={styles.sectionTitle}>{t("ad_description")}</Text>
             <Text style={styles.description}>
               {product.description}
             </Text>
           </View>
 
           <View style={{ marginTop: 16 }}>
-            <Row label="Nombre de pièces" value={product.quantity} />
-            <Row label="Catégorie" value={product.category} />
-            <Row label="Période de plantation" value={planting} />
-            <Row label="Période de fructification" value={flowering} />
+            <Row label={t("ad_quantity")} value={product.quantity} />
+            <Row label={t("ad_category")} value={product.category} />
+            <Row label={t("ad_planting_period")} value={planting} />
+            <Row label={t("ad_fruiting_period")} value={flowering} />
             <Row
-              label="Comestible"
-              value={product.edible ? "Oui" : "Non"}
+              label={t("ad_edible")}
+              value={product.edible ? t("filter_yes") : t("filter_no")}
             />
             <Row
-              label="Récolte en"
+              label={t("ad_harvest_in")}
               value={product.harvestDate ?? "—"}
             />
           </View>
@@ -286,7 +289,7 @@ export default function ProductDetail() {
               style={styles.buyBtn}
               activeOpacity={0.9}
             >
-              <Text style={styles.buyText}>Acheter</Text>
+              <Text style={styles.buyText}>{t("ad_buy")}</Text>
             </TouchableOpacity>
           )}
         </View>

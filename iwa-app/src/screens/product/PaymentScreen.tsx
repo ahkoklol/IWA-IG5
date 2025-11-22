@@ -13,6 +13,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useStripe } from "@stripe/stripe-react-native";
 
 import type { RootStackParamList } from "../../navigation/RootNavigator";
+import { useTranslation } from "react-i18next";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Payment">;
 
@@ -22,6 +23,7 @@ export default function PaymentScreen({ route, navigation }: Props) {
 
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
+  const { t } = useTranslation();
 
   // Backend base URL from env
   const BACKEND_URL = process.env.EXPO_PUBLIC_API_URL as string | undefined;
@@ -124,7 +126,7 @@ export default function PaymentScreen({ route, navigation }: Props) {
     } else {
       Alert.alert("Payment successful", "Your purchase has been confirmed.", [
         {
-          text: "OK",
+          text: t("common_ok"),
           onPress: () => {
             navigation.goBack();
           },
@@ -135,16 +137,18 @@ export default function PaymentScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Paiement sécurisé</Text>
-      <Text style={styles.subtitle}>Article : {product.name}</Text>
-      <Text style={styles.amount}>
-        Total : {total.toFixed(2).replace(".", ",")} €
-      </Text>
+    <Text style={styles.title}>{t("purchase_secure_payment")}</Text>
+    <Text style={styles.subtitle}>
+      {t("purchase_item")} {product.name}
+    </Text>
+    <Text style={styles.amount}>
+      {t("purchase_total")} : {total.toFixed(2).replace(".", ",")} €
+    </Text>
 
       {loading && (
         <View style={styles.loaderContainer}>
           <ActivityIndicator />
-          <Text style={styles.loaderText}>Initialisation du paiement...</Text>
+          <Text style={styles.loaderText}>{t("payment_loading_message")}</Text>
         </View>
       )}
 
@@ -154,7 +158,7 @@ export default function PaymentScreen({ route, navigation }: Props) {
           disabled={!ready}
           onPress={openPaymentSheet}
         >
-          <Text style={styles.payButtonText}>Payer maintenant</Text>
+          <Text style={styles.payButtonText}>{t("purchase_pay_now")}</Text>
         </TouchableOpacity>
       )}
 
@@ -162,7 +166,7 @@ export default function PaymentScreen({ route, navigation }: Props) {
         style={styles.cancelButton}
         onPress={() => navigation.goBack()}
       >
-        <Text style={styles.cancelButtonText}>Annuler</Text>
+        <Text style={styles.cancelButtonText}>{t("report_cancel")}</Text>
       </TouchableOpacity>
     </View>
   );

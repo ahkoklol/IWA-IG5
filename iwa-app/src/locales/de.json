@@ -168,5 +168,15 @@
     "account_delete_warning_2": "• Löschung aller persönlichen Informationen (Profil, Kontaktdaten usw.).",
     "account_delete_warning_3": "• Löschung aller von Ihnen veröffentlichten Anzeigen.",
     "account_delete_warning_4": "• Löschung Ihrer Favoriten, Nachrichten und Bewertungen, die mit Ihrem Konto verbunden sind.",
-    "account_delete_warning_5": "Dieser Vorgang ist irreversibel. Sind Sie sicher, dass Sie fortfahren möchten?"
+    "account_delete_warning_5": "Dieser Vorgang ist irreversibel. Sind Sie sicher, dass Sie fortfahren möchten?",
+
+    "purchase_price": "Verkaufspreis",
+    "purchase_commission": "Provision (10%)",
+
+      "purchase_success_title": "Kauf bestätigt!",
+  "purchase_success_message": "Ihre Bestellung wurde erfolgreich bestätigt. Sie können den Status Ihrer Bestellung im Bereich „Meine Transaktionen“ Ihres Profils verfolgen.",
+  "common_continue": "Weiter",
+    "payment_cancelled_title": "Zahlung abgebrochen",
+  "payment_cancelled_message": "Die Zahlung konnte nicht abgeschlossen werden.",
+  "common_ok": "OK"
 }

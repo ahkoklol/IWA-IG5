@@ -168,5 +168,15 @@
     "account_delete_warning_2": "• Deletion of all your personal information (profile, contact details, etc.).",
     "account_delete_warning_3": "• Deletion of all your posted listings.",
     "account_delete_warning_4": "• Deletion of your favorites, messages, and reviews associated with your account.",
-    "account_delete_warning_5": "This operation is irreversible. Are you sure you want to continue?"
+    "account_delete_warning_5": "This operation is irreversible. Are you sure you want to continue?",
+
+    "purchase_price": "Sale price",
+    "purchase_commission": "Commission (10%)",
+
+      "purchase_success_title": "Purchase confirmed!",
+  "purchase_success_message": "Your order has been successfully confirmed. You can track its status in the \"My transactions\" section of your profile.",
+  "common_continue": "Continue",
+    "payment_cancelled_title": "Payment cancelled",
+  "payment_cancelled_message": "The payment could not be completed.",
+  "common_ok": "OK"
 }
