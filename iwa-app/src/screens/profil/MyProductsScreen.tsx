@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Pressable,
+  Modal,
 } from "react-native";
 import { ArrowLeft, MoreHorizontal } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
@@ -28,6 +29,10 @@ export function MyProductsScreen({ navigation }: Props) {
   );
   const [showMenu, setShowMenu] = useState<number | null>(null);
 
+  // Etat pour la suppression
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+
   const handleBack = () => {
     navigation.goBack();
   };
@@ -46,11 +51,25 @@ export function MyProductsScreen({ navigation }: Props) {
 
   const handleEditProduct = (product: Product) => {
     console.log("Edit product", product.id);
-    // Later: navigate to an edit screen
+    // Plus tard : navigation vers un écran d'édition
   };
 
-  const handleDeleteProduct = (productId: number) => {
-    setProducts((prev) => prev.filter((p) => p.id !== productId));
+  const handleDeleteProduct = (product: Product) => {
+    setProductToDelete(product);
+    setDeleteModalVisible(true);
+  };
+
+  const confirmDeleteProduct = () => {
+    if (productToDelete) {
+      setProducts((prev) => prev.filter((p) => p.id !== productToDelete.id));
+    }
+    setProductToDelete(null);
+    setDeleteModalVisible(false);
+  };
+
+  const cancelDeleteProduct = () => {
+    setProductToDelete(null);
+    setDeleteModalVisible(false);
   };
 
   const handleMenuToggle = (productId: number) => {
@@ -130,7 +149,7 @@ export function MyProductsScreen({ navigation }: Props) {
                         onPress={(e) => {
                           // @ts-ignore
                           e.stopPropagation?.();
-                          handleDeleteProduct(product.id);
+                          handleDeleteProduct(product);
                           setShowMenu(null);
                         }}
                         style={styles.menuItem}
@@ -147,6 +166,53 @@ export function MyProductsScreen({ navigation }: Props) {
           )}
         </View>
       </ScrollView>
+
+      {/* Modal de confirmation de suppression */}
+      <Modal
+        visible={deleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={cancelDeleteProduct}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>
+              {t("common_delete")} ?
+            </Text>
+            <Text style={styles.modalSubtitle}>
+              Es-tu sûre de vouloir supprimer cette annonce ?
+            </Text>
+
+            {productToDelete && (
+              <Text style={styles.modalProductName}>
+                {productToDelete.name}
+              </Text>
+            )}
+
+            <View style={styles.modalButtonsRow}>
+              <TouchableOpacity
+                onPress={cancelDeleteProduct}
+                style={styles.modalSecondaryButton}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.modalSecondaryButtonText}>
+                  {t("common_cancel")}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={confirmDeleteProduct}
+                style={styles.modalDangerButton}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.modalDangerButtonText}>
+                  {t("common_delete")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 }
@@ -250,5 +316,74 @@ const styles = StyleSheet.create({
   menuItemTextDelete: {
     fontSize: 14,
     color: "#EF4444",
+  },
+
+  // Styles du modal de confirmation
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+  },
+  modalContainer: {
+    width: "100%",
+    maxWidth: 360,
+    backgroundColor: "white",
+    borderRadius: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: "#4B5563",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  modalProductName: {
+    fontSize: 14,
+    color: "#111827",
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  modalButtonsRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 4,
+  },
+  modalSecondaryButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalSecondaryButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  modalDangerButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: "#EF4444",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalDangerButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "white",
   },
 });

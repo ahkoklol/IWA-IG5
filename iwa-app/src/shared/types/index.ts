@@ -4,7 +4,7 @@ export interface Product {
   id: number;
   name: string;
   quantity: string;
-  price: string; 
+  price: string;
   images: string[];
   description: string;
   category: string;
@@ -13,10 +13,12 @@ export interface Product {
   edible: boolean;
   harvestDate: string;
   seller: User;
+  createdAt: string; // date et heure d'ajout de l'annonce (ISO string)
   isFavorite?: boolean;
   removedByAI?: boolean;
-  sold?: boolean; // ✅ nouveau
+  sold?: boolean;
 }
+
 
 
 export interface User {

@@ -353,16 +353,17 @@ const styles = StyleSheet.create({
   tabsRow: {
     flexDirection: "row",
     borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
+    borderTopColor: "#ffffffff",
   },
   tabButton: {
     flex: 1,
-    paddingVertical: 12,
     alignItems: "center",
     justifyContent: "center",
   },
   tabText: {
     fontSize: 14,
+    marginTop: 15,
+    marginBottom: 8,
   },
   tabTextActive: {
     color: "#111827",

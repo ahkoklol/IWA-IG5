@@ -111,8 +111,8 @@
 "profile_settings": "Réglages et préférences",
 "profile_logout": "Se déconnecter",
 
-"profile_button_title": "Mon profil",
-"profile_my_reviews": "Mes évaluations",
+"profile_button_title": "Profil",
+"profile_my_reviews": "Évaluations",
 "profile_nationality": "Nationalité",
 "profile_x_items": "X articles",
 "profile_ad_deleted": "Annonce supprimée",
@@ -208,5 +208,13 @@
 "repost_request_success_title": "Requête envoyée",
 "repost_request_success_message": "Votre demande de remise en ligne a bien été transmise à notre équipe de modération. Vous serez informé(e) dès qu'une décision aura été prise.",
 "repost_request_cta": "Faire une requête de remise en ligne",
-"repost_request_already_sent": "Requête déjà envoyée"
+"repost_request_already_sent": "Requête déjà envoyée",
+"edit_profile_nationality_label": "Nationalité",
+"edit_profile_nationality_placeholder": "Ta nationalité",
+  "ad_time_minutes": "Il y a {{count}} min",
+  "ad_time_hours": "Il y a {{count}} h",
+  "ad_time_days": "Il y a {{count}} jour(s)",
+  "ad_time_weeks": "Il y a {{count}} semaine(s)",
+  "ad_time_months": "Il y a {{count}} mois",
+  "ad_time_years": "Il y a {{count}} an(s)"
 }

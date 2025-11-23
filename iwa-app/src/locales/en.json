@@ -111,8 +111,8 @@
 "profile_settings": "Settings & preferences",
 "profile_logout": "Log out",
 
-"profile_button_title": "My profile",
-"profile_my_reviews": "My reviews",
+"profile_button_title": "Profile",
+"profile_my_reviews": "Reviews",
 "profile_nationality": "Nationality",
 "profile_x_items": "X items",
 "profile_ad_deleted": "Listing removed",
@@ -210,7 +210,14 @@
 "repost_request_success_title": "Request sent",
 "repost_request_success_message": "Your request to restore this ad has been sent to our moderation team. You will be notified as soon as a decision has been made.",
 "repost_request_cta": "Request reinstatement",
-"repost_request_already_sent": "Request already sent"
-
+"repost_request_already_sent": "Request already sent",
+"edit_profile_nationality_label": "Nationality",
+"edit_profile_nationality_placeholder": "Your nationality",
+  "ad_time_minutes": "{{count}} min ago",
+  "ad_time_hours": "{{count}} h ago",
+  "ad_time_days": "{{count}} day(s) ago",
+  "ad_time_weeks": "{{count}} week(s) ago",
+  "ad_time_months": "{{count}} month(s) ago",
+  "ad_time_years": "{{count}} year(s) ago"
 }
 

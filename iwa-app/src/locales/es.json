@@ -112,8 +112,8 @@
 "profile_settings": "Ajustes y preferencias",
 "profile_logout": "Cerrar sesión",
 
-"profile_button_title": "Mi perfil",
-"profile_my_reviews": "Mis reseñas",
+"profile_button_title": "Perfil",
+"profile_my_reviews": "Reseñas",
 "profile_nationality": "Nacionalidad",
 "profile_x_items": "X artículos",
 "profile_ad_deleted": "Anuncio eliminado",
@@ -210,5 +210,14 @@
 "repost_request_success_title": "Solicitud enviada",
 "repost_request_success_message": "Tu solicitud de reactivación del anuncio ha sido enviada a nuestro equipo de moderación. Te avisaremos en cuanto se haya tomado una decisión.",
 "repost_request_cta": "Solicitar restablecimiento",
-"repost_request_already_sent": "Solicitud ya enviada"
+"repost_request_already_sent": "Solicitud ya enviada",
+"edit_profile_nationality_label": "Nacionalidad",
+"edit_profile_nationality_placeholder": "Tu nacionalidad",
+  "ad_time_minutes": "Hace {{count}} min",
+  "ad_time_hours": "Hace {{count}} h",
+  "ad_time_days": "Hace {{count}} día(s)",
+  "ad_time_weeks": "Hace {{count}} semana(s)",
+  "ad_time_months": "Hace {{count}} mes(es)",
+  "ad_time_years": "Hace {{count}} año(s)"
+
 }

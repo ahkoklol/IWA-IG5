@@ -111,8 +111,8 @@
 "profile_settings": "Einstellungen & Präferenzen",
 "profile_logout": "Abmelden",
 
-"profile_button_title": "Mein Profil",
-"profile_my_reviews": "Meine Bewertungen",
+"profile_button_title": "Profil",
+"profile_my_reviews": "Bewertungen",
 "profile_nationality": "Nationalität",
 "profile_x_items": "X Artikel",
 "profile_ad_deleted": "Anzeige gelöscht",
@@ -212,6 +212,14 @@
 "repost_request_success_title": "Anfrage gesendet",
 "repost_request_success_message": "Deine Anfrage zur Wiederherstellung der Anzeige wurde an unser Moderationsteam weitergeleitet. Du wirst benachrichtigt, sobald eine Entscheidung getroffen wurde.",
 "repost_request_cta": "Antrag auf Wiederherstellung stellen",
-"repost_request_already_sent": "Antrag bereits gesendet"
+"repost_request_already_sent": "Antrag bereits gesendet",
+"edit_profile_nationality_label": "Nationalität",
+"edit_profile_nationality_placeholder": "Deine Nationalität",
+  "ad_time_minutes": "Vor {{count}} Min.",
+  "ad_time_hours": "Vor {{count}} Std.",
+  "ad_time_days": "Vor {{count}} Tag(en)",
+  "ad_time_weeks": "Vor {{count}} Woche(n)",
+  "ad_time_months": "Vor {{count}} Monat(en)",
+  "ad_time_years": "Vor {{count}} Jahr(en)"
 
 }

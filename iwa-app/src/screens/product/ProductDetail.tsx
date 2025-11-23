@@ -131,6 +131,52 @@ export default function ProductDetail() {
 
   const sellerUser = product.seller as User;
 
+    const timeAgoLabel = useMemo(() => {
+    if (!product?.createdAt) return null;
+
+    const createdDate = new Date(product.createdAt);
+    if (Number.isNaN(createdDate.getTime())) return null;
+
+    const now = new Date();
+    let diffMs = now.getTime() - createdDate.getTime();
+
+    // In case createdAt is in the future, avoid negative values
+    if (diffMs < 0) diffMs = 0;
+
+    const minute = 60 * 1000;
+    const hour = 60 * minute;
+    const day = 24 * hour;
+
+    const minutes = Math.floor(diffMs / minute);
+    if (minutes < 60) {
+      return t("ad_time_minutes", { count: minutes });
+    }
+
+    const hours = Math.floor(diffMs / hour);
+    if (hours < 24) {
+      return t("ad_time_hours", { count: hours });
+    }
+
+    const days = Math.floor(diffMs / day);
+    if (days < 7) {
+      return t("ad_time_days", { count: days });
+    }
+
+    const weeks = Math.floor(days / 7);
+    if (weeks < 4) {
+      return t("ad_time_weeks", { count: weeks });
+    }
+
+    const months = Math.floor(days / 30);
+    if (months < 12) {
+      return t("ad_time_months", { count: months });
+    }
+
+    const years = Math.floor(days / 365) || 1;
+    return t("ad_time_years", { count: years });
+  }, [product?.createdAt, t]);
+
+
   return (
     <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <StatusBar barStyle="dark-content" />
@@ -260,6 +306,10 @@ export default function ProductDetail() {
           <Text style={styles.title}>{product.name}</Text>
           <Text style={styles.quantity}>{product.quantity}</Text>
           <Text style={styles.price}>{product.price}</Text>
+
+          {timeAgoLabel && (
+            <Text style={styles.timeAgo}>{timeAgoLabel}</Text>
+          )}
 
           <View style={{ marginTop: 16 }}>
             <Text style={styles.sectionTitle}>{t("ad_description")}</Text>
@@ -676,6 +726,11 @@ const styles = StyleSheet.create({
   },
   repostBtnTextDisabled: {
     color: "#9CA3AF",
+  },
+    timeAgo: {
+    marginTop: 4,
+    color: "#6B7280",
+    fontSize: 12,
   },
 
 

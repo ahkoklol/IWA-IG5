@@ -30,6 +30,7 @@ export function EditProfileModal({
 
   const [fullName, setFullName] = useState(user.fullName);
   const [location, setLocation] = useState(user.location);
+  const [nationality, setNationality] = useState(user.nationality);
   const [bio, setBio] = useState(user.bio);
   const [avatar, setAvatar] = useState(user.avatar);
 
@@ -37,6 +38,7 @@ export function EditProfileModal({
     onSave({
       fullName,
       location,
+      nationality,
       bio,
       avatar,
     });
@@ -124,6 +126,20 @@ export function EditProfileModal({
                 onChangeText={setLocation}
                 style={styles.input}
                 placeholder={t("edit_profile_location_placeholder")}
+                placeholderTextColor="#9ca3af"
+              />
+            </View>
+
+            {/* Nationality */}
+            <View style={styles.field}>
+              <Text style={styles.label}>
+                {t("edit_profile_nationality_label")}
+              </Text>
+              <TextInput
+                value={nationality}
+                onChangeText={setNationality}
+                style={styles.input}
+                placeholder={t("edit_profile_nationality_placeholder")}
                 placeholderTextColor="#9ca3af"
               />
             </View>
