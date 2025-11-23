@@ -20,6 +20,7 @@ import type { RootStackParamList } from "../../navigation/RootNavigator";
 
 import DeleteAccountConfirmationModal from "./DeleteAccountConfirmationModal";
 import { Screen } from "../../components/Screen";
+import { useTranslation } from "react-i18next";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Settings">;
 
@@ -32,6 +33,7 @@ type SettingsSubPage =
   | "about";
 
 export function SettingsScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const [currentSubPage, setCurrentSubPage] =
     useState<SettingsSubPage>("main");
 
@@ -40,11 +42,11 @@ export function SettingsScreen({ navigation, route }: Props) {
   const { onDeleteAccount } = route.params;
 
   const settingsItems = [
-    { id: "notifications", label: "Notifications" },
-    { id: "privacy", label: "Confidentialité" },
-    { id: "language", label: "Langue" },
-    { id: "help", label: "Aide et support" },
-    { id: "about", label: "À propos" },
+    { id: "notifications", labelKey: "navbar_notifications" },
+    { id: "privacy", labelKey: "settings_privacy_title" },
+    { id: "language", labelKey: "settings_language" },
+    { id: "help", labelKey: "settings_support" },
+    { id: "about", labelKey: "settings_about_title" },
   ];
 
   const handleItemPress = (id: SettingsSubPage) => {
@@ -67,9 +69,6 @@ export function SettingsScreen({ navigation, route }: Props) {
     setIsDeleteModalVisible(false);
     onDeleteAccount();
   };
-
-
-  
 
   /* ----------------------------- */
   /*           SUB-PAGES           */
@@ -101,51 +100,51 @@ export function SettingsScreen({ navigation, route }: Props) {
 
   return (
     <Screen>
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <ArrowLeft size={22} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Réglages et préférences</Text>
-      </View>
-
-      {/* List */}
-      <ScrollView contentContainerStyle={styles.listContainer}>
-        {settingsItems.map((item) => (
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
           <TouchableOpacity
-            key={item.id}
-            onPress={() => handleItemPress(item.id as SettingsSubPage)}
-            style={styles.listItem}
-            activeOpacity={0.5}
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
           >
-            <Text style={styles.itemText}>{item.label}</Text>
-            <ChevronRight size={20} color="#9CA3AF" />
+            <ArrowLeft size={22} color="#000" />
           </TouchableOpacity>
-        ))}
-
-        {/* Zone danger : suppression de profil */}
-        <View style={styles.dangerZone}>
-        <TouchableOpacity
-            onPress={handleOpenDeleteModal}
-            style={styles.listItem}
-            activeOpacity={0.7}
-        >
-            <Text style={styles.deleteText}>Supprimer mon profil</Text>
-            {/* Pour aligner comme les autres, on ajoute un chevron transparent */}
-            <ChevronRight size={20} color="transparent" />
-        </TouchableOpacity>
+          <Text style={styles.headerTitle}>{t("profile_settings")}</Text>
         </View>
-      </ScrollView>
-      <DeleteAccountConfirmationModal
-        visible={isDeleteModalVisible}
-        onCancel={handleCancelDelete}
-        onConfirm={handleConfirmDelete}
-      />
-    </View>
+
+        {/* List */}
+        <ScrollView contentContainerStyle={styles.listContainer}>
+          {settingsItems.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              onPress={() => handleItemPress(item.id as SettingsSubPage)}
+              style={styles.listItem}
+              activeOpacity={0.5}
+            >
+              <Text style={styles.itemText}>{t(item.labelKey)}</Text>
+              <ChevronRight size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          ))}
+
+          {/* Zone danger : suppression de profil */}
+          <View style={styles.dangerZone}>
+            <TouchableOpacity
+              onPress={handleOpenDeleteModal}
+              style={styles.listItem}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.deleteText}>{t("account_delete_title")}</Text>
+              <ChevronRight size={20} color="transparent" />
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+
+        <DeleteAccountConfirmationModal
+          visible={isDeleteModalVisible}
+          onCancel={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+        />
+      </View>
     </Screen>
   );
 }
@@ -202,15 +201,14 @@ const styles = StyleSheet.create({
   },
 
   dangerZone: {
-  marginTop: 0,
+    marginTop: 0,
   },
 
-    deleteButton: {
+  deleteButton: {
     paddingVertical: 12,
-    },
-    deleteText: {
+  },
+  deleteText: {
     fontSize: 16,
     color: "#EF4444",
-    },
-
+  },
 });

@@ -8,6 +8,7 @@ import {
   Linking,
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Screen } from "../../components/Screen";
 
 interface AboutSettingsScreenProps {
@@ -15,67 +16,44 @@ interface AboutSettingsScreenProps {
 }
 
 export function AboutSettingsScreen({ onBack }: AboutSettingsScreenProps) {
+  const { t } = useTranslation();
+
   return (
     <Screen>
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <ArrowLeft size={22} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>À propos</Text>
-      </View>
-
-      {/* Content */}
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.paragraph}>
-          Bonne Graine est née de l'initiative de trois étudiantes passionnées
-          de jardinage, qui rêvaient de rendre le troc de graines plus simple,
-          plus accessible et surtout plus humain.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          Face aux difficultés pour échanger des semences de manière fiable,
-          conviviale et organisée, nous avons imaginé une application qui
-          rassemble une communauté autour du partage, de la découverte et de la
-          biodiversité.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          Notre vision est de créer un espace où chacun peut trouver, échanger
-          et transmettre des variétés nouvelles sans coût excessif, sans
-          contraintes, et toujours dans un esprit d'entraide.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          Jour après jour, nous cherchons à améliorer l'expérience, à proposer
-          de nouvelles fonctionnalités et à encourager une utilisation
-          responsable et durable des ressources.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          Si vous souhaitez en savoir plus ou nous contacter, vous pouvez nous
-          écrire à :
-        </Text>
-
-        <View style={styles.emailBox}>
-          <TouchableOpacity
-            onPress={() =>
-              Linking.openURL("mailto:nouscontacter@bonnegraine.com")
-            }
-          >
-            <Text style={styles.emailText}>
-              contact@bonnegraine.com
-            </Text>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+            <ArrowLeft size={22} color="#000" />
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>{t("settings_about_title")}</Text>
         </View>
 
-        <Text style={styles.quote}>
-          Merci d'utiliser Bonne Graine et de participer avec nous à la
-          diffusion de petites graines… qui font naître de grandes idées.
-        </Text>
-      </ScrollView>
-    </View>
+        {/* Content */}
+        <ScrollView contentContainerStyle={styles.content}>
+          <Text style={styles.paragraph}>{t("about_story_1")}</Text>
+
+          <Text style={styles.paragraph}>{t("about_story_2")}</Text>
+
+          <Text style={styles.paragraph}>{t("about_story_3")}</Text>
+
+          <Text style={styles.paragraph}>{t("about_story_4")}</Text>
+
+          <Text style={styles.paragraph}>{t("about_story_5")}</Text>
+
+          <View style={styles.emailBox}>
+            <TouchableOpacity
+              onPress={() =>
+                Linking.openURL("mailto:contact@bonnegraine.com")
+              }
+            >
+              <Text style={styles.emailText}>contact@bonnegraine.com</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.quote}>{t("about_story_6")}</Text>
+        </ScrollView>
+      </View>
     </Screen>
   );
 }

@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { Trash2 } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 interface DeleteAccountConfirmationModalProps {
   visible: boolean;
@@ -19,6 +20,8 @@ export default function DeleteAccountConfirmationModal({
   onCancel,
   onConfirm,
 }: DeleteAccountConfirmationModalProps) {
+  const { t } = useTranslation();
+
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
@@ -29,30 +32,20 @@ export default function DeleteAccountConfirmationModal({
               <Trash2 size={36} color="#DC2626" />
             </View>
 
-            <Text style={styles.title}>Supprimer mon compte ?</Text>
+            <Text style={styles.title}>{t("account_delete_question")}</Text>
 
             <Text style={styles.subtitle}>
-              Cette action est définitive. La suppression de votre compte
-              entraînera :
+              {t("account_delete_warning_1")}
             </Text>
 
             <View style={styles.bulletList}>
-              <Text style={styles.bulletItem}>
-                • La suppression de toutes vos informations personnelles
-                (profil, coordonnées, etc.).
-              </Text>
-              <Text style={styles.bulletItem}>
-                • La suppression de toutes vos annonces publiées.
-              </Text>
-              <Text style={styles.bulletItem}>
-                • La suppression de vos favoris, messages et évaluations
-                associées à votre compte.
-              </Text>
+              <Text style={styles.bulletItem}>{t("account_delete_warning_2")}</Text>
+              <Text style={styles.bulletItem}>{t("account_delete_warning_3")}</Text>
+              <Text style={styles.bulletItem}>{t("account_delete_warning_4")}</Text>
             </View>
 
             <Text style={styles.warningText}>
-              Cette opération est irréversible. Êtes-vous sûre de vouloir
-              continuer ?
+              {t("account_delete_warning_5")}
             </Text>
 
             <View style={styles.buttonsRow}>
@@ -61,7 +54,7 @@ export default function DeleteAccountConfirmationModal({
                 style={styles.secondaryButton}
                 activeOpacity={0.9}
               >
-                <Text style={styles.secondaryButtonText}>Annuler</Text>
+                <Text style={styles.secondaryButtonText}>{t("common_cancel")}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -70,7 +63,7 @@ export default function DeleteAccountConfirmationModal({
                 activeOpacity={0.9}
               >
                 <Text style={styles.dangerButtonText}>
-                  Supprimer
+                  {t("common_delete")}
                 </Text>
               </TouchableOpacity>
             </View>

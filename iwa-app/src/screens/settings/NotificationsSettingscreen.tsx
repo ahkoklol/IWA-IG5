@@ -8,12 +8,17 @@ import {
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
 import { Screen } from "../../components/Screen";
+import { useTranslation } from "react-i18next";
 
 interface NotificationsSettingsScreenProps {
   onBack: () => void;
 }
 
-export function NotificationsSettingsScreen({ onBack }: NotificationsSettingsScreenProps) {
+export function NotificationsSettingsScreen({
+  onBack,
+}: NotificationsSettingsScreenProps) {
+  const { t } = useTranslation();
+
   const [notificationPreferences, setNotificationPreferences] = useState({
     mySale: true,
     favoriteSale: true,
@@ -23,47 +28,56 @@ export function NotificationsSettingsScreen({ onBack }: NotificationsSettingsScr
   });
 
   const handleToggle = (key: keyof typeof notificationPreferences) => {
-    setNotificationPreferences(prev => ({
+    setNotificationPreferences((prev) => ({
       ...prev,
       [key]: !prev[key],
     }));
   };
 
-  const notifications = [
-    { key: "mySale" as const, label: "Vente d'un de mes articles" },
-    { key: "favoriteSale" as const, label: "Vente d'un des articles que j'avais en favori" },
-    { key: "removedByAI" as const, label: "Suppression d'un de mes articles après signalements ou contrôle par IA" },
-    { key: "addedToFavorite" as const, label: "Ajout d'un de mes articles en favori par un autre utilisateur" },
-    { key: "newReview" as const, label: "Nouvelle évaluation ajoutée à mon profil" },
+  const notifications: {
+    key: keyof typeof notificationPreferences;
+    labelKey:
+      | "settings_sale_my_item"
+      | "settings_sale_favorite_item"
+      | "settings_deleted_by_report"
+      | "settings_added_favorite"
+      | "settings_new_review";
+  }[] = [
+    { key: "mySale", labelKey: "settings_sale_my_item" },
+    { key: "favoriteSale", labelKey: "settings_sale_favorite_item" },
+    { key: "removedByAI", labelKey: "settings_deleted_by_report" },
+    { key: "addedToFavorite", labelKey: "settings_added_favorite" },
+    { key: "newReview", labelKey: "settings_new_review" },
   ];
 
   return (
     <Screen>
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <ArrowLeft size={22} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Notifications</Text>
-      </View>
-
-      {/* Content */}
-      <ScrollView contentContainerStyle={styles.content}>
-        {notifications.map((item) => (
-          <TouchableOpacity
-            key={item.key}
-            onPress={() => handleToggle(item.key)}
-            style={styles.row}
-            activeOpacity={0.7}
-          >
-            <RadioCircle checked={notificationPreferences[item.key]} />
-
-            <Text style={styles.label}>{item.label}</Text>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+            <ArrowLeft size={22} color="#000" />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </View>
+          <Text style={styles.headerTitle}>
+            {t("navbar_notifications")}
+          </Text>
+        </View>
+
+        {/* Content */}
+        <ScrollView contentContainerStyle={styles.content}>
+          {notifications.map((item) => (
+            <TouchableOpacity
+              key={item.key}
+              onPress={() => handleToggle(item.key)}
+              style={styles.row}
+              activeOpacity={0.7}
+            >
+              <RadioCircle checked={notificationPreferences[item.key]} />
+              <Text style={styles.label}>{t(item.labelKey)}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
     </Screen>
   );
 }
@@ -130,13 +144,12 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  // Cercles
   circleOuter: {
     width: 22,
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: "#7BCCEB", // bleu vide
+    borderColor: "#7BCCEB",
     justifyContent: "center",
     alignItems: "center",
     marginTop: 3,
@@ -146,6 +159,6 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: "#7BCCEB", // bleu rempli
+    backgroundColor: "#7BCCEB",
   },
 });

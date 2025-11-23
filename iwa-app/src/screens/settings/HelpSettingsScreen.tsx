@@ -9,56 +9,46 @@ import {
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
 import { Screen } from "../../components/Screen";
+import { useTranslation } from "react-i18next";
 
 interface HelpSettingsScreenProps {
   onBack: () => void;
 }
 
 export function HelpSettingsScreen({ onBack }: HelpSettingsScreenProps) {
+  const { t } = useTranslation();
+
   return (
     <Screen>
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <ArrowLeft size={22} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Aide & Support</Text>
-      </View>
-
-      {/* Content */}
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.paragraph}>
-          Vous rencontrez un problème ou vous avez une question concernant
-          l'application ?
-        </Text>
-
-        <Text style={styles.paragraph}>
-          Consultez notre section d'aide pour trouver des réponses rapides sur
-          l'utilisation des fonctionnalités, la gestion de votre compte, ou les
-          paramètres de confidentialité.
-        </Text>
-
-        <Text style={styles.paragraph}>
-          Si vous avez besoin d'une assistance personnalisée, vous pouvez nous
-          écrire directement à :
-        </Text>
-
-        {/* Email box */}
-        <View style={styles.emailBox}>
-          <TouchableOpacity
-            onPress={() => Linking.openURL("mailto:support@bonnegraine.com")}
-          >
-            <Text style={styles.emailText}>support@bonnegraine.com</Text>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+            <ArrowLeft size={22} color="#000" />
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>{t("settings_support")}</Text>
         </View>
 
-        <Text style={styles.paragraph}>
-          Nous faisons notre maximum pour vous répondre dans les meilleurs
-          délais.
-        </Text>
-      </ScrollView>
-    </View>
+        {/* Content */}
+        <ScrollView contentContainerStyle={styles.content}>
+          <Text style={styles.paragraph}>{t("settings_support_text1")}</Text>
+
+          <Text style={styles.paragraph}>{t("settings_support_text2")}</Text>
+
+          <Text style={styles.paragraph}>{t("settings_support_text3")}</Text>
+
+          {/* Email box */}
+          <View style={styles.emailBox}>
+            <TouchableOpacity
+              onPress={() => Linking.openURL("mailto:support@bonnegraine.com")}
+            >
+              <Text style={styles.emailText}>support@bonnegraine.com</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.paragraph}>{t("settings_support_text4")}</Text>
+        </ScrollView>
+      </View>
     </Screen>
   );
 }
