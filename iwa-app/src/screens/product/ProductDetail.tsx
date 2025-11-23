@@ -26,6 +26,8 @@ import PurchaseConfirmationModal from "./PurchaseConfirmationModal";
 import ReportModal from "./ReportModal";
 import { Screen } from "../../components/Screen";
 import { useTranslation } from "react-i18next";
+import RepostRequestModal from "./RepostRequestModal";
+import RepostRequestSuccessModal from "./RepostRequestSuccessModal";
 
 
 type DetailRoute = RouteProp<RootStackParamList, "ProductDetail">;
@@ -69,6 +71,11 @@ export default function ProductDetail() {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
 
+  const [showRepostModal, setShowRepostModal] = useState(false);
+  const [showRepostSuccessModal, setShowRepostSuccessModal] = useState(false);
+  const [hasSentRepostRequest, setHasSentRepostRequest] = useState(false);
+
+
   // Fullscreen gallery state
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [initialIndex, setInitialIndex] = useState(0);
@@ -104,14 +111,15 @@ export default function ProductDetail() {
   }
 
   const images = product.images?.length ? product.images : [undefined];
+  const isDisabled = product.removedByAI || product.sold;
 
   const onBuy = () => {
-    if (product.removedByAI) {
-      Alert.alert("Indisponible", "Cette annonce a été supprimée.");
+    if (isDisabled) {
       return;
     }
     setShowPurchaseModal(true);
   };
+
 
   const planting = Array.isArray(product.plantingPeriod)
     ? product.plantingPeriod.join(" - ")
@@ -127,23 +135,25 @@ export default function ProductDetail() {
     <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <StatusBar barStyle="dark-content" />
 
-      <View style={styles.header}>
+    <View style={styles.header}>
+      <TouchableOpacity
+        style={styles.headerBtn}
+        onPress={() => navigation.goBack()}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <ArrowLeft size={18} color="#111827" />
+      </TouchableOpacity>
+
+      {/* On ne peut signaler que si l'annonce n'a pas été supprimée */}
+      {!product.removedByAI && (
         <TouchableOpacity
-          style={styles.headerBtn}
-          onPress={() => navigation.goBack()}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={styles.reportBtn}
+          onPress={() => setShowReportModal(true)}
         >
-          <ArrowLeft size={18} color="#111827" />
+          <Text style={styles.reportText}>{t("report_title")}</Text>
         </TouchableOpacity>
-        {!product.removedByAI && (
-          <TouchableOpacity
-            style={styles.reportBtn}
-            onPress={() => setShowReportModal(true)}
-          >
-            <Text style={styles.reportText}>{t("report_title")}</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      )}
+    </View>
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: 24 }}
@@ -186,9 +196,20 @@ export default function ProductDetail() {
                   <Text style={{ color: "#9CA3AF" }}>Image</Text>
                 </View>
               )}
-              {product.removedByAI && (
-                <View>
-                  <Text>{t("profile_ad_deleted")}</Text>
+              {(product.removedByAI || product.sold) && (
+                <View
+                  style={[
+                    styles.statusBanner,
+                    product.removedByAI
+                      ? styles.statusBannerRemoved
+                      : styles.statusBannerSold,
+                  ]}
+                >
+                  <Text style={styles.statusBannerText}>
+                    {product.removedByAI
+                      ? t("profile_ad_deleted")
+                      : t("profile_sold")}
+                  </Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -209,6 +230,31 @@ export default function ProductDetail() {
             />
           ))}
         </View>
+        {product.removedByAI && (
+          <TouchableOpacity
+            onPress={() => {
+              if (hasSentRepostRequest) return;
+              setShowRepostModal(true);
+            }}
+            disabled={hasSentRepostRequest}
+            style={[
+              styles.repostBtn,
+              hasSentRepostRequest && styles.repostBtnDisabled,
+            ]}
+            activeOpacity={hasSentRepostRequest ? 1 : 0.9}
+          >
+            <Text
+              style={[
+                styles.repostBtnText,
+                hasSentRepostRequest && styles.repostBtnTextDisabled,
+              ]}
+            >
+              {hasSentRepostRequest
+                ? t("repost_request_already_sent")
+                : t("repost_request_cta")}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         <View style={styles.body}>
           <Text style={styles.title}>{product.name}</Text>
@@ -283,15 +329,25 @@ export default function ProductDetail() {
             <ChevronRight size={18} color="#6B7280" />
           </TouchableOpacity>
 
-          {!product.removedByAI && (
-            <TouchableOpacity
-              onPress={onBuy}
-              style={styles.buyBtn}
-              activeOpacity={0.9}
+          <TouchableOpacity
+            onPress={isDisabled ? undefined : onBuy}
+            disabled={isDisabled}
+            style={[
+              styles.buyBtn,
+              isDisabled && styles.buyBtnDisabled,
+            ]}
+            activeOpacity={isDisabled ? 1 : 0.9}
+          >
+            <Text
+              style={[
+                styles.buyText,
+                isDisabled && styles.buyTextDisabled,
+              ]}
             >
-              <Text style={styles.buyText}>{t("ad_buy")}</Text>
-            </TouchableOpacity>
-          )}
+              {t("ad_buy")}
+            </Text>
+          </TouchableOpacity>
+
         </View>
       </ScrollView>
 
@@ -372,8 +428,22 @@ export default function ProductDetail() {
           </View>
         </Screen>
       </Modal>
+      <RepostRequestModal
+        visible={showRepostModal}
+        onClose={() => setShowRepostModal(false)}
+        onSubmit={(message) => {
+          // Plus tard: appel API pour envoyer la requête
+          console.log("Repost request justification:", message);
+          setShowRepostModal(false);
+          setHasSentRepostRequest(true);      // ✅ on marque la requête comme envoyée
+          setShowRepostSuccessModal(true);    // ✅ on ouvre le modal de succès
+        }}
+      />
 
-
+      <RepostRequestSuccessModal
+        visible={showRepostSuccessModal}
+        onClose={() => setShowRepostSuccessModal(false)}
+      />
     </View>
   );
 }
@@ -493,7 +563,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
   },
-  buyText: { color: "#FFFFFF", fontWeight: "700", fontSize: 16 },
+  buyText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 16,
+  },
 
   // Gallery styles
   galleryOverlay: {
@@ -545,5 +619,65 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
   },
+
+  // ✅ nouvelle bannière statut image
+  statusBanner: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingVertical: 15,
+    alignItems: "center",
+  },
+  statusBannerRemoved: {
+    backgroundColor: "#EF4444",
+  },
+  statusBannerSold: {
+    backgroundColor: "#10B981",
+  },
+  statusBannerText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  buyBtnDisabled: {
+    backgroundColor: "#D1D5DB", // gris clair
+  },
+  buyTextDisabled: {
+    color: "#9CA3AF", // texte gris
+  },
+    moreBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  repostBtn: {
+    marginTop: 12,
+    marginHorizontal: 8,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#bb0000ff",
+    backgroundColor: "#fedbdbff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  repostBtnDisabled: {
+    backgroundColor: "#E5E7EB",
+    borderColor: "#D1D5DB",
+  },
+  repostBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#bb0000ff",
+  },
+  repostBtnTextDisabled: {
+    color: "#9CA3AF",
+  },
+
+
 
 });

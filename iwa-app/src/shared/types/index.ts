@@ -1,24 +1,4 @@
-export interface User {
-  id: number;
-  username: string;
-  fullName: string;
-  avatar: string;
-  rating: number;
-  reviewCount: number;
-  location: string;
-  nationality: string;
-  followers: number;
-  following: number;
-  bio: string;
-}
-
-export interface Review {
-  id: number;
-  reviewer: User;
-  rating: number;
-  comment: string;
-  date: string;
-}
+// src/shared/types/index.ts
 
 export interface Product {
   id: number;
@@ -35,8 +15,29 @@ export interface Product {
   seller: User;
   isFavorite?: boolean;
   removedByAI?: boolean;
+  sold?: boolean; // ✅ nouveau
 }
 
+
+export interface User {
+  id: number;
+  username: string;
+  fullName: string;
+  avatar: string;
+  rating: number;
+  reviewCount: number;
+  location: string;
+  nationality: string;
+  bio: string;
+}
+
+export interface Review {
+  id: number;
+  reviewer: User;
+  rating: number;
+  comment: string;
+  date: string;
+}
 
 export type Category =
   | "Légumes"

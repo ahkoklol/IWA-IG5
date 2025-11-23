@@ -46,9 +46,6 @@
 "report_cancel": "Cancelar",
 "report_send": "Enviar reporte",
 
-"repost_request_title": "¿Reporte abusivo? Solicita la restauración.",
-"repost_request_placeholder": "Justifica tu solicitud en unas pocas frases.",
-
 "purchase_confirmation": "Confirmación de compra",
 "purchase_validate": "Confirmar compra",
 "purchase_secure_payment": "Pago seguro",
@@ -204,6 +201,14 @@
 "common_back": "Volver",
 "review_comment_label": "Comentario",
 "settings_about_title": "Acerca de",
-"common_cancel": "Cancelar"
+"common_cancel": "Cancelar",
 
+"repost_request_title": "¿Informe abusivo? Solicita la reactivación del anuncio.",
+"repost_request_placeholder": "Justifica tu solicitud en pocas frases.",
+"repost_request_explanation": "Explica brevemente por qué consideras que la eliminación de este anuncio es injustificada o se debe a un error.",
+"repost_request_submit": "Enviar solicitud",
+"repost_request_success_title": "Solicitud enviada",
+"repost_request_success_message": "Tu solicitud de reactivación del anuncio ha sido enviada a nuestro equipo de moderación. Te avisaremos en cuanto se haya tomado una decisión.",
+"repost_request_cta": "Solicitar restablecimiento",
+"repost_request_already_sent": "Solicitud ya enviada"
 }

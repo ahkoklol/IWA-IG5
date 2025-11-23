@@ -46,9 +46,6 @@
 "report_cancel": "Abbrechen",
 "report_send": "Meldung senden",
 
-"repost_request_title": "Missbrauchsmeldung? Bitte um Wiederherstellung.",
-"repost_request_placeholder": "Begründen Sie Ihre Anfrage in ein paar Sätzen.",
-
 "purchase_confirmation": "Kaufbestätigung",
 "purchase_validate": "Kauf bestätigen",
 "purchase_secure_payment": "Sichere Zahlung",
@@ -206,8 +203,15 @@
 "common_back": "Zurück",
 "review_comment_label": "Kommentar",
 "settings_about_title": "Über uns",
-"common_cancel": "Abbrechen"
+"common_cancel": "Abbrechen",
 
-
+"repost_request_title": "Missbräuchliche Meldung? Beantrage die Wiederherstellung der Anzeige.",
+"repost_request_placeholder": "Begründe deine Anfrage in ein paar Sätzen.",
+"repost_request_explanation": "Erläutere kurz, warum du glaubst, dass das Entfernen dieser Anzeige ungerechtfertigt war oder auf einem Fehler beruht.",
+"repost_request_submit": "Anfrage senden",
+"repost_request_success_title": "Anfrage gesendet",
+"repost_request_success_message": "Deine Anfrage zur Wiederherstellung der Anzeige wurde an unser Moderationsteam weitergeleitet. Du wirst benachrichtigt, sobald eine Entscheidung getroffen wurde.",
+"repost_request_cta": "Antrag auf Wiederherstellung stellen",
+"repost_request_already_sent": "Antrag bereits gesendet"
 
 }

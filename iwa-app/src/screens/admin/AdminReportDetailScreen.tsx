@@ -87,6 +87,13 @@ export function AdminReportDetailScreen({ route, navigation }: Props) {
           <Text style={styles.headerTitle}>Détail de la requête</Text>
         </View>
 
+                          <Text style={styles.justificationTitle}>
+                            Justification de la demande du vendeur :
+                          </Text>
+                          <Text style={styles.justification}>
+                            {report.description}
+                          </Text>
+
         {/* Action buttons */}
         <View style={styles.actionsRow}>
           <TouchableOpacity
@@ -243,8 +250,6 @@ export function AdminReportDetailScreen({ route, navigation }: Props) {
 
                   <Text style={styles.sellerLocation}>{product.seller.location}</Text>
                 </View>
-
-                <ChevronRight size={18} color="#6b7280" />
               </TouchableOpacity>
             </View>
           )}
@@ -512,5 +517,16 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     marginTop: 2,
   },
-
+  justificationTitle:{
+    color: "#000000ff",
+    fontSize: 15,
+    fontWeight: "600",
+    marginBottom: 5,
+  },
+justification: {
+  color: "#000000ff",
+  fontSize: 15,
+  fontWeight: "200",
+  marginBottom: 15,
+},
 });

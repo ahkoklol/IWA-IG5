@@ -19,8 +19,6 @@ const demoUser: User[] = [
     reviewCount: 27,
     location: "Hérault, France",
     nationality: "Nationalité Française",
-    followers: 22,
-    following: 25,
     bio: "Passionnée de jardinage depuis plus de 40 ans. Je cultive mes propres graines et partage avec plaisir mes variétés préférées. Spécialisée dans les fleurs anciennes et les bulbes rares.",
   },
   {
@@ -33,8 +31,6 @@ const demoUser: User[] = [
     reviewCount: 15,
     location: "Lyon, France",
     nationality: "Nationalité Française",
-    followers: 45,
-    following: 32,
     bio: "Jardinier urbain et amateur de permaculture. Je partage mes graines bio et mes conseils pour cultiver en ville.",
   },
   {
@@ -47,8 +43,6 @@ const demoUser: User[] = [
     reviewCount: 8,
     location: "Bordeaux, France",
     nationality: "Nationalité Française",
-    followers: 18,
-    following: 23,
     bio: "Amoureuse des plantes aromatiques et des légumes anciens. Culture biologique exclusivement.",
   },
   {
@@ -61,8 +55,6 @@ const demoUser: User[] = [
     reviewCount: 12,
     location: "Paris, France",
     nationality: "Nationalité Française",
-    followers: 34,
-    following: 28,
     bio: "Collectrice de graines rares et passionnée de botanique. J'aime découvrir et partager des variétés uniques.",
   },
 ];
@@ -87,6 +79,7 @@ export const demoProducts: Product[] = [
     harvestDate: "Septembre 2024",
     seller: demoUser[0],
     isFavorite: false,
+    sold: true,
   },
   {
     id: 2,
@@ -106,6 +99,7 @@ export const demoProducts: Product[] = [
     harvestDate: "Octobre 2024",
     seller: demoUser[0],
     isFavorite: false,
+    sold: false,
   },
   {
     id: 3,
@@ -125,6 +119,7 @@ export const demoProducts: Product[] = [
     harvestDate: "Juillet 2024",
     seller: demoUser[0],
     isFavorite: true,
+    sold: false,
   },
   {
     id: 4,
@@ -146,6 +141,7 @@ export const demoProducts: Product[] = [
     harvestDate: "Juin 2024",
     seller: demoUser[0],
     isFavorite: false,
+    sold: false,
   },
   {
     id: 5,
@@ -164,6 +160,7 @@ export const demoProducts: Product[] = [
     harvestDate: "Août 2024",
     seller: demoUser[1],
     isFavorite: false,
+    sold: false,
   },
   {
     id: 6,
@@ -182,6 +179,7 @@ export const demoProducts: Product[] = [
     harvestDate: "Août 2024",
     seller: demoUser[1],
     isFavorite: false,
+    sold: false,
   },
   {
     id: 7,
@@ -200,6 +198,7 @@ export const demoProducts: Product[] = [
     harvestDate: "Septembre 2024",
     seller: demoUser[1],
     isFavorite: false,
+    sold: false,
   },
   {
     id: 8,
@@ -218,6 +217,7 @@ export const demoProducts: Product[] = [
     harvestDate: "Septembre 2024",
     seller: demoUser[2],
     isFavorite: false,
+    sold: false,
   },
   {
     id: 9,
@@ -236,6 +236,7 @@ export const demoProducts: Product[] = [
     seller: demoUser[0],
     isFavorite: false,
     removedByAI: true,
+    sold: false,
   },
   {
     id: 10,
@@ -254,6 +255,7 @@ export const demoProducts: Product[] = [
     seller: demoUser[0],
     isFavorite: false,
     removedByAI: true,
+    sold: false,
   },
 ];
 
@@ -376,7 +378,7 @@ export const demoReports: Report[] = [
     productId: demoProducts[0].id, // 1
     reportCount: 5,
     date: "2025-11-10",
-    description: "Signalements multiples pour contenu inapproprié.",
+    description: "Mais c'est juste des graines de fleurs, pas de cannabis !!",
     status: "pending",
   },
   {
@@ -385,7 +387,7 @@ export const demoReports: Report[] = [
     productId: demoProducts[1].id, // 2
     reportCount: 2,
     date: "2025-11-08",
-    description: "Suspicions de fraude sur l’annonce.",
+    description: "Simple erreur de ma part, ça ne se reproduira plus",
     status: "approved",
   },
   {
@@ -394,7 +396,7 @@ export const demoReports: Report[] = [
     productId: demoProducts[2].id, // 3
     reportCount: 1,
     date: "2025-11-05",
-    description: "Utilisateur signale un problème de description.",
+    description: "Je ne comprends pas pourquoi...",
     status: "rejected",
   },
 ];

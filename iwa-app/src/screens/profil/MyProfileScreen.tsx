@@ -198,13 +198,6 @@ export function MyProfileScreen({ route, navigation }: Props) {
                 <Flag size={16} color="#6B7280" />
                 <Text style={styles.detailText}>{currentUser.nationality}</Text>
               </View>
-              <View style={styles.detailRow}>
-                <Users size={16} color="#6B7280" />
-                <Text style={styles.detailText}>
-                  {currentUser.followers} Abonnés, {currentUser.following}{" "}
-                  Abonnements
-                </Text>
-              </View>
             </View>
 
             {/* Bio */}

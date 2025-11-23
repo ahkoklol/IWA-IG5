@@ -46,9 +46,6 @@
 "report_cancel": "Annuler",
 "report_send": "Envoyer le signalement",
 
-"repost_request_title": "Signalement abusif ? Faites une requête de remise en ligne.",
-"repost_request_placeholder": "Justifiez en quelques phrases votre requête.",
-
 "purchase_confirmation": "Confirmation d'achat",
 "purchase_validate": "Valider l'achat",
 "purchase_secure_payment": "Paiement sécurisé",
@@ -203,7 +200,13 @@
 "common_back": "Retour",
 "review_comment_label": "Commentaire",
 "settings_about_title": "À propos",
-"common_cancel": "Annuler"
-
-
+"common_cancel": "Annuler",
+"repost_request_title": "Signalement abusif ? Faites une requête de remise en ligne.",
+"repost_request_placeholder": "Justifiez en quelques phrases votre requête.",
+"repost_request_explanation": "Expliquez brièvement pourquoi, selon vous, la suppression de cette annonce est injustifiée ou résulte d'une erreur.",
+"repost_request_submit": "Envoyer la requête",
+"repost_request_success_title": "Requête envoyée",
+"repost_request_success_message": "Votre demande de remise en ligne a bien été transmise à notre équipe de modération. Vous serez informé(e) dès qu'une décision aura été prise.",
+"repost_request_cta": "Faire une requête de remise en ligne",
+"repost_request_already_sent": "Requête déjà envoyée"
 }

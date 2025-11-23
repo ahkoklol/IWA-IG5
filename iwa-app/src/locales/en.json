@@ -46,9 +46,6 @@
 "report_cancel": "Cancel",
 "report_send": "Send report",
 
-"repost_request_title": "False report? Request a reinstatement.",
-"repost_request_placeholder": "Justify your request in a few sentences.",
-
 "purchase_confirmation": "Purchase confirmation",
 "purchase_validate": "Confirm purchase",
 "purchase_secure_payment": "Secure payment",
@@ -204,7 +201,16 @@
 "common_back": "Back",
 "review_comment_label": "Comment",
 "settings_about_title": "About",
-"common_cancel": "Cancel"
+"common_cancel": "Cancel",
 
+"repost_request_title": "Unfair report? Request your ad to be restored.",
+"repost_request_placeholder": "Briefly justify your request.",
+"repost_request_explanation": "Briefly explain why you believe this ad was removed unfairly or by mistake.",
+"repost_request_submit": "Send request",
+"repost_request_success_title": "Request sent",
+"repost_request_success_message": "Your request to restore this ad has been sent to our moderation team. You will be notified as soon as a decision has been made.",
+"repost_request_cta": "Request reinstatement",
+"repost_request_already_sent": "Request already sent"
 
 }
+

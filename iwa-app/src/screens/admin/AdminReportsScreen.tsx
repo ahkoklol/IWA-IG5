@@ -169,6 +169,10 @@ export function AdminReportsPage({ reports, onReportClick }: AdminReportsPagePro
                     </Text>
                   </View>
 
+                  <Text style={styles.cardDescription}>
+                    {report.description}
+                  </Text>
+
                   {/* Pill + chevron */}
                   <View style={styles.cardFooter}>
                     <View
