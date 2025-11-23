@@ -216,5 +216,11 @@
   "ad_time_days": "Il y a {{count}} jour(s)",
   "ad_time_weeks": "Il y a {{count}} semaine(s)",
   "ad_time_months": "Il y a {{count}} mois",
-  "ad_time_years": "Il y a {{count}} an(s)"
+  "ad_time_years": "Il y a {{count}} an(s)",
+    "sell_success_title": "Annonce ajoutée",
+  "sell_success_message": "Votre annonce a été ajoutée avec succès. Elle est maintenant visible dans la section \"Mes graines\".",
+  "edit_listing_title": "Modifier l'annonce",
+"edit_listing_submit": "Enregistrer les modifications"
+
+
 }

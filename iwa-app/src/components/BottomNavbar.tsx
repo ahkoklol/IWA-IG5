@@ -74,14 +74,14 @@ export function BottomNavbar({ activeTab, onTabChange, onAddProduct }: BottomNav
           onClose={() => setIsSellModalOpen(false)}
           onAdd={(product) => {
             onAddProduct(product);
-            setIsSellModalOpen(false);
+            // IMPORTANT: ne pas fermer ici
+            // le modal de succès dans AddProductModal appellera onClose()
           }}
         />
       )}
     </>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {

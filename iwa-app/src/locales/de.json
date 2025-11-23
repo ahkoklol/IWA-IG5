@@ -220,6 +220,11 @@
   "ad_time_days": "Vor {{count}} Tag(en)",
   "ad_time_weeks": "Vor {{count}} Woche(n)",
   "ad_time_months": "Vor {{count}} Monat(en)",
-  "ad_time_years": "Vor {{count}} Jahr(en)"
+  "ad_time_years": "Vor {{count}} Jahr(en)",
+  "sell_success_title": "Anzeige erstellt",
+"sell_success_message": "Deine Anzeige wurde erfolgreich erstellt. Sie ist jetzt im Bereich \"Meine Samen\" sichtbar.",
+"edit_listing_title": "Anzeige bearbeiten",
+"edit_listing_submit": "Änderungen speichern"
+
 
 }

@@ -12,14 +12,22 @@ import {
   Alert,
   Platform,
   Modal,
+  TextInput,          // 👈 ajout
 } from "react-native";
-import { ArrowLeft, ChevronRight, Star } from "lucide-react-native";
+import {
+  ArrowLeft,
+  ChevronRight,
+  Star,
+  MoreVertical,
+  X,
+  Image as ImageIcon, // 👈 ajout
+} from "lucide-react-native";
+import type { Product, User, Category } from "../../shared/types"; // 👈 Category ajouté
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { RootStackParamList } from "../../navigation/RootNavigator";
-import type { Product, User } from "../../shared/types";
 import { demoProducts } from "../../mocks/products";
 
 import PurchaseConfirmationModal from "./PurchaseConfirmationModal";
@@ -83,6 +91,10 @@ export default function ProductDetail() {
   const galleryScrollRef = useRef<ScrollView | null>(null);
 
   const { t } = useTranslation();
+const [showActions, setShowActions] = useState(false);
+const [showEditModal, setShowEditModal] = useState(false); // 👈 ajout
+
+
 
   useEffect(() => {
     if (isGalleryOpen && galleryScrollRef.current) {
@@ -181,25 +193,24 @@ export default function ProductDetail() {
     <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <StatusBar barStyle="dark-content" />
 
-    <View style={styles.header}>
-      <TouchableOpacity
-        style={styles.headerBtn}
-        onPress={() => navigation.goBack()}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      >
-        <ArrowLeft size={18} color="#111827" />
-      </TouchableOpacity>
-
-      {/* On ne peut signaler que si l'annonce n'a pas été supprimée */}
-      {!product.removedByAI && (
+      <View style={styles.header}>
         <TouchableOpacity
-          style={styles.reportBtn}
-          onPress={() => setShowReportModal(true)}
+          style={styles.headerBtn}
+          onPress={() => navigation.goBack()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Text style={styles.reportText}>{t("report_title")}</Text>
+          <ArrowLeft size={18} color="#111827" />
         </TouchableOpacity>
-      )}
-    </View>
+
+        <TouchableOpacity
+          style={styles.moreBtn}
+          onPress={() => setShowActions(true)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <MoreVertical size={18} color="#111827" />
+        </TouchableOpacity>
+      </View>
+
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: 24 }}
@@ -421,6 +432,48 @@ export default function ProductDetail() {
         productName={product.name}
       />
 
+            {/* Menu d'actions ... */}
+      <Modal
+        visible={showActions}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowActions(false)}
+      >
+        <TouchableOpacity
+          style={styles.actionsBackdrop}
+          activeOpacity={1}
+          onPress={() => setShowActions(false)}
+        >
+          <View style={styles.actionsCard}>
+            <TouchableOpacity
+              style={styles.actionRow}
+              onPress={() => {
+                setShowActions(false);
+                setShowEditModal(true); // 👈 on ouvre le modal d’édition
+              }}
+            >
+              <Text style={styles.actionTextPrimary}>
+                {t("common_edit")}
+              </Text>
+            </TouchableOpacity>
+
+            {!product.removedByAI && (
+              <TouchableOpacity
+                style={styles.actionRow}
+                onPress={() => {
+                  setShowActions(false);
+                  setShowReportModal(true);
+                }}
+              >
+                <Text style={styles.actionTextDanger}>
+                  {t("report_this_ad")}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
             {/* Fullscreen gallery modal */}
       <Modal
         visible={isGalleryOpen}
@@ -494,6 +547,20 @@ export default function ProductDetail() {
         visible={showRepostSuccessModal}
         onClose={() => setShowRepostSuccessModal(false)}
       />
+
+      {showEditModal && (
+        <EditProductModal
+          product={product}
+          onClose={() => setShowEditModal(false)}
+          onSave={(updated) => {
+            // Plus tard : appel API + mise à jour locale du produit
+            console.log("Updated product payload:", updated);
+            setShowEditModal(false);
+          }}
+        />
+      )}
+
+
     </View>
   );
 }
@@ -506,6 +573,199 @@ function Row({ label, value }: { label: string; value: string }) {
     </View>
   );
 }
+
+interface EditProductModalProps {
+  product: Product;
+  onClose: () => void;
+  onSave: (updated: Partial<Product>) => void;
+}
+
+const categoryOptions: { value: Category; labelKey: string }[] = [
+  { value: "Légumes", labelKey: "search_cat_vegetables" },
+  { value: "Fruits", labelKey: "search_cat_fruits" },
+  { value: "Herbes aromatiques / épices", labelKey: "search_cat_herbs" },
+  { value: "Plantes médicinales", labelKey: "search_cat_medicinal" },
+  { value: "Fleurs décoratives", labelKey: "search_cat_flowers" },
+  { value: "Plantes exotiques / rares", labelKey: "search_cat_exotic" },
+];
+
+function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
+  const { t } = useTranslation();
+
+  const [title, setTitle] = useState(product.name);
+  const [description, setDescription] = useState(product.description);
+  const [priceInput, setPriceInput] = useState(product.price);
+  const [quantity, setQuantity] = useState(product.quantity);
+  const [category, setCategory] = useState<Category | string>(
+    product.category || ""
+  );
+
+  const parsePrice = (value: string): string | null => {
+    const cleaned = value.replace("€", "").trim();
+    if (!cleaned) return null;
+    return cleaned.endsWith("€") ? cleaned : `${cleaned} €`;
+  };
+
+  const handleSubmit = () => {
+    const normalizedPrice = parsePrice(priceInput);
+
+    if (!title || !normalizedPrice || !category) {
+      // TODO: afficher une erreur / toast
+      return;
+    }
+
+    onSave({
+      name: title,
+      description,
+      price: normalizedPrice,
+      quantity,
+      category: String(category),
+    });
+  };
+
+  return (
+    <Modal
+      visible
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.editBackdrop}>
+        <View style={styles.editSheet}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>
+              {t("edit_listing_title")} {/* ex: "Modifier l'annonce" */}
+            </Text>
+            <TouchableOpacity
+              onPress={onClose}
+              style={styles.closeButton}
+              activeOpacity={0.7}
+            >
+              <X size={20} strokeWidth={2} color="#1F2933" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Content */}
+          <ScrollView
+            style={styles.content}
+            contentContainerStyle={styles.contentInner}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Photo upload (placeholder) */}
+            <View style={styles.block}>
+              <Text style={styles.label}>{t("sell_photos")}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  style={styles.addPhotoButton}
+                >
+                  <ImageIcon size={24} strokeWidth={1.8} color="#9CA3AF" />
+                  <Text style={styles.addPhotoText}>{t("sell_add")}</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+
+            {/* Title */}
+            <View style={styles.block}>
+              <Text style={styles.label}>{t("sell_title_label")}</Text>
+              <TextInput
+                value={title}
+                onChangeText={setTitle}
+                placeholder={t("sell_title_placeholder")}
+                style={styles.input}
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+
+            {/* Description */}
+            <View style={styles.block}>
+              <Text style={styles.label}>{t("sell_description")}</Text>
+              <TextInput
+                value={description}
+                onChangeText={setDescription}
+                placeholder={t("sell_description_placeholder")}
+                style={[styles.input, styles.textArea]}
+                placeholderTextColor="#9CA3AF"
+                multiline
+              />
+            </View>
+
+            {/* Category */}
+            <View style={styles.block}>
+              <Text style={styles.label}>{t("sell_category")}</Text>
+
+              <View style={styles.categoryList}>
+                {categoryOptions.map((cat) => {
+                  const isSelected = category === cat.value;
+                  return (
+                    <TouchableOpacity
+                      key={cat.value}
+                      style={[
+                        styles.categoryPill,
+                        isSelected && styles.categoryPillSelected,
+                      ]}
+                      onPress={() => setCategory(cat.value)}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.categoryPillText,
+                          isSelected && styles.categoryPillTextSelected,
+                        ]}
+                      >
+                        {t(cat.labelKey)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* Quantity */}
+            <View style={styles.block}>
+              <Text style={styles.label}>{t("sell_quantity")}</Text>
+              <TextInput
+                value={quantity}
+                onChangeText={setQuantity}
+                placeholder={t("sell_quantity_placeholder")}
+                style={styles.input}
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+
+            {/* Price */}
+            <View style={styles.block}>
+              <Text style={styles.label}>{t("sell_price")}</Text>
+              <TextInput
+                value={priceInput}
+                onChangeText={setPriceInput}
+                placeholder={t("sell_price_placeholder")}
+                style={styles.input}
+                placeholderTextColor="#9CA3AF"
+                keyboardType="decimal-pad"
+              />
+            </View>
+          </ScrollView>
+
+          {/* Save button */}
+          <View style={styles.footer}>
+            <TouchableOpacity
+              onPress={handleSubmit}
+              activeOpacity={0.8}
+              style={styles.submitButton}
+            >
+              <Text style={styles.submitText}>
+                {t("edit_listing_submit")} {/* ex: "Enregistrer les modifications" */}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 
 const styles = StyleSheet.create({
   center: {
@@ -733,6 +993,151 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 
+  actionsBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.2)",
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+    paddingTop: HEADER_TOP + 48,
+    paddingRight: 16,
+  },
+  actionsCard: {
+    width: 180,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 8,
+    shadowColor: "#000000",
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  actionRow: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  actionTextPrimary: {
+    fontSize: 14,
+    color: "#111827",
+  },
+  actionTextDanger: {
+    fontSize: 14,
+    color: "#B91C1C",
+    fontWeight: "500",
+  },
+
+editBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "flex-end",
+  },
+  editSheet: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: "90%",
+    flex: 1,
+    overflow: "hidden",
+  },
+
+  // ces styles sont déjà utilisés dans AddProductModal, mais si tu ne les as
+  // pas encore dans ce fichier, il faut les copier ici :
+  block: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#111827",
+    marginBottom: 6,
+  },
+  input: {
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: "#F3F4F6",
+    fontSize: 14,
+    color: "#111827",
+  },
+  textArea: {
+    minHeight: 90,
+    textAlignVertical: "top",
+  },
+  addPhotoButton: {
+    width: 96,
+    height: 96,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderStyle: "dashed",
+    borderColor: "#D1D5DB",
+    backgroundColor: "#F9FAFB",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  addPhotoText: {
+    marginTop: 4,
+    fontSize: 11,
+    color: "#9CA3AF",
+  },
+  categoryList: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  categoryPill: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: "#F3F4F6",
+  },
+  categoryPillSelected: {
+    backgroundColor: "#7BCCEB",
+  },
+  categoryPillText: {
+    fontSize: 11,
+    color: "#374151",
+  },
+  categoryPillTextSelected: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+  },
+  footer: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#E5E7EB",
+  },
+  submitButton: {
+    backgroundColor: "#7BCCEB",
+    borderRadius: 16,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  submitText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+  }, 
+  
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  content: {},
+  contentInner: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    paddingBottom: 8,
+  },
 
 
 });

@@ -81,7 +81,7 @@ export const demoProducts: Product[] = [
     seller: demoUser[0],
     createdAt: "2025-11-15T09:30:00Z",
     isFavorite: false,
-    sold: false,
+    sold: true,
   },
   {
     id: 2,

@@ -43,6 +43,7 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
   const [priceInput, setPriceInput] = useState("");
   const [quantity, setQuantity] = useState("");
   const [category, setCategory] = useState<Category | "">("");
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const parsePrice = (value: string): number | null => {
     const cleaned = value.replace("€", "").trim().replace(",", ".");
@@ -67,7 +68,7 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
       category,
     });
 
-    onClose();
+    setShowSuccess(true);
   };
 
   return (
@@ -204,10 +205,62 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
             </TouchableOpacity>
           </View>
         </View>
+
+      <AddProductSuccessModal
+        visible={showSuccess}
+        onClose={() => {
+          setShowSuccess(false);
+          onClose(); // ferme le modal de vente et laisse le parent gérer la navigation vers l’onglet précédent
+        }}
+      />
+        
       </View>
     </Modal>
   );
 }
+
+interface AddProductSuccessModalProps {
+  visible: boolean;
+  onClose: () => void;
+}
+
+function AddProductSuccessModal({
+  visible,
+  onClose,
+}: AddProductSuccessModalProps) {
+  const { t } = useTranslation();
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.successBackdrop}>
+        <View style={styles.successCard}>
+          <Text style={styles.successTitle}>
+            {t("sell_success_title")}
+          </Text>
+          <Text style={styles.successMessage}>
+            {t("sell_success_message")}
+          </Text>
+
+          <TouchableOpacity
+            onPress={onClose}
+            activeOpacity={0.8}
+            style={styles.successButton}
+          >
+            <Text style={styles.successButtonText}>
+              {t("common_continue")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 
 const styles = StyleSheet.create({
   backdrop: {
@@ -327,4 +380,49 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
+
+    successBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  successCard: {
+    width: "80%",
+    borderRadius: 20,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    shadowColor: "#000000",
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  successTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  successMessage: {
+    fontSize: 14,
+    color: "#4B5563",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  successButton: {
+    marginTop: 8,
+    backgroundColor: "#7BCCEB",
+    borderRadius: 14,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  successButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
 });

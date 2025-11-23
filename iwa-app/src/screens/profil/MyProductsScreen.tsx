@@ -125,41 +125,26 @@ export function MyProductsScreen({ navigation }: Props) {
                     <MoreHorizontal size={16} color="#1F2937" />
                   </Pressable>
 
-                  {/* Context menu */}
-                  {showMenu === product.id && (
-                    <View style={styles.menuContainer}>
-                      {!product.removedByAI && (
-                        <TouchableOpacity
-                          activeOpacity={0.7}
-                          onPress={(e) => {
-                            // @ts-ignore
-                            e.stopPropagation?.();
-                            handleEditProduct(product);
-                            setShowMenu(null);
-                          }}
-                          style={styles.menuItem}
-                        >
-                          <Text style={styles.menuItemText}>
-                            {t("common_edit")}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-                      <TouchableOpacity
-                        activeOpacity={0.7}
-                        onPress={(e) => {
-                          // @ts-ignore
-                          e.stopPropagation?.();
-                          handleDeleteProduct(product);
-                          setShowMenu(null);
-                        }}
-                        style={styles.menuItem}
-                      >
-                        <Text style={styles.menuItemTextDelete}>
-                          {t("common_delete")}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
+                {/* Context menu */}
+                {showMenu === product.id && (
+                  <View style={styles.menuContainer}>
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={(e) => {
+                        // @ts-ignore
+                        e.stopPropagation?.();
+                        handleDeleteProduct(product);
+                        setShowMenu(null);
+                      }}
+                      style={styles.menuItem}
+                    >
+                      <Text style={styles.menuItemTextDelete}>
+                        {t("common_delete")}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
                 </View>
               ))}
             </View>
@@ -387,3 +372,4 @@ const styles = StyleSheet.create({
     color: "white",
   },
 });
+

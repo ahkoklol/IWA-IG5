@@ -1,5 +1,4 @@
 // iwa-app/src/screens/search/CategoryResults.tsx
-
 import React, { useState } from "react";
 import {
   View,
@@ -34,7 +33,10 @@ export function CategoryResults({ route, navigation }: Props) {
     edible: null,
   });
 
-  let products: Product[] = demoProducts;
+  // ✅ Base : uniquement produits NON vendus et NON supprimés par l'IA
+  let products: Product[] = demoProducts.filter(
+    (p) => !p.sold && !p.removedByAI
+  );
 
   if (category) {
     products = products.filter((p) => p.category === category);

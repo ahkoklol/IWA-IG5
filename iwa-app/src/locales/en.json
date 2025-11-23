@@ -218,6 +218,12 @@
   "ad_time_days": "{{count}} day(s) ago",
   "ad_time_weeks": "{{count}} week(s) ago",
   "ad_time_months": "{{count}} month(s) ago",
-  "ad_time_years": "{{count}} year(s) ago"
+  "ad_time_years": "{{count}} year(s) ago",
+  "sell_success_title": "Listing created",
+"sell_success_message": "Your listing has been successfully created. It is now visible in the \"My seeds\" section.",
+"edit_listing_title": "Edit listing",
+"edit_listing_submit": "Save changes"
+
+
 }
 

@@ -218,6 +218,11 @@
   "ad_time_days": "Hace {{count}} día(s)",
   "ad_time_weeks": "Hace {{count}} semana(s)",
   "ad_time_months": "Hace {{count}} mes(es)",
-  "ad_time_years": "Hace {{count}} año(s)"
+  "ad_time_years": "Hace {{count}} año(s)",
+  "sell_success_title": "Anuncio creado",
+"sell_success_message": "Tu anuncio se ha creado correctamente. Ahora está visible en la sección \"Mis semillas\".",
+"edit_listing_title": "Editar anuncio",
+"edit_listing_submit": "Guardar cambios"
+
 
 }
