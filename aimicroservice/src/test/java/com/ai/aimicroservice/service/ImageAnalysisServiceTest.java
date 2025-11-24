@@ -1,6 +1,5 @@
 package com.ai.aimicroservice.service;
 
-import com.ai.aimicroservice.client.MediaServiceClient;
 import com.ai.aimicroservice.utils.Localstack;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
