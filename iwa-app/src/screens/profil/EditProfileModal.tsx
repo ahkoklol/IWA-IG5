@@ -14,6 +14,8 @@ import {
 import { X, Camera } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import type { User } from "../../shared/types";
+import * as ImagePicker from "expo-image-picker";
+
 
 interface EditProfileModalProps {
   user: User;
@@ -45,12 +47,48 @@ export function EditProfileModal({
     onClose();
   };
 
+  const pickAvatarFromLibrary = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        t("edit_profile_change_photo_permission_title"),
+        t("edit_profile_change_photo_permission_message")
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: false,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setAvatar(result.assets[0].uri);
+    }
+  };
+
+  const takeAvatarPhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        t("edit_profile_change_photo_permission_title"),
+        t("edit_profile_change_photo_permission_message")
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setAvatar(result.assets[0].uri);
+    }
+  };
+
   const handleChangeAvatar = () => {
-    // You can replace this with an ImagePicker later
-    Alert.alert(
-      t("edit_profile_change_photo_alert_title"),
-      t("edit_profile_change_photo_alert_message")
-    );
+    pickAvatarFromLibrary();
   };
 
   return (

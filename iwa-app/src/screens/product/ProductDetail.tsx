@@ -12,7 +12,7 @@ import {
   Alert,
   Platform,
   Modal,
-  TextInput,          // 👈 ajout
+  TextInput,         
 } from "react-native";
 import {
   ArrowLeft,
@@ -20,9 +20,9 @@ import {
   Star,
   MoreVertical,
   X,
-  Image as ImageIcon, // 👈 ajout
+  Image as ImageIcon,
 } from "lucide-react-native";
-import type { Product, User, Category } from "../../shared/types"; // 👈 Category ajouté
+import type { Product, User, Category } from "../../shared/types"; 
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -36,6 +36,7 @@ import { Screen } from "../../components/Screen";
 import { useTranslation } from "react-i18next";
 import RepostRequestModal from "./RepostRequestModal";
 import RepostRequestSuccessModal from "./RepostRequestSuccessModal";
+import * as ImagePicker from "expo-image-picker";
 
 
 type DetailRoute = RouteProp<RootStackParamList, "ProductDetail">;
@@ -91,8 +92,8 @@ export default function ProductDetail() {
   const galleryScrollRef = useRef<ScrollView | null>(null);
 
   const { t } = useTranslation();
-const [showActions, setShowActions] = useState(false);
-const [showEditModal, setShowEditModal] = useState(false); // 👈 ajout
+  const [showActions, setShowActions] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
 
 
@@ -538,8 +539,8 @@ const [showEditModal, setShowEditModal] = useState(false); // 👈 ajout
           // Plus tard: appel API pour envoyer la requête
           console.log("Repost request justification:", message);
           setShowRepostModal(false);
-          setHasSentRepostRequest(true);      // ✅ on marque la requête comme envoyée
-          setShowRepostSuccessModal(true);    // ✅ on ouvre le modal de succès
+          setHasSentRepostRequest(true);
+          setShowRepostSuccessModal(true); 
         }}
       />
 
@@ -599,6 +600,7 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
   const [category, setCategory] = useState<Category | string>(
     product.category || ""
   );
+  const [images, setImages] = useState<string[]>(product.images ?? []); 
 
   const parsePrice = (value: string): string | null => {
     const cleaned = value.replace("€", "").trim();
@@ -607,21 +609,92 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
   };
 
   const handleSubmit = () => {
-    const normalizedPrice = parsePrice(priceInput);
+    const parsedPrice = parsePrice(priceInput);
 
-    if (!title || !normalizedPrice || !category) {
-      // TODO: afficher une erreur / toast
+    if (!title || !parsedPrice || !category) {
+      // TODO: show error / toast
       return;
     }
 
     onSave({
       name: title,
       description,
-      price: normalizedPrice,
+      price: parsedPrice,
       quantity,
-      category: String(category),
+      category: category as Category,
+      images,
     });
+
+    onClose();
   };
+
+
+    const pickFromLibrary = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        t("edit_profile_change_photo_permission_title"),
+        t("edit_profile_change_photo_permission_message")
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      const uris = result.assets.map((asset) => asset.uri);
+      setImages((prev: string[]) => [...prev, ...uris]);
+
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        t("edit_profile_change_photo_permission_title"),
+        t("edit_profile_change_photo_permission_message")
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      const uris = result.assets.map((asset) => asset.uri);
+      setImages((prev: string[]) => [...prev, ...uris]);
+
+    }
+  };
+
+  const handleAddPhoto = () => {
+    // Sur web : l’Alert avec boutons ne marche pas bien, on ouvre direct la galerie
+    if (Platform.OS === "web") {
+      pickFromLibrary();
+      return;
+    }
+
+    Alert.alert(
+      t("sell_photos"),
+      "",
+      [
+        { text: "Galerie", onPress: pickFromLibrary },
+        { text: "Appareil photo", onPress: takePhoto },
+        { text: "Annuler", style: "cancel" },
+      ]
+    );
+  };
+
+  const handleRemovePhoto = (uriToRemove: string) => {
+    setImages((prev: string[]) => prev.filter((uri) => uri !== uriToRemove));
+  };
+
 
   return (
     <Modal
@@ -634,12 +707,9 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
         <View style={styles.editSheet}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>
-              {t("edit_listing_title")} {/* ex: "Modifier l'annonce" */}
-            </Text>
             <TouchableOpacity
               onPress={onClose}
-              style={styles.closeButton}
+              style={styles.editCloseButton}
               activeOpacity={0.7}
             >
               <X size={20} strokeWidth={2} color="#1F2933" />
@@ -652,19 +722,38 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
             contentContainerStyle={styles.contentInner}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Photo upload (placeholder) */}
+            <Text style={styles.headerTitle}>
+              {t("edit_listing_title")} {/* ex: "Modifier l'annonce" */}
+            </Text>
+
+            {/* Photos */}
             <View style={styles.block}>
               <Text style={styles.label}>{t("sell_photos")}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {images.map((uri) => (
+                  <View key={uri} style={styles.photoItem}>
+                    <Image source={{ uri }} style={styles.photoImage} />
+                    <TouchableOpacity
+                      style={styles.photoRemoveButton}
+                      onPress={() => handleRemovePhoto(uri)}
+                      activeOpacity={0.8}
+                    >
+                      <X size={14} color="#FFFFFF" strokeWidth={2} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+
                 <TouchableOpacity
                   activeOpacity={0.7}
                   style={styles.addPhotoButton}
+                  onPress={handleAddPhoto}
                 >
                   <ImageIcon size={24} strokeWidth={1.8} color="#9CA3AF" />
                   <Text style={styles.addPhotoText}>{t("sell_add")}</Text>
                 </TouchableOpacity>
               </ScrollView>
             </View>
+
 
             {/* Title */}
             <View style={styles.block}>
@@ -1124,6 +1213,8 @@ editBackdrop: {
     fontSize: 16,
     fontWeight: "600",
     color: "#111827",
+    marginTop: 20,
+    marginBottom: 10,
   },
   closeButton: {
     width: 32,
@@ -1138,6 +1229,40 @@ editBackdrop: {
     paddingVertical: 16,
     paddingBottom: 8,
   },
-
+    editCloseButton: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+  },
+    photoItem: {
+    width: 96,
+    height: 96,
+    borderRadius: 16,
+    marginRight: 12,
+    overflow: "hidden",
+    backgroundColor: "#E5E7EB",
+  },
+  photoImage: {
+    width: "100%",
+    height: "100%",
+  },
+  photoRemoveButton: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
 });

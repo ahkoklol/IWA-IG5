@@ -8,10 +8,13 @@ import {
   TextInput,
   ScrollView,
   StyleSheet,
+  Alert,  
+  Image, 
 } from "react-native";
 import { X, Image as ImageIcon } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import type { Category } from "../../shared/types";
+import * as ImagePicker from "expo-image-picker";
 
 export interface NewListing {
   title: string;
@@ -19,6 +22,7 @@ export interface NewListing {
   price: number;
   quantity: string;
   category: Category | "";
+  images?: string[];
 }
 
 interface AddProductModalProps {
@@ -44,6 +48,7 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
   const [quantity, setQuantity] = useState("");
   const [category, setCategory] = useState<Category | "">("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [images, setImages] = useState<string[]>([]); 
 
   const parsePrice = (value: string): number | null => {
     const cleaned = value.replace("€", "").trim().replace(",", ".");
@@ -51,6 +56,55 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
     if (Number.isNaN(num) || num < 0) return null;
     return num;
   };
+
+    const pickFromLibrary = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission refusée", "L'accès à la galerie est nécessaire.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      const uris = result.assets.map((asset) => asset.uri);
+      setImages((prev) => [...prev, ...uris]);
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission refusée", "L'accès à la caméra est nécessaire.");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      const uris = result.assets.map((asset) => asset.uri);
+      setImages((prev) => [...prev, ...uris]);
+    }
+  };
+
+  const handleAddPhoto = () => {
+    Alert.alert(
+      t("sell_photos"),
+      "",
+      [
+        { text: "Galerie", onPress: pickFromLibrary },
+        { text: "Appareil photo", onPress: takePhoto },
+        { text: "Annuler", style: "cancel" },
+      ]
+    );
+  };
+
 
   const handleSubmit = () => {
     const parsedPrice = parsePrice(priceInput);
@@ -66,10 +120,12 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
       price: parsedPrice,
       quantity,
       category,
+      images,
     });
 
     setShowSuccess(true);
   };
+
 
   return (
     <Modal
@@ -99,12 +155,20 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
             keyboardShouldPersistTaps="handled"
           >
             {/* Photo upload (placeholder) */}
+            {/* Photo upload */}
             <View style={styles.block}>
               <Text style={styles.label}>{t("sell_photos")}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {images.map((uri) => (
+                  <View key={uri} style={styles.photoPreviewWrapper}>
+                    <Image source={{ uri }} style={styles.photoPreview} />
+                  </View>
+                ))}
+
                 <TouchableOpacity
                   activeOpacity={0.7}
                   style={styles.addPhotoButton}
+                  onPress={handleAddPhoto}
                 >
                   <ImageIcon size={24} strokeWidth={1.8} color="#9CA3AF" />
                   <Text style={styles.addPhotoText}>{t("sell_add")}</Text>
@@ -424,5 +488,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
+    photoPreviewWrapper: {
+    width: 96,
+    height: 96,
+    borderRadius: 16,
+    overflow: "hidden",
+    marginRight: 12,
+    backgroundColor: "#E5E7EB",
+  },
+  photoPreview: {
+    width: "100%",
+    height: "100%",
+  },
+
 
 });
