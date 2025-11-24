@@ -8,6 +8,7 @@ import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
+import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.stripe.param.AccountCreateParams;
 import com.stripe.param.AccountLinkCreateParams;
@@ -65,11 +66,8 @@ public class StripeService {
             case "account.updated":
                 processAccountUpdated(event);
                 break;
-            case "payment_intent.succeeded":
-                processPaymentIntentSucceeded((PaymentIntent) dataObject);
-                break;
-            case "payment_intent.payment_failed":
-                processPaymentIntentFailed((PaymentIntent) dataObject);
+            case "checkout.session.completed":
+                processCheckoutSessionCompleted((Session) dataObject);
                 break;
             default:
                 System.out.println("Received unhandled event type: " + event.getType());
@@ -105,36 +103,23 @@ public class StripeService {
     }
 
     /**
-     * Helper for PaymentIntent success webhook
-     * @param paymentIntent the PaymentIntent
+     * Helper to process CheckoutSessionCompleted
+     * @param session the checkout Session
      */
-    private void processPaymentIntentSucceeded(PaymentIntent paymentIntent) {
-        String internalTransactionId = paymentIntent.getMetadata().get("platform_transaction_id");
-        if (internalTransactionId == null) {
-            log.error("PaymentIntent {} succeeded but is missing 'platform_transaction_id' metadata.", paymentIntent.getId());
-            return;
+    private void processCheckoutSessionCompleted(Session session) {
+        try {
+            PaymentIntent pi = PaymentIntent.retrieve(session.getPaymentIntent());
+            String internalTransactionId = pi.getMetadata().get("platform_transaction_id");
+            if (internalTransactionId == null) {
+                log.error("Checkout completed but missing platform_transaction_id metadata");
+                return;
+            }
+            log.info("Checkout completed. PaymentIntent {}. Internal txn {}.",
+                    pi.getId(), internalTransactionId);
+            transactionService.updateTransactionToCompleted(internalTransactionId, true);
+        } catch (StripeException e) {
+            log.error("Failed to retrieve PaymentIntent for checkout.session.completed", e);
         }
-        Transaction transaction = new Transaction();
-        transaction.setTransactionId(internalTransactionId);
-        transaction.setPaymentMethodId(paymentIntent.getMetadata().get("payment_method_id"));
-        transaction.setStripePaymentIntentId(paymentIntent.getMetadata().get("stripe_payment_intent_id"));
-        transactionService.updateStripeData(transaction);
-        transactionService.updateTransactionToCompleted(internalTransactionId, true);
-        log.info("PaymentIntent {} successful. Transaction {} fulfilled.", paymentIntent.getId(), internalTransactionId);
-    }
-
-    /**
-     * Helper for PaymentIntent fail webhook
-     * @param paymentIntent the PaymentIntent
-     */
-    private void processPaymentIntentFailed(PaymentIntent paymentIntent) {
-        String internalTransactionId = paymentIntent.getMetadata().get("platform_transaction_id");
-        if (internalTransactionId == null) {
-            log.error("PaymentIntent {} failed but is missing 'platform_transaction_id' metadata.", paymentIntent.getId());
-            return;
-        }
-        transactionService.updateTransactionToCompleted(internalTransactionId, false);
-        log.warn("PaymentIntent {} failed. Transaction {} marked as failed.", paymentIntent.getId(), internalTransactionId);
     }
 
     /**
@@ -208,7 +193,6 @@ public class StripeService {
 
             // 2. Call the Stripe API
             AccountLink accountLink = AccountLink.create(params);
-
             log.info("Successfully created account link URL for Stripe Account {}.", stripeAccountId);
 
             // 3. Return the URL for the controller to send back to the frontend
