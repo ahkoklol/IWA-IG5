@@ -1,7 +1,7 @@
 package com.bg.notificationmicroservice.config;
 
 import com.bg.notificationmicroservice.entity.Notification;
-import com.bg.notificationmicroservice.entity.ProductEventDTO;
+import com.bg.notificationmicroservice.entity.PostEventDTO;
 import com.bg.notificationmicroservice.service.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -22,21 +22,23 @@ public class NotificationEventListener {
         this.notificationService = notificationService;
     }
 
-    @KafkaListener(topics = "${notification.kafka.topics}", groupId = "${spring.kafka.consumer.group-id}")
+    @KafkaListener(topics = "#{'${notification.kafka.topics}'.split(',')}", groupId = "${spring.kafka.consumer.group-id}")
     void listener(String rawEventData){
-        log.info("⚡Received raw event: {}", rawEventData);
+        log.info("Received raw event: {}", rawEventData);
         try {
-            // 1. Deserialize the raw String into your structured DTO
-            // 2. Map the event data to your Notification Entity
-            // 3. Call your service logic to save the notification
-            ProductEventDTO event = objectMapper.readValue(rawEventData, ProductEventDTO.class);
+            // 1. Deserialize the raw String into the structured DTO
+            // 2. Map the event data to the Notification Entity
+            // 3. Call the service logic to save the notification
+            PostEventDTO event = objectMapper.readValue(rawEventData, PostEventDTO.class);
+            if (event == null || event.getEventType() == null) {
+                log.warn("Received empty or invalid event");
+                return;
+            }
             Notification notification = createNotificationFromEvent(event);
             Notification savedNotification = notificationService.createNotification(notification);
-            log.info("Notification created for client {}. Type: {}",
-                    savedNotification.getClientId(), savedNotification.getType());
+            log.info("Notification created for client {}. Type: {}", savedNotification.getClientId(), savedNotification.getType());
         } catch (Exception e) {
             log.error("Error processing Kafka message: {}", rawEventData, e);
-            // Consider sending the failed message to a Dead Letter Topic (DLT) in a production setup
         }
     }
 
@@ -45,14 +47,14 @@ public class NotificationEventListener {
      * @param event the kafka event
      * @return a Notification object
      */
-    private Notification createNotificationFromEvent(ProductEventDTO event) {
+    private Notification createNotificationFromEvent(PostEventDTO event) {
         Notification notification = new Notification();
         notification.setClientId(event.getClientId());
         notification.setType(event.getEventType());
         String message = switch (event.getEventType()) {
-            case "PRODUCT_BOUGHT" -> String.format("A new purchase was made for product %s.", event.getProductId());
-            case "PRODUCT_SOLD" -> String.format("Product %s has been sold.", event.getProductId());
-            case "PRODUCT_LIKED" -> String.format("Product %s received a new like.", event.getProductId());
+            case "PRODUCT_BOUGHT" -> String.format("A new purchase was made for product %s.", event.getPostId());
+            case "PRODUCT_SOLD" -> String.format("Product %s has been sold.", event.getPostId());
+            case "PRODUCT_LIKED" -> String.format("Product %s received a new like.", event.getPostId());
             default -> "An unknown product event occurred.";
         };
         notification.setMessage(message);
