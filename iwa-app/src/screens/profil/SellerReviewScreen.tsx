@@ -17,6 +17,7 @@ import type { RootStackParamList } from "../../navigation/RootNavigator";
 import { demoTransactions } from "../../mocks/products";
 import type { Transaction } from "../../shared/types";
 import { Screen } from "../../components/Screen";
+import { sendReviewNotification } from "../../api/notificationApi";
 
 type Props = NativeStackScreenProps<RootStackParamList, "SellerReview">;
 
@@ -50,10 +51,31 @@ export function SellerReviewScreen({ navigation, route }: Props) {
     navigation.goBack();
   };
 
-  const handleSubmit = () => {
-    // Plus tard : appel API pour enregistrer l'avis
+const handleSubmit = async () => {
+  // ⚠️ Simulation d'un utilisateur connecté (à remplacer quand l'auth sera prête)
+  const currentUserId = "fake-user-id-123";
 
-    // Met à jour directement le statut "reviewed" dans les mocks
+  // ⚠️ Récupération du vendeur
+const sellerId = String(transaction.product.seller.id);
+const productId = String(transaction.product.id);
+
+  const message = `${transaction.product.name} — Nouvelle évaluation reçue`;
+
+  try {
+    // 1) Normalement: appel API Review (simulé ici)
+    // await reviewApi.createReview(...)
+
+    // 2) Simulation de l'envoi de l'event "REVIEW_LEFT"
+    await sendReviewNotification({
+      sellerId,
+      reviewerId: currentUserId,  
+      productId,
+      message,
+    });
+
+    console.log("Notification envoyée au vendeur");
+
+    // 3) Mise à jour des mocks (comme tu fais déjà)
     const index = demoTransactions.findIndex((tItem) => tItem.id === transaction.id);
     if (index !== -1) {
       demoTransactions[index] = {
@@ -62,9 +84,13 @@ export function SellerReviewScreen({ navigation, route }: Props) {
       };
     }
 
-    // Puis on revient simplement aux transactions (animation retour)
+    // 4) Retour
     navigation.goBack();
-  };
+  } catch (error) {
+    console.error("Error while submitting review:", error);
+  }
+};
+
 
   const product = transaction.product;
   const firstImage = product.images?.[0];

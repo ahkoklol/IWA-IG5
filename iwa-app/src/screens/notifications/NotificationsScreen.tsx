@@ -1,21 +1,28 @@
 // src/screens/notifications/NotificationsScreen.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  Image,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
-import type { Notification } from "../../shared/types";
-import { demoNotifications } from "../../mocks/products";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import { Screen } from "../../components/Screen";
+
+// ✅ On utilise maintenant le type Notification du backend
+import type { Notification } from "../../shared/types/notification";
+
+// ✅ On utilise l’API réelle
+import {
+  fetchNotificationsByClientId,
+  markNotificationAsRead,
+} from "../../api/notificationApi";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -23,55 +30,88 @@ interface NotificationsScreenProps {
   onNotificationClick?: (notification: Notification) => void;
 }
 
-export function NotificationsScreen({ onNotificationClick }: NotificationsScreenProps) {
-  const [notifications, setNotifications] =
-    useState<Notification[]>(demoNotifications);
+// ⚠️ En attendant la vraie auth : on simule un utilisateur connecté
+const MOCK_CLIENT_ID = "client-123";
+
+export function NotificationsScreen({
+  onNotificationClick,
+}: NotificationsScreenProps) {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   const navigation = useNavigation<NavigationProp>();
   const { t } = useTranslation();
 
+  // Le back construit déjà le texte => on affiche directement notification.message
   const getNotificationText = (notification: Notification) => {
-    switch (notification.type) {
-      case "favorite":
-        // "<username> a ajouté votre article en favori"
-        return `${notification.user.username} ${t("notif_favorited")}`;
-      case "sale":
-        return t("notif_purchased", { username: notification.user.username });
-      case "review":
-        // "... a laissée une évaluation sur votre profil" -> on remplace les points par le username
-        return t("notif_review_left").replace("...", notification.user.username);
-      case "removed":
-        return t("notif_deleted");
-      default:
-        return "";
+    return notification.message ?? "";
+  };
+
+  // Chargement des notifs depuis le microservice
+  const loadNotifications = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await fetchNotificationsByClientId(MOCK_CLIENT_ID);
+      setNotifications(data);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handlePress = (notification: Notification) => {
-    // Marquer comme lue dans le mock local
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === notification.id ? { ...n, read: true } : n
-      )
-    );
+  useEffect(() => {
+    // En vrai : utiliser l’ID du user connecté via ton système d’auth
+    loadNotifications();
+  }, []);
 
-    if (notification.type === "review") {
-      // Ouvrir le profil du vendeur directement sur l’onglet "Mes évaluations"
-      navigation.navigate("MyProfileScreen", {
-        user: notification.product.seller,
-        initialTab: "reviews",
-      });
-    } else {
-      // Navigation vers le détail du produit pour les autres types
-      navigation.navigate("ProductDetail", {
-        productId: String(notification.product.id),
-      });
+  const handlePress = async (notification: Notification) => {
+    // 1) Appel au backend pour marquer comme lue
+    try {
+      await markNotificationAsRead(notification.notificationId);
+
+      // 2) Mise à jour en local
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.notificationId === notification.notificationId
+            ? { ...n, read: true }
+            : n
+        )
+      );
+    } catch (e) {
+      // Pour l’instant on log juste l’erreur, on pourra ajouter un toast plus tard
+      console.error("Failed to mark notification as read", e);
     }
 
+    // 3) Navigation : pour l’instant on ne connaît pas le produit / user côté back,
+    // donc on ne redirige nulle part. On garde uniquement le callback externe.
     if (onNotificationClick) {
       onNotificationClick(notification);
     }
   };
+
+  if (loading) {
+    return (
+      <Screen>
+        <View style={styles.center}>
+          <ActivityIndicator />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (error) {
+    return (
+      <Screen>
+        <View style={styles.center}>
+          <Text>{t("error_generic")}</Text>
+          <Text style={styles.errorDetails}>{error}</Text>
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen>
@@ -85,32 +125,24 @@ export function NotificationsScreen({ onNotificationClick }: NotificationsScreen
         {notifications.map((notification) => {
           const itemStyle = [
             styles.notificationItem,
-            notification.type === "removed"
-              ? styles.notificationRemoved
-              : !notification.read
-              ? styles.notificationUnread
-              : null,
+            !notification.read ? styles.notificationUnread : null,
           ];
 
           return (
             <TouchableOpacity
-              key={notification.id}
+              key={notification.notificationId}
               onPress={() => handlePress(notification)}
               style={itemStyle}
               activeOpacity={0.7}
             >
-              <Image
-                source={{ uri: notification.product.images[0] }}
-                style={styles.productImage}
-                resizeMode="cover"
-              />
-
+              {/* On n’a plus d’image produit ni de seller dans le modèle backend,
+                  donc on affiche juste texte + date pour l’instant */}
               <View style={styles.textContainer}>
                 <Text style={styles.notificationText}>
                   {getNotificationText(notification)}
                 </Text>
                 <Text style={styles.notificationDate}>
-                  {notification.date}
+                  {new Date(notification.date).toLocaleString()}
                 </Text>
               </View>
 
@@ -118,6 +150,12 @@ export function NotificationsScreen({ onNotificationClick }: NotificationsScreen
             </TouchableOpacity>
           );
         })}
+
+        {notifications.length === 0 && (
+          <View style={styles.center}>
+            <Text>{t("notif_empty")}</Text>
+          </View>
+        )}
       </ScrollView>
     </Screen>
   );
@@ -126,10 +164,6 @@ export function NotificationsScreen({ onNotificationClick }: NotificationsScreen
 export default NotificationsScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
   header: {
     paddingHorizontal: 16,
     paddingVertical: 16,
@@ -153,17 +187,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
   },
-  notificationRemoved: {
-    backgroundColor: "#FEF2F2",
-  },
   notificationUnread: {
     backgroundColor: "#E5F6FC",
-  },
-  productImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
-    marginRight: 12,
   },
   textContainer: {
     flex: 1,
@@ -182,5 +207,16 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: "#7BCCEB",
+  },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+  },
+  errorDetails: {
+    marginTop: 4,
+    fontSize: 12,
+    color: "#EF4444",
   },
 });

@@ -7,14 +7,17 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Modal,
 } from "react-native";
-import { ArrowLeft, ChevronLeft, ChevronRight, Star } from "lucide-react-native";
+import { ArrowLeft, ChevronLeft, ChevronRight, Star,   CheckCircle2, Trash2, } from "lucide-react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import type { Report, Product } from "../../shared/types";
 import { demoReports, demoProducts } from "../../mocks/products";
 import { Screen } from "../../components/Screen";
+import { sendRepostDecisionNotification } from "../../api/notificationApi";
+
 
 type Props = NativeStackScreenProps<RootStackParamList, "AdminReportDetail">;
 
@@ -47,6 +50,9 @@ export function AdminReportDetailScreen({ route, navigation }: Props) {
   const images =
     (product.images && product.images.length > 0 ? product.images : []) as string[];
 
+  const [confirmApproveVisible, setConfirmApproveVisible] = useState(false);
+  const [confirmRejectVisible, setConfirmRejectVisible] = useState(false);
+
   const nextImage = () => {
     if (!images.length) return;
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -57,17 +63,39 @@ export function AdminReportDetailScreen({ route, navigation }: Props) {
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
-  const handleApprove = (id: number) => {
-    // Later: API call + status update
-    console.log("approve report", id);
-    navigation.goBack();
-  };
+const handleApprove = async (id: number) => {
+  console.log("approve report", id);
 
-  const handleReject = (id: number) => {
-    // Later: API call + status update
-    console.log("reject report", id);
-    navigation.goBack();
-  };
+  try {
+    const sellerId = String(product.seller.id); // cohérent avec le back (string)
+    await sendRepostDecisionNotification({
+      sellerId,
+      productName: product.name,
+      accepted: true,
+    });
+  } catch (error) {
+    console.error("Error sending approve notification:", error);
+  }
+
+  navigation.goBack();
+};
+
+const handleReject = async (id: number) => {
+  console.log("reject report", id);
+
+  try {
+    const sellerId = String(product.seller.id);
+    await sendRepostDecisionNotification({
+      sellerId,
+      productName: product.name,
+      accepted: false,
+    });
+  } catch (error) {
+    console.error("Error sending reject notification:", error);
+  }
+
+  navigation.goBack();
+};
 
   return (
 
@@ -97,7 +125,7 @@ export function AdminReportDetailScreen({ route, navigation }: Props) {
         {/* Action buttons */}
         <View style={styles.actionsRow}>
           <TouchableOpacity
-            onPress={() => handleApprove(report.id)}
+            onPress={() => setConfirmApproveVisible(true)}
             style={styles.approveButton}
             activeOpacity={0.8}
           >
@@ -105,13 +133,15 @@ export function AdminReportDetailScreen({ route, navigation }: Props) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => handleReject(report.id)}
+            onPress={() => setConfirmRejectVisible(true)}
             style={styles.rejectButton}
             activeOpacity={0.8}
           >
             <Text style={styles.rejectText}>Rejeter</Text>
           </TouchableOpacity>
         </View>
+
+        
       </View>
         {/* Report info banner */}
         <View style={styles.banner}>
@@ -257,6 +287,82 @@ export function AdminReportDetailScreen({ route, navigation }: Props) {
 
       </ScrollView>
       </Screen>
+            {/* Modal confirmation republier */}
+      <Modal
+        visible={confirmApproveVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmApproveVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <CheckCircle2 size={40} color="#16a34a" />
+            <Text style={styles.modalTitle}>Republier l'annonce ?</Text>
+            <Text style={styles.modalText}>
+              Es-tu sûre de vouloir republier cet article et le rendre à nouveau visible
+              sur la plateforme ?
+            </Text>
+
+            <View style={styles.modalButtonsRow}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setConfirmApproveVisible(false)}
+              >
+                <Text style={styles.modalCancelText}>Annuler</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalConfirmButtonApprove}
+                onPress={() => {
+                  setConfirmApproveVisible(false);
+                  handleApprove(report.id);
+                }}
+              >
+                <Text style={styles.modalConfirmTextApprove}>Confirmer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal confirmation rejet / suppression définitive */}
+      <Modal
+        visible={confirmRejectVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmRejectVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Trash2 size={40} color="#dc2626" />
+            <Text style={styles.modalTitle}>Rejeter la requête ?</Text>
+            <Text style={styles.modalText}>
+              Es-tu sûre de vouloir rejeter la requête ? Cela supprimera
+              définitivement l'annonce de la plateforme.
+            </Text>
+
+            <View style={styles.modalButtonsRow}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setConfirmRejectVisible(false)}
+              >
+                <Text style={styles.modalCancelText}>Annuler</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalConfirmButtonReject}
+                onPress={() => {
+                  setConfirmRejectVisible(false);
+                  handleReject(report.id);
+                }}
+              >
+                <Text style={styles.modalConfirmTextReject}>Supprimer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </View>
     
   );
@@ -529,4 +635,82 @@ justification: {
   fontWeight: "200",
   marginBottom: 15,
 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  modalContainer: {
+    width: "100%",
+    borderRadius: 18,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111827",
+    marginTop: 12,
+    marginBottom: 6,
+    textAlign: "center",
+  },
+  modalText: {
+    fontSize: 14,
+    color: "#4b5563",
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  modalButtonsRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignSelf: "stretch",
+    marginTop: 4,
+    gap: 8,
+  },
+  modalCancelButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+  },
+  modalConfirmButtonApprove: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#16a34a",
+  },
+  modalConfirmButtonReject: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#dc2626",
+  },
+  modalCancelText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#4b5563",
+  },
+  modalConfirmTextApprove: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#ffffff",
+  },
+  modalConfirmTextReject: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#ffffff",
+  },
+
 });

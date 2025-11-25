@@ -60,16 +60,6 @@ export interface Filters {
   edible: EdibleFilter | null;
 }
 
-export type NotificationType = "favorite" | "sale" | "review" | "removed";
-
-export interface Notification {
-  id: number;
-  type: NotificationType;
-  user: User;
-  product: Product;
-  date: string;
-  read: boolean;
-}
 
 export type TransactionStatus = "in_progress" | "completed";
 

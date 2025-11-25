@@ -21,6 +21,7 @@ import {
   MoreVertical,
   X,
   Image as ImageIcon,
+  Heart,
 } from "lucide-react-native";
 import type { Product, User, Category } from "../../shared/types"; 
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -83,6 +84,8 @@ export default function ProductDetail() {
   const [showRepostModal, setShowRepostModal] = useState(false);
   const [showRepostSuccessModal, setShowRepostSuccessModal] = useState(false);
   const [hasSentRepostRequest, setHasSentRepostRequest] = useState(false);
+
+  const [isFavorite, setIsFavorite] = useState(false);
 
 
   // Fullscreen gallery state
@@ -273,6 +276,25 @@ export default function ProductDetail() {
             </TouchableOpacity>
           ))}
         </ScrollView>
+
+        {/* Bouton favoris sous les photos */}
+        <View style={styles.favoriteWrapper}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.favoriteButton}
+            onPress={() => setIsFavorite((prev) => !prev)}
+          >
+            <Heart
+              size={18}
+              color={isFavorite ? "#DC2626" : "#6B7280"}
+              fill={isFavorite ? "#DC2626" : "transparent"}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.favoriteText}>
+              {isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.dots}>
           {images.map((_, i) => (
@@ -887,6 +909,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.9)",
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 28,
   },
   reportBtn: {
     paddingHorizontal: 12,
@@ -1052,6 +1075,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.9)",
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 0,
   },
   repostBtn: {
     marginTop: 12,
@@ -1264,5 +1288,24 @@ editBackdrop: {
     alignItems: "center",
     justifyContent: "center",
   },
+    favoriteWrapper: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  favoriteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "#F3F4F6",
+  },
+  favoriteText: {
+    fontSize: 13,
+    color: "#111827",
+    fontWeight: "500",
+  },
+
 
 });
