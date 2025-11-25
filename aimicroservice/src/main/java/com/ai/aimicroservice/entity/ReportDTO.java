@@ -1,6 +1,5 @@
 package com.ai.aimicroservice.entity;
 
-import jakarta.persistence.Column;
 import lombok.Data;
 
 import java.util.Date;
@@ -9,10 +8,6 @@ import java.util.Date;
 public class ReportDTO {
     private String description;
     private Date date;
-
-    @Column(name = "client_id")
     private String clientId;
-
-    @Column(name = "post_id")
     private String postId;
 }

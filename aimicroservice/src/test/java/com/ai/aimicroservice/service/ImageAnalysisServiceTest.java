@@ -21,17 +21,6 @@ import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest(
-        properties = "spring.main.allow-bean-definition-overriding=true",
-        classes = {
-                TestAimicroserviceApplication.class,  // Load your app
-                ImageAnalysisServiceTest.TestConfig.class  // Add test beans
-        }
-)
-@EnableAutoConfiguration(exclude = {
-        org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration.class,
-        org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration.class
-})
 public class ImageAnalysisServiceTest {
 
     @TestConfiguration
