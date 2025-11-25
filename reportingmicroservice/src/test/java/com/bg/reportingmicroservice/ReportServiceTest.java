@@ -33,7 +33,6 @@ public class ReportServiceTest {
     void setup() {
         Report report =  new Report();
         report.setReportId("reportid");
-        report.setType("report");
         report.setDate(new Date());
         report.setClientId("clientid");
         report.setDescription("description");
@@ -45,7 +44,6 @@ public class ReportServiceTest {
     void testCreateReport_Success() {
         Report report = new Report();
         report.setReportId("testreportid");
-        report.setType("testreport");
         report.setDate(new Date());
         report.setClientId("testclientid");
         report.setDescription("testdescription");
@@ -66,7 +64,6 @@ public class ReportServiceTest {
     void testCreateReport_Throws_IllegalArgumentException() {
         Report report = new Report();
         report.setReportId("testreportid");
-        report.setType("testreport");
         report.setDate(new Date());
         report.setClientId("testclientid");
         report.setDescription("testdescription");

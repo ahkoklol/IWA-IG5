@@ -17,7 +17,6 @@ public class Report {
     @Column(name = "report_id")
     private String reportId;
 
-    private String type;
     private Date date;
     private String description;
 

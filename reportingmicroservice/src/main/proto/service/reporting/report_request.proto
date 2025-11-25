@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package reporting.service;
+
+import "google/protobuf/timestamp.proto";
+
+option java_package = "com.bg.reportingmicroservice.grpc";
+option java_multiple_files = true;
+
+message ReportRequest {
+  string postId = 1;
+  string description = 2;
+  string clientId = 3;
+}
