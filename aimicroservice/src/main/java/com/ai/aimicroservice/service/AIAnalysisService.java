@@ -1,6 +1,7 @@
 package com.ai.aimicroservice.service;
 
 import com.ai.aimicroservice.client.ListingClient;
+import com.ai.aimicroservice.client.ReportingClient;
 import com.ai.aimicroservice.entity.PostDTO;
 import com.ai.aimicroservice.entity.Report;
 import com.bondgraine.listingmicroservice.grpc.GetPostRequest;
@@ -17,15 +18,15 @@ public class AIAnalysisService {
     private static final Logger log = LoggerFactory.getLogger(AIAnalysisService.class);
 
     private final ListingClient listingClient;
-    private final ReportServiceClient reportServiceClient;
     private final TextAnalysisService textAnalysisService;
     private final ImageAnalysisService imageAnalysisService;
+    private final ReportingClient reportClient;
 
-    public AIAnalysisService(ListingClient listingClient, ReportServiceClient reportServiceClient, TextAnalysisService textAnalysisService, ImageAnalysisService imageAnalysisService) {
+    public AIAnalysisService(ListingClient listingClient, TextAnalysisService textAnalysisService, ImageAnalysisService imageAnalysisService, ReportingClient reportClient) {
         this.listingClient = listingClient;
-        this.reportServiceClient = reportServiceClient;
         this.textAnalysisService = textAnalysisService;
         this.imageAnalysisService = imageAnalysisService;
+        this.reportClient = reportClient;
     }
 
     /**
