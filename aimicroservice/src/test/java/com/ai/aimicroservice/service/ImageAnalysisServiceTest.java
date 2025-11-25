@@ -1,9 +1,11 @@
 package com.ai.aimicroservice.service;
 
+import com.ai.aimicroservice.TestAimicroserviceApplication;
 import com.ai.aimicroservice.utils.Localstack;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +21,17 @@ import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest(properties = "spring.main.allow-bean-definition-overriding=true")
+@SpringBootTest(
+        properties = "spring.main.allow-bean-definition-overriding=true",
+        classes = {
+                TestAimicroserviceApplication.class,  // Load your app
+                ImageAnalysisServiceTest.TestConfig.class  // Add test beans
+        }
+)
+@EnableAutoConfiguration(exclude = {
+        org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration.class,
+        org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration.class
+})
 public class ImageAnalysisServiceTest {
 
     @TestConfiguration
