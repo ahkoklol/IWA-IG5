@@ -38,7 +38,6 @@ public class ImageAnalysisServiceTest {
     }
 
     private static final String BUCKET = "test-bucket";
-    private static MediaServiceClient mediaServiceClient;
 
     @Autowired
     private ImageAnalysisService imageAnalysisService;

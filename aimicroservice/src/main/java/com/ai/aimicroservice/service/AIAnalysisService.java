@@ -3,7 +3,8 @@ package com.ai.aimicroservice.service;
 import com.ai.aimicroservice.client.ListingClient;
 import com.ai.aimicroservice.client.ReportingClient;
 import com.ai.aimicroservice.entity.PostDTO;
-import com.ai.aimicroservice.entity.Report;
+import com.ai.aimicroservice.entity.ReportDTO;
+import com.bg.reportingmicroservice.grpc.ReportRequest;
 import com.bondgraine.listingmicroservice.grpc.GetPostRequest;
 import com.bondgraine.listingmicroservice.grpc.GetPostResponse;
 import org.slf4j.Logger;
@@ -60,21 +61,14 @@ public class AIAnalysisService {
 
         if (textVerdict || imageVerdict) {
             analysisResult = false;
-            report(postId, textAnalysisReasoning + " " + imageAnalysisLabels);
+            ReportRequest reportRequest = ReportRequest.newBuilder()
+                    .setClientId(getPostResponse.getClientId())
+                    .setDescription("Description analysis: " + textAnalysisReasoning + " and image analysis: " + imageAnalysisLabels)
+                    .setPostId(getPostResponse.getPostId())
+                    .build();
+            reportClient.report(reportRequest);
         }
 
         return analysisResult;
-    }
-
-    /**
-     * Report a post due to inappropriate content
-     * @param postId the id of the post to report
-     */
-    private void report(String postId, String description) {
-        Report report = new Report();
-        report.setDescription(description);
-        report.setType("ai");
-        report.setDate(new Date());
-        reportServiceClient.postReport(report, postId);
     }
 }
