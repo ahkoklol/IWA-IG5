@@ -48,7 +48,7 @@ jobs:
         cache: maven
     - name: Build with Maven
       working-directory: aimicroservice
-      run: mvn -B package --file pom.xml
+      run: mvn clean package -B --file pom.xml
 
     - name: Run Tests (with Localstack)
       working-directory: aimicroservice
