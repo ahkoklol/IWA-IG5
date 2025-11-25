@@ -1,14 +1,17 @@
 package com.ai.aimicroservice.service;
 
+import com.ai.aimicroservice.AimicroserviceApplication;
 import com.ai.aimicroservice.TestAimicroserviceApplication;
 import com.ai.aimicroservice.utils.Localstack;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.testcontainers.utility.TestcontainersConfiguration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -21,6 +24,19 @@ import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@SpringBootTest(
+        properties = "spring.main.allow-bean-definition-overriding=true",
+        classes = {
+                AimicroserviceApplication.class,
+                TestcontainersConfiguration.class,
+                ImageAnalysisServiceTest.TestConfig.class
+        }
+)
+@EnableAutoConfiguration(exclude = {
+        org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration.class,
+        org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration.class
+})
 public class ImageAnalysisServiceTest {
 
     @TestConfiguration
@@ -44,7 +60,7 @@ public class ImageAnalysisServiceTest {
     private ImageAnalysisService imageAnalysisService;
 
     @BeforeAll
-    static void setup() throws Exception {
+    void setup() throws Exception {
         // Start LocalStack and create bucket
         var s3Client = Localstack.createS3Client();
         s3Client.createBucket(b -> b.bucket(BUCKET));
