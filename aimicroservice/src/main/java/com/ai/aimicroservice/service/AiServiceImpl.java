@@ -27,10 +27,14 @@ public class AiServiceImpl {
 
             private ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             private String fileName;
+            private String postId;
 
             @Override
             public void onNext(AnalyzeRequest request) {
-                if (fileName == null) fileName = request.getFileName();
+                if (fileName == null) {
+                    fileName = request.getFileName();
+                    postId = request.getPostId();
+                }
                 try {
                     buffer.write(request.getData().toByteArray());
                 } catch (Exception e) {
@@ -48,11 +52,19 @@ public class AiServiceImpl {
                 try {
                     byte[] file = buffer.toByteArray();
 
-                    String result = aiAnalysisService.analyze(postId, fileName, file);
+                    if (postId == null || postId.isEmpty() || fileName == null || fileName.isEmpty()) {
+                        responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT
+                                .withDescription("Metadata (postId/fileName) missing in the first chunk.")
+                                .asRuntimeException());
+                        return;
+                    }
+
+                    boolean result = aiAnalysisService.analyze(postId, fileName, file);
+                    String responseMessage = result ? "Analyzed Successfully" : "Analyze Failed";
 
                     AnalyzeResponse response = AnalyzeResponse.newBuilder()
                             .setFilename(fileName)
-                            .setResponse(result)
+                            .setResponse(responseMessage)
                             .build();
 
                     responseObserver.onNext(response);
