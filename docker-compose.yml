@@ -146,6 +146,22 @@ services:
     #networks:
       #- bg-network
 
+  gateway-service:
+    #build: ./gateway-front
+    image: ${SEB_DOCKER_USERNAME}/gateway-front:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - KEYCLOAK_URL=${KEYCLOAK_URL}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - GATEWAY_PORT=8090
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
+    ports:
+      - "8090:8090"
+    networks:
+      - bg-network
+
 networks:
   bg-network:
     driver: bridge
