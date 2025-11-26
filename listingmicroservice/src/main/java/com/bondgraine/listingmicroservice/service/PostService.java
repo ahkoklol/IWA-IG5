@@ -96,8 +96,8 @@ public class PostService {
             existingPost.setQuantity(post.getQuantity());
             updated = true;
         }
-        if (post.getCategoryId() != null && !post.getCategoryId().equals(existingPost.getCategoryId())) {
-            existingPost.setCategoryId(post.getCategoryId());
+        if (post.getCategory() != null && !post.getCategory().equals(existingPost.getCategory())) {
+            existingPost.setCategory(post.getCategory());
             updated = true;
         }
         if (post.getPrice() != existingPost.getPrice()) {
@@ -148,7 +148,7 @@ public class PostService {
     boolean checkCreatePostContent(Post post) {
         if (post.getDescription() == null || post.getDescription().isEmpty()) return false;
         if (post.getPhotos() == null || post.getPhotos().isEmpty()) return false;
-        if (post.getCategoryId() == null) return false;
+        if (post.getCategory() == null) return false;
         if (post.getSeason() == null || post.getSeason().isEmpty()) return false;
         if (post.getFloweringSeason() == null || post.getFloweringSeason().isEmpty()) return false;
         if (post.getHarvestDate() == null) return false;

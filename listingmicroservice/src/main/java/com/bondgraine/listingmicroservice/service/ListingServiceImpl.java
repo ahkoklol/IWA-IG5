@@ -49,7 +49,7 @@ public class ListingServiceImpl {
                     .addAllPhoto(post.getPhotos())
                     .setWeight(post.getWeight())
                     .setQuantity(post.getQuantity())
-                    .setCategory(post.getCategoryId())
+                    .setCategory(post.getCategory())
                     .setSeason(post.getSeason())
                     .setEdible(post.isEdible())
                     .setFloweringSeason(post.getFloweringSeason())

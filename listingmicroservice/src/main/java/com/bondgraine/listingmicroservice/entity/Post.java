@@ -30,8 +30,8 @@ public class Post {
     private double weight;
     private int quantity;
 
-    @Column(name = "category_id")
-    private String categoryId;
+    @Column(name = "category")
+    private String category;
 
     private String season; // periode de plantation
     private boolean edible;

@@ -53,7 +53,7 @@ public class PostServiceTest extends PostgresTestcontainer {
         post.setWeight(10.0);
         post.setQuantity(2);
         post.setPrice(15.99);
-        post.setCategoryId(category);
+        post.setCategory(category);
         post.setEdible(true);
         post.setStatus(status); // Set the specific status
         post.setClientId(defaultClientId);
@@ -71,17 +71,17 @@ public class PostServiceTest extends PostgresTestcontainer {
         createBaseCategory("exotic_rare_plants", "Exotic rare plants");
 
         // 1. VISIBLE Post
-        Post visiblePost = createBasePost("PST-VIS-123", "visible", "fruits");
+        Post visiblePost = createBasePost("PST-VIS-123", "visible", "Fruits");
         this.defaultPost = postRepository.save(visiblePost);
         this.defaultPostId = this.defaultPost.getPostId();
 
         // 2. HIDDEN Post
-        Post hiddenPostInstance = createBasePost("PST-HID-456", "hidden", "vegetables");
+        Post hiddenPostInstance = createBasePost("PST-HID-456", "hidden", "Vegetables");
         this.hiddenPost = postRepository.save(hiddenPostInstance);
         this.hiddenPostId = this.hiddenPost.getPostId();
 
         // 3. SOLD Post
-        Post soldPostInstance = createBasePost("PST-SOLD-789", "sold", "fruits");
+        Post soldPostInstance = createBasePost("PST-SOLD-789", "sold", "Fruits");
         this.soldPost = postRepository.save(soldPostInstance);
         this.soldPostId = this.soldPost.getPostId();
     }
@@ -98,7 +98,7 @@ public class PostServiceTest extends PostgresTestcontainer {
         newPost.setWeight(1.0);
         newPost.setQuantity(1);
         newPost.setPrice(10.0);
-        newPost.setCategoryId("fruits");
+        newPost.setCategory("Fruits");
         newPost.setEdible(true);
         newPost.setClientId(defaultClientId);
 

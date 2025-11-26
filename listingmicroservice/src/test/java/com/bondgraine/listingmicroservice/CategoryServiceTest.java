@@ -44,6 +44,6 @@ public class CategoryServiceTest extends PostgresTestcontainer{
 
         assertThat(categories).isNotNull();
         assertThat(categories.size()).isEqualTo(6);
-        assertThat(categories.getFirst().getCategoryId()).isEqualTo("vegetables");
+        assertThat(categories.getFirst().getName()).isEqualTo("Vegetables");
     }
 }
