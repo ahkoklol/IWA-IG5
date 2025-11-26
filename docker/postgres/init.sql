@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS post (
     photos TEXT,
     weight DOUBLE PRECISION,
     quantity INT,
-    type VARCHAR(100),
+    category VARCHAR(100),
     season VARCHAR(50),
     edible BOOLEAN,
     flowering_season VARCHAR(100),
