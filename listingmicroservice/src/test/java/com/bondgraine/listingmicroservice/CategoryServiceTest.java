@@ -7,12 +7,16 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SpringBootTest
 @Transactional
-public class CategoryServiceTest extends PostgresTestcontainer{
+@Import(TestcontainersConfiguration.class)
+public class CategoryServiceTest extends PostgresTestcontainer {
 
     @Autowired
     private CategoryService categoryService;
