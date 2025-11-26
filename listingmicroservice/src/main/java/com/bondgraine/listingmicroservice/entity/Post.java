@@ -29,7 +29,9 @@ public class Post {
 
     private double weight;
     private int quantity;
-    private String type;
+
+    @Enumerated(EnumType.STRING)
+    private Category category;
     private String season; // periode de plantation
     private boolean edible;
 
