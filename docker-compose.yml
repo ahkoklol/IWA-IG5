@@ -127,6 +127,9 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - REPORTING_DB_PASSWORD=${DB_PASSWORD}
       - SPRING_PORT=8087
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
     ports:
       - "8087:8087"
     networks:
