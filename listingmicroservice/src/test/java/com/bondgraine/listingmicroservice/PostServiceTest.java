@@ -356,4 +356,13 @@ public class PostServiceTest extends PostgresTestcontainer {
                 .contains("cannot be purchased")
                 .contains("Current status is: hidden");
     }
+
+    @Test
+    void testGetPostByCategory() {
+        List<Post> posts = postService.getPostByCategory("Fruits");
+
+        assertThat(posts).isNotEmpty();
+        assertThat(posts).hasSize(2);
+        assertThat(posts.getFirst().getCategory()).isEqualTo("Fruits");
+    }
 }
