@@ -30,9 +30,9 @@ public class Post {
     private double weight;
     private int quantity;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
+    @Column(name = "category_id")
+    private String categoryId;
+
     private String season; // periode de plantation
     private boolean edible;
 

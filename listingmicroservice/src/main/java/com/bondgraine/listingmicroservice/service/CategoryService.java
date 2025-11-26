@@ -4,9 +4,12 @@ import com.bondgraine.listingmicroservice.entity.Category;
 import com.bondgraine.listingmicroservice.repository.CategoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
+@Service
 public class CategoryService {
 
     private static final Logger log = LoggerFactory.getLogger(CategoryService.class);
