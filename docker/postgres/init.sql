@@ -16,14 +16,15 @@ CREATE TABLE IF NOT EXISTS post (
     photos TEXT,
     weight DOUBLE PRECISION,
     quantity INT,
-    category VARCHAR(100),
+    category_id VARCHAR(100) NOT NULL,
     season VARCHAR(50),
     edible BOOLEAN,
     flowering_season VARCHAR(100),
     harvest_date DATE,
     price DOUBLE PRECISION,
     status VARCHAR(50),
-    client_id VARCHAR(100)
+    client_id VARCHAR(100),
+    FOREIGN KEY (category_id) REFERENCES category (category_id)
 );
 
 CREATE TABLE IF NOT EXISTS favourite (
@@ -33,6 +34,11 @@ CREATE TABLE IF NOT EXISTS favourite (
     PRIMARY KEY (client_id, post_id),
     FOREIGN KEY (post_id) REFERENCES post (post_id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS category (
+    category_id VARCHAR(100) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    );
 
 -- 3. Setup 'transactionmicroservice'
 \connect transactionmicroservice

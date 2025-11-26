@@ -1,5 +1,6 @@
 package com.bondgraine.listingmicroservice.controller;
 
+import com.bondgraine.listingmicroservice.entity.Category;
 import com.bondgraine.listingmicroservice.entity.Post;
 import com.bondgraine.listingmicroservice.service.PostService;
 import org.slf4j.Logger;
@@ -125,6 +126,10 @@ public class PostController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(post);
+    }
 
+    @GetMapping("/categories")
+    public ResponseEntity<List<Category>> getCategories() {
+        log.info("Received request to get categories");
     }
 }

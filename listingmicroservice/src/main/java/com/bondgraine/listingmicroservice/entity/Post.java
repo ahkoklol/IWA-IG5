@@ -30,7 +30,8 @@ public class Post {
     private double weight;
     private int quantity;
 
-    @Enumerated(EnumType.STRING)
+    @ManyToOne
+    @JoinColumn(name = "category_id")
     private Category category;
     private String season; // periode de plantation
     private boolean edible;

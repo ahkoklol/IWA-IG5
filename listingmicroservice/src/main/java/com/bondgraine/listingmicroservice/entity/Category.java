@@ -1,10 +1,18 @@
 package com.bondgraine.listingmicroservice.entity;
 
-public enum Category {
-    FRUITS,
-    VEGETABLES,
-    AROMATIC_HERBS_SPICES,
-    MEDICINAL_PLANTS,
-    DECORATIVE_FLOWERS,
-    EXOTIC_RARE_PLANTS
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
+
+@Data
+@Entity
+@Table(name = "category")
+public class Category {
+
+    @Id
+    @Column(name = "category_id")
+    private String categoryId;
+    private String name;
 }
