@@ -138,4 +138,11 @@ public class PostController {
         List<Category> categories = categoryService.getCategories();
         return ResponseEntity.ok(categories);
     }
+
+    @GetMapping("/category/{category}")
+    public ResponseEntity<List<Post>> getPostByCategory(@PathVariable String category) {
+        log.info("Received request to get post by category {}", category);
+        List<Post> posts = postService.getPostByCategory(category);
+        return ResponseEntity.ok(posts);
+    }
 }

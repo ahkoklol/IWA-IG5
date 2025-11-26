@@ -338,4 +338,13 @@ public class PostService {
     private List<Favourite> getAllFavouritesForPost(String postId) {
         return favouriteRepository.findById_PostId(postId);
     }
+
+    /**
+     * Fetch all post by category
+     * @param category the category
+     * @return a list of Post
+     */
+    public List<Post> getPostByCategory(String category) {
+        return postRepository.findByCategory(category);
+    }
 }
