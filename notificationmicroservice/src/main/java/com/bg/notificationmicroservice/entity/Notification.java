@@ -19,6 +19,8 @@ public class Notification {
 
     private String message;
     private String type;
+
+    @Column(name = "is_read")
     private boolean isRead;
     private Date date;
 

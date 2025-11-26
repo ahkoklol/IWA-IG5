@@ -29,7 +29,10 @@ public class Transaction {
     @Column(name = "stripe_payment_intent_id")
     private String stripePaymentIntentId;
 
+    @Column(name = "client_id")
     private String clientId; // buyer id
+
+    @Column(name = "post_id")
     private String postId;
     private double total;
 }

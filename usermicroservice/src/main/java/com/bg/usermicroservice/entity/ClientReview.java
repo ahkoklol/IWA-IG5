@@ -18,7 +18,11 @@ public class ClientReview {
 
     private int rating;
     private String comment;
+
+    @Column(name = "date_created")
     private Date dateCreated;
+
+    @Column(name = "date_modified")
     private Date dateModified;
 
     @Column(name = "seller_id")
