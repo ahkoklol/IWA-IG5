@@ -30,14 +30,14 @@ public class Post {
     private double weight;
     private int quantity;
     private String type;
-    private String season;
+    private String season; // periode de plantation
     private boolean edible;
 
     @Column(name = "flowering_season")
     private String floweringSeason;
 
     @Column(name = "harvest_date")
-    private Date harvestDate;
+    private String harvestDate;
 
     private double price;
     private String status;
