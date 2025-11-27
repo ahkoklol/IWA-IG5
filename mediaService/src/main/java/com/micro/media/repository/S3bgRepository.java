@@ -1,25 +1,29 @@
 package com.micro.media.repository;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 
-
-
+@Slf4j
 @Repository
 public class S3bgRepository implements ImageRepository {
 
     private final String bucketName;
     private final String region;
     private final S3Client s3Client;
-
-
 
     public S3bgRepository(
             S3Client s3Client,
@@ -30,7 +34,6 @@ public class S3bgRepository implements ImageRepository {
         this.bucketName = bucketName;
         this.region = region;
     }
-
 
     @Override
     public String uploadFile(File file, String folder, String fileName) {
@@ -45,10 +48,10 @@ public class S3bgRepository implements ImageRepository {
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
-                .acl(ObjectCannedACL.PUBLIC_READ)
                 .build();
 
         s3Client.putObject(request, RequestBody.fromInputStream(stream, stream.available()));
+
         return getPublicUrl(key);
     }
 
@@ -72,7 +75,11 @@ public class S3bgRepository implements ImageRepository {
             return true;
         } catch (NoSuchKeyException e) {
             return false;
+        } catch (S3Exception e) {
+            log.debug("Either we lost privilege or the item doesn't exist: {}", e.getMessage());
+            return false;
         }
+
     }
 
     @Override
@@ -84,8 +91,8 @@ public class S3bgRepository implements ImageRepository {
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
-                .acl(ObjectCannedACL.PUBLIC_READ)
                 .build();
+
 
         s3Client.putObject(request, Paths.get(file.getPath()));
     }
@@ -96,7 +103,6 @@ public class S3bgRepository implements ImageRepository {
                 .sourceKey(sourceKey)
                 .destinationBucket(bucketName)
                 .destinationKey(destinationKey)
-                .acl(ObjectCannedACL.PUBLIC_READ)
                 .build();
 
         s3Client.copyObject(copyRequest);
