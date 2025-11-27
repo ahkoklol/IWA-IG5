@@ -243,7 +243,7 @@ public class PostServiceTest extends PostgresTestcontainer {
     }
 
     @Test
-    void testIUnfavourite_Successful() {
+    void testUnfavourite_Successful() {
         String postId = defaultPostId;
         String clientId = "fan1";
 
