@@ -356,5 +356,9 @@ public class PostService {
         }
         postRepository.delete(post.get());
         log.info("Deleted post with ID: {} and client ID: {}", postId, post.get().getClientId());
+        List<Favourite> listFavourite = getAllFavouritesForPost(postId);
+        listFavourite.forEach(favourite -> {
+            eventProducer.sendPostEvent("POST_FAVOURITE_REMOVED", postId, post.get().getClientId(), favourite.getId().toString());
+        });
     }
 }
