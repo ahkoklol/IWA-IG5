@@ -52,14 +52,13 @@ public class NotificationEventListener {
         notification.setClientId(event.getClientId());
         notification.setType(event.getEventType());
         String message = switch (event.getEventType()) {
-            case "PRODUCT_BOUGHT" -> String.format("A new purchase was made for product %s.", event.getPostId());
-            case "PRODUCT_SOLD" -> String.format("Product %s has been sold.", event.getPostId());
-            case "PRODUCT_LIKED" -> String.format("Product %s received a new like.", event.getPostId());
+            case "POST_BOUGHT" -> String.format("Your post %s has been bought!", event.getPostId()); //ok
+            case "POST_FAVOURITE" -> String.format("Product %s received a new like.", event.getPostId()); //ok
             case "REVIEW_LEFT" -> String.format("%s has left you a review.", event.getUserId());
-            case "PRODUCT_REMOVED"  -> String.format("The product %s has been removed.", event.getPostId());
+            case "POST_FAVOURITE_REMOVED" -> String.format("The product %s has been removed.", event.getPostId()); //ok
             case "REPOST_REQUEST_ACCEPTED" -> String.format("The product %s repost request has been accepted.", event.getPostId());
-            case "REPOST_REQUEST_REJECTED"  -> String.format("The product %s repost request has been rejected.", event.getPostId());
-            case "PRODUCT_BOUGHT_NOTIFY_FAVORITERS" -> String.format("The product %s in your favourites was bought", event.getPostId());
+            case "REPOST_REQUEST_REJECTED" -> String.format("The product %s repost request has been rejected.", event.getPostId());
+            case "POST_FAVOURITE_SOLD" -> String.format("The product %s in your favourites was bought", event.getPostId()); //ok
             default -> "An unknown product event occurred.";
         };
         notification.setMessage(message);
