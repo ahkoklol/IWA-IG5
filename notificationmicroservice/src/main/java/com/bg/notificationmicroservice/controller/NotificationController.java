@@ -42,9 +42,9 @@ public class NotificationController {
         return ResponseEntity.ok(notificationList);
     }
 
-    @PutMapping("/{clientId}")
-    public ResponseEntity<Void> markNotificationAsRead(@PathVariable String clientId) {
-        notificationService.markNotificationAsRead(clientId);
+    @PutMapping("/{notificationId}")
+    public ResponseEntity<Void> markNotificationAsRead(@PathVariable String notificationId) {
+        notificationService.markNotificationAsRead(notificationId);
         return ResponseEntity.ok().build();
     }
 
