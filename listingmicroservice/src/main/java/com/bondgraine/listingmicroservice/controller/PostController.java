@@ -145,4 +145,10 @@ public class PostController {
         List<Post> posts = postService.getPostByCategory(category);
         return ResponseEntity.ok(posts);
     }
+
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Void>  deletePost(@PathVariable String postId) {
+        postService.deletePost(postId);
+        return ResponseEntity.ok().build();
+    }
 }

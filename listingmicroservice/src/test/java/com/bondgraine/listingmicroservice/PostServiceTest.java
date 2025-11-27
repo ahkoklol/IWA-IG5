@@ -365,4 +365,19 @@ public class PostServiceTest extends PostgresTestcontainer {
         assertThat(posts).hasSize(2);
         assertThat(posts.getFirst().getCategory()).isEqualTo("Fruits");
     }
+
+    @Test
+    void testDeletePost() {
+        Optional<Post> post = postService.getPostById(defaultPostId);
+        assertThat(post).isPresent();
+        postService.deletePost(defaultPostId);
+        assertThat(postService.getPostById(defaultPostId).isPresent()).isFalse();
+    }
+
+    @Test
+    void testDeletePost_ThrowsNoSuchElementException() {
+        assertThrows(NoSuchElementException.class, () -> {
+            postService.deletePost("fakepostid");
+        });
+    }
 }

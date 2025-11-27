@@ -332,8 +332,8 @@ public class PostService {
 
     /**
      * Helper to get all favourites for a post
-     * @param postId
-     * @return
+     * @param postId the id of the post
+     * @return a list of all favourites by post
      */
     private List<Favourite> getAllFavouritesForPost(String postId) {
         return favouriteRepository.findById_PostId(postId);
@@ -346,5 +346,15 @@ public class PostService {
      */
     public List<Post> getPostByCategory(String category) {
         return postRepository.findByCategory(category);
+    }
+
+    public void deletePost(String postId) {
+        Optional<Post> post = getPostById(postId);
+        if (post.isEmpty()) {
+            log.error("Post not found with ID: " + postId);
+            throw new NoSuchElementException("Post not found with ID: " + postId);
+        }
+        postRepository.delete(post.get());
+        log.info("Deleted post with ID: {} and client ID: {}", postId, post.get().getClientId());
     }
 }
