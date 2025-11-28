@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
@@ -19,6 +19,9 @@ import { SearchScreen } from "../screens/search/SearchScreen";
 import { CategoryResults } from "../screens/search/CategoryResults";
 import { FilterScreen } from "../screens/search/FilterScreen";
 import { FilterDetailScreen } from "../screens/search/FilterDetailScreen";
+import AuthPrompt from "../screens/(auth)/authPrompt";
+
+import { AuthContext } from "../context/authContext";
 
 import type { User, Category, Filters } from "../shared/types";
 
@@ -29,6 +32,8 @@ export type RootStackParamList = {
   Register2: { step1: SignupData1 };
   Register3: { step1: SignupData1; step2: SignupData2 };
   Home: undefined;
+
+  AuthPrompt: undefined;
 
   ProductDetail: { productId: string };
 
@@ -63,31 +68,37 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
+  const { state } = useContext(AuthContext);
+
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Intro" component={IntroScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register1" component={RegisterScreen1} />
-        <Stack.Screen name="Register2" component={RegisterScreen2} />
-        <Stack.Screen name="Register3" component={RegisterScreen3} />
-        <Stack.Screen name="Home" component={HomeRootScreen} />
-        <Stack.Screen name="ProductDetail" component={ProductDetail} />
-        <Stack.Screen name="MyProfileScreen" component={MyProfileScreen} />
-        <Stack.Screen name="SearchScreen" component={SearchScreen} />
-        <Stack.Screen name="CategoryResults" component={CategoryResults} />
-        <Stack.Screen name="FilterScreen" component={FilterScreen} />
-        <Stack.Screen name="FilterDetailScreen" component={FilterDetailScreen} />
-
-        {/* Profil */}
-        <Stack.Screen name="Favorites" component={FavoritesScreen} />
-        <Stack.Screen name="MyProducts" component={MyProductsScreen} />
-        <Stack.Screen name="Transactions" component={TransactionsScreen} />
-        <Stack.Screen name="SellerReview" component={SellerReviewScreen} />
-
-        {/* Réglages */}
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-      </Stack.Navigator>
+      {state.isSignedIn ? (
+        // App stack when signed in
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Home" component={HomeRootScreen} />
+          <Stack.Screen name="ProductDetail" component={ProductDetail} />
+          <Stack.Screen name="MyProfileScreen" component={MyProfileScreen} />
+          <Stack.Screen name="SearchScreen" component={SearchScreen} />
+          <Stack.Screen name="CategoryResults" component={CategoryResults} />
+          <Stack.Screen name="FilterScreen" component={FilterScreen} />
+          <Stack.Screen name="FilterDetailScreen" component={FilterDetailScreen} />
+          <Stack.Screen name="Favorites" component={FavoritesScreen} />
+          <Stack.Screen name="MyProducts" component={MyProductsScreen} />
+          <Stack.Screen name="Transactions" component={TransactionsScreen} />
+          <Stack.Screen name="SellerReview" component={SellerReviewScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+        </Stack.Navigator>
+      ) : (
+        // Auth stack when not signed in
+        <Stack.Navigator initialRouteName="Intro" screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Intro" component={IntroScreen} />
+          <Stack.Screen name="AuthPrompt" component={AuthPrompt} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Register1" component={RegisterScreen1} />
+          <Stack.Screen name="Register2" component={RegisterScreen2} />
+          <Stack.Screen name="Register3" component={RegisterScreen3} />
+        </Stack.Navigator>
+      )}
     </NavigationContainer>
   );
 }

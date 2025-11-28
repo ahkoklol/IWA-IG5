@@ -1,0 +1,218 @@
+import React, { createContext, useMemo, useReducer, ReactNode, useEffect, useState, useCallback } from 'react';
+import {
+  useAuthRequest,
+  makeRedirectUri,
+  useAutoDiscovery,
+  exchangeCodeAsync,
+  ResponseType,
+} from 'expo-auth-session';
+import * as SecureStore from 'expo-secure-store';
+
+type AuthState = {
+  isSignedIn: boolean;
+  accessToken: string | null;
+  idToken: string | null;
+  userInfo: any | null;
+  email?: string;
+  id_user?: string;
+};
+
+type AuthAction =
+  | { type: 'SIGN_IN'; payload: { accessToken: string | null; idToken: string | null } }
+  | { type: 'USER_INFO'; payload: { email: string; id_user: string } }
+  | { type: 'SIGN_OUT' };
+
+type AuthContextType = {
+  state: AuthState;
+  signIn: () => void;
+  signOut: () => void;
+};
+
+const initialState: AuthState = {
+  isSignedIn: false,
+  accessToken: null,
+  idToken: null,
+  userInfo: null,
+};
+
+const AuthContext = createContext<AuthContextType>({
+  state: initialState,
+  signIn: () => {},
+  signOut: () => {},
+});
+
+function authReducer(state: AuthState, action: AuthAction): AuthState {
+  switch (action.type) {
+    case 'SIGN_IN':
+      return {
+        ...state,
+        isSignedIn: true,
+        accessToken: action.payload.accessToken,
+        idToken: action.payload.idToken,
+      };
+    case 'USER_INFO':
+      return {
+        ...state,
+        email: action.payload.email,
+        id_user: action.payload.id_user,
+      };
+    case 'SIGN_OUT':
+      return initialState;
+    default:
+      return state;
+  }
+}
+
+
+
+type AuthProviderProps = {
+  children: ReactNode;
+};
+
+const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [authState, dispatch] = useReducer(authReducer, initialState);
+
+  // pending sign-in flag when request isn't ready yet
+  const [pendingSignIn, setPendingSignIn] = useState(false);
+
+  const keycloakHost = process.env.EXPO_PUBLIC_KEYCLOAK_HOST ?? '';
+  const keycloakRealm = process.env.EXPO_PUBLIC_KEYCLOAK_REALM ?? '';
+  const keycloakDiscoveryUrl = `${keycloakHost}/realms/${keycloakRealm}`;
+
+  const clientId = process.env.EXPO_PUBLIC_KEYCLOAK_CLIENT_ID ?? '';
+  if (!keycloakDiscoveryUrl || !clientId) {
+    throw new Error('Missing Keycloak config in environment variables');
+  }
+
+  const discovery = useAutoDiscovery(keycloakDiscoveryUrl);
+
+  const redirectUri = makeRedirectUri({
+    scheme: 'bonne-graine',
+  });
+
+  const [request, response, promptAsync] = useAuthRequest(
+    {
+      clientId,
+      redirectUri,
+      scopes: ['openid', 'profile'],
+      responseType: ResponseType.Code, // request authorization code
+      usePKCE: true, // generate code_verifier/code_challenge
+    },
+    discovery
+  );
+
+  const signIn = useCallback(() => {
+  if (request && typeof promptAsync === 'function') {
+    promptAsync().catch(e => console.warn(e));
+  } else {
+    setPendingSignIn(true);
+  }
+}, [request, promptAsync]);
+
+const signOut = useCallback(async () => {
+  try {
+    const idToken = authState.idToken;
+    // Call Keycloak logout endpoint (id_token_hint helps Keycloak identify the session).
+    // post_logout_redirect_uri is optional — we won't rely on it for client navigation.
+    if (idToken) {
+      const logoutUrl = `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/logout?id_token_hint=${encodeURIComponent(
+        idToken
+      )}`;
+      // best-effort: call logout endpoint to invalidate server session
+      await fetch(logoutUrl, { method: 'GET' });
+    }
+
+    // Clear stored tokens (SecureStore)
+    await SecureStore.deleteItemAsync('accessToken');
+    await SecureStore.deleteItemAsync('idToken');
+    await SecureStore.deleteItemAsync('refreshToken');
+
+    // Update app state
+    dispatch({ type: 'SIGN_OUT' });
+    console.log('Signed out: local tokens cleared and state reset.');
+  } catch (e) {
+    console.warn('signOut failed:', e);
+  }
+}, [authState.idToken, dispatch]);
+
+
+  // If signIn() was called before request was ready, trigger promptAsync when ready.
+  useEffect(() => {
+    if (!pendingSignIn) return;
+    if (request && typeof promptAsync === 'function') {
+      setPendingSignIn(false);
+      console.log('Auth request ready — calling promptAsync now');
+      promptAsync().catch((e) => console.warn('promptAsync failed:', e));
+    } else {
+      console.log('Waiting for auth request to be ready...');
+    }
+  }, [pendingSignIn, request, promptAsync]);
+
+  // Handle the response from AuthSession: exchange code for tokens, store tokens, update state.
+  useEffect(() => {
+    async function handleResponse() {
+      if (!response) return;
+      if (response.type !== 'success') {
+        if (response.type === 'error') console.warn('Auth response error', response);
+        return;
+      }
+
+      const code = response.params?.code;
+      if (!code) {
+        console.warn('No authorization code returned in response:', response);
+        return;
+      }
+
+      // request must contain the codeVerifier generated by useAuthRequest when usePKCE:true
+      const codeVerifier = (request as any)?.codeVerifier;
+      if (!codeVerifier) {
+        console.warn('Missing code verifier on request — cannot exchange code for tokens');
+        return;
+      }
+
+      try {
+        console.log('Exchanging code for tokens...');
+        const tokenResult = await exchangeCodeAsync(
+          {
+            clientId,
+            code,
+            redirectUri,
+            extraParams: { code_verifier: codeVerifier },
+          },
+          (discovery as any) // exchangeCodeAsync expects a discovery-like object
+        );
+
+        const accessToken = tokenResult.accessToken ?? (tokenResult as any).access_token ?? null;
+        const idToken = tokenResult.idToken ?? (tokenResult as any).id_token ?? null;
+        const refreshToken = tokenResult.refreshToken ?? (tokenResult as any).refresh_token ?? null;
+
+        // Store tokens securely (you said no refresh handling; we still store refreshToken if returned)
+        if (accessToken) await SecureStore.setItemAsync('accessToken', accessToken);
+        if (idToken) await SecureStore.setItemAsync('idToken', idToken);
+        if (refreshToken) await SecureStore.setItemAsync('refreshToken', refreshToken);
+
+        // Update context so app reacts (navigator should switch stacks based on authState.isSignedIn)
+        dispatch({ type: 'SIGN_IN', payload: { accessToken, idToken } });
+        console.log('Sign-in complete, tokens stored and state updated.');
+      } catch (e) {
+        console.warn('Failed to exchange code for tokens:', e);
+      }
+    }
+
+    handleResponse();
+  }, [response, request, clientId, redirectUri, discovery]);
+
+const authContext = useMemo(
+  () => ({
+    state: authState,
+    signIn,
+    signOut,
+  }),
+  [authState, signIn, signOut]
+);
+
+
+  return <AuthContext.Provider value={authContext}>{children}</AuthContext.Provider>;
+};
+
+export { AuthContext, AuthProvider };
