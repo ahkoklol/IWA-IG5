@@ -484,7 +484,7 @@ export const demoTransactions: Transaction[] = [
     product: demoProducts[3],
     date: "20 septembre 2024",
     price: "30,00 €",
-    status: "in_progress",
+    status: "completed",
     reviewed: false,
   },
   {

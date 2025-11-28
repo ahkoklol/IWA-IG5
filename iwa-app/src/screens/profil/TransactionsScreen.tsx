@@ -79,7 +79,6 @@ export function TransactionsScreen({ navigation }: Props) {
               {transactions.map((transaction) => {
                 const firstImage = transaction.product.images?.[0];
 
-                const isInProgress = transaction.status === "in_progress";
                 const isCompleted = transaction.status === "completed";
 
                 return (
@@ -119,23 +118,15 @@ export function TransactionsScreen({ navigation }: Props) {
 
                         <View
                           style={[
-                            styles.statusBadge,
-                            isInProgress
-                              ? styles.statusBadgeInProgress
-                              : styles.statusBadgeCompleted,
+                            styles.statusBadge, styles.statusBadgeCompleted,
                           ]}
                         >
                           <Text
                             style={[
-                              styles.statusText,
-                              isInProgress
-                                ? styles.statusTextInProgress
-                                : styles.statusTextCompleted,
+                              styles.statusText,styles.statusTextCompleted,
                             ]}
                           >
-                            {isInProgress
-                              ? t("status_in_delivery")
-                              : t("status_closed")}
+                            {t("status_closed")}
                           </Text>
                         </View>
                       </View>
