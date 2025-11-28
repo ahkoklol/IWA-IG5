@@ -6,5 +6,5 @@ import lombok.Data;
 public class PostDTO {
     private String postId;
     private String description;
-    private String imageName;
+    private String imageName; //
 }
