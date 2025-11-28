@@ -48,6 +48,9 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - USER_DB_PASSWORD=${DB_PASSWORD}
       - SPRING_PORT=8081
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
     ports:
       - "8081:8081"
     #depends_on:
@@ -67,6 +70,9 @@ services:
       - LISTING_DB_PASSWORD=${DB_PASSWORD}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SPRING_PORT=8082
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
     ports:
       - "8082:8082"
     depends_on:
@@ -87,6 +93,9 @@ services:
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
       - SPRING_PORT=8084
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
     ports:
       - "8084:8084"
     networks:
@@ -103,6 +112,9 @@ services:
       - NOTIFICATION_DB_PASSWORD=${DB_PASSWORD}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SPRING_PORT=8085
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
     ports:
       - "8085:8085"
     depends_on:
@@ -121,6 +133,9 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - REPORTING_DB_PASSWORD=${DB_PASSWORD}
       - SPRING_PORT=8087
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
     ports:
       - "8087:8087"
     networks:
@@ -143,6 +158,22 @@ services:
     #depends_on:
       #localstack:
         #condition: service_started
+    networks:
+      - bg-network
+
+  gateway-service:
+    #build: ./gateway-front
+    image: ${SEB_DOCKER_USERNAME}/gateway-front:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - KEYCLOAK_URL=${KEYCLOAK_URL}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - GATEWAY_PORT=8090
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
+    ports:
+      - "8090:8090"
     networks:
       - bg-network
 
