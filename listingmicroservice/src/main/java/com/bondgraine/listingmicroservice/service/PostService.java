@@ -96,8 +96,8 @@ public class PostService {
             existingPost.setQuantity(post.getQuantity());
             updated = true;
         }
-        if (post.getType() != null && !post.getType().equals(existingPost.getType())) {
-            existingPost.setType(post.getType());
+        if (post.getCategory() != null && !post.getCategory().equals(existingPost.getCategory())) {
+            existingPost.setCategory(post.getCategory());
             updated = true;
         }
         if (post.getPrice() != existingPost.getPrice()) {
@@ -112,7 +112,7 @@ public class PostService {
             existingPost.setFloweringSeason(post.getFloweringSeason());
             updated = true;
         }
-        if (post.getHarvestDate() != existingPost.getHarvestDate()) {
+        if (!Objects.equals(post.getHarvestDate(), existingPost.getHarvestDate())) {
             existingPost.setHarvestDate(post.getHarvestDate());
             updated = true;
         }
@@ -148,7 +148,7 @@ public class PostService {
     boolean checkCreatePostContent(Post post) {
         if (post.getDescription() == null || post.getDescription().isEmpty()) return false;
         if (post.getPhotos() == null || post.getPhotos().isEmpty()) return false;
-        if (post.getType() == null || post.getType().isEmpty()) return false;
+        if (post.getCategory() == null) return false;
         if (post.getSeason() == null || post.getSeason().isEmpty()) return false;
         if (post.getFloweringSeason() == null || post.getFloweringSeason().isEmpty()) return false;
         if (post.getHarvestDate() == null) return false;
@@ -332,10 +332,33 @@ public class PostService {
 
     /**
      * Helper to get all favourites for a post
-     * @param postId
-     * @return
+     * @param postId the id of the post
+     * @return a list of all favourites by post
      */
     private List<Favourite> getAllFavouritesForPost(String postId) {
         return favouriteRepository.findById_PostId(postId);
+    }
+
+    /**
+     * Fetch all post by category
+     * @param category the category
+     * @return a list of Post
+     */
+    public List<Post> getPostByCategory(String category) {
+        return postRepository.findByCategory(category);
+    }
+
+    public void deletePost(String postId) {
+        Optional<Post> post = getPostById(postId);
+        if (post.isEmpty()) {
+            log.error("Post not found with ID: " + postId);
+            throw new NoSuchElementException("Post not found with ID: " + postId);
+        }
+        postRepository.delete(post.get());
+        log.info("Deleted post with ID: {} and client ID: {}", postId, post.get().getClientId());
+        List<Favourite> listFavourite = getAllFavouritesForPost(postId);
+        listFavourite.forEach(favourite -> {
+            eventProducer.sendPostEvent("POST_FAVOURITE_REMOVED", postId, post.get().getClientId(), favourite.getId().toString());
+        });
     }
 }

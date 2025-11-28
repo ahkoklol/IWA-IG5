@@ -17,7 +17,6 @@ public class Request {
     @Column(name = "request_id")
     private String requestId;
 
-    private String type;
     private Date date;
     private String description;
 

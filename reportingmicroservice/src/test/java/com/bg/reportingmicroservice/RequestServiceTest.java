@@ -29,7 +29,6 @@ public class RequestServiceTest extends PostgresTestcontainer {
     void setup() {
         Request request =  new Request();
         request.setRequestId("requestid");
-        request.setType("request");
         request.setDate(new Date());
         request.setDescription("description");
         request.setPostId("postid");
@@ -40,7 +39,6 @@ public class RequestServiceTest extends PostgresTestcontainer {
     void testCreateRequest_Success() {
         Request request = new Request();
         request.setRequestId("testrequestid");
-        request.setType("testreport");
         request.setDate(new Date());
         request.setDescription("testdescription");
         request.setPostId("testpostid");
@@ -60,7 +58,6 @@ public class RequestServiceTest extends PostgresTestcontainer {
     void testCreateRequest_Throws_IllegalArgumentException() {
         Request request = new Request();
         request.setRequestId("testrequestid");
-        request.setType("testreport");
         request.setDate(new Date());
         request.setDescription("testdescription");
         request.setPostId("testpostid");

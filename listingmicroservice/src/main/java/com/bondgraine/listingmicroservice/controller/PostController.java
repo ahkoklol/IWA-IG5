@@ -1,6 +1,8 @@
 package com.bondgraine.listingmicroservice.controller;
 
+import com.bondgraine.listingmicroservice.entity.Category;
 import com.bondgraine.listingmicroservice.entity.Post;
+import com.bondgraine.listingmicroservice.service.CategoryService;
 import com.bondgraine.listingmicroservice.service.PostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +20,11 @@ public class PostController {
 
     private final PostService postService;
 
-    public PostController(PostService postService) {
+    private final CategoryService categoryService;
+
+    public PostController(PostService postService,  CategoryService categoryService) {
         this.postService = postService;
+        this.categoryService = categoryService;
     }
 
     @GetMapping("/{postId}")
@@ -125,6 +130,25 @@ public class PostController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(post);
+    }
 
+    @GetMapping("/category")
+    public ResponseEntity<List<Category>> getCategories() {
+        log.info("Received request to get categories");
+        List<Category> categories = categoryService.getCategories();
+        return ResponseEntity.ok(categories);
+    }
+
+    @GetMapping("/category/{category}")
+    public ResponseEntity<List<Post>> getPostByCategory(@PathVariable String category) {
+        log.info("Received request to get post by category {}", category);
+        List<Post> posts = postService.getPostByCategory(category);
+        return ResponseEntity.ok(posts);
+    }
+
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Void>  deletePost(@PathVariable String postId) {
+        postService.deletePost(postId);
+        return ResponseEntity.ok().build();
     }
 }

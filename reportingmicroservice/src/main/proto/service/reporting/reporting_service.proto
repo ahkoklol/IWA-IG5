@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package reporting.service;
+
+option java_package = "com.bg.reportingmicroservice.grpc";
+option java_multiple_files = true;
+
+import "service/reporting/report_response.proto";
+import "service/reporting/report_request.proto";
+
+service ReportingService {
+  rpc ReportPost(ReportRequest) returns (ReportResponse);
+}
