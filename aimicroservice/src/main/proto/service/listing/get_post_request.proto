@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package listing.service;
+
+option java_package = "com.bondgraine.listingmicroservice.grpc";
+option java_multiple_files = true;
+
+message GetPostRequest {
+  string post_id = 1;
+}

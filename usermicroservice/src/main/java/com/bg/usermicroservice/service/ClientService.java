@@ -26,11 +26,13 @@ public class ClientService {
     private final ClientRepository clientRepository;
     private final ClientReviewRepository clientReviewRepository;
     private final ListingClient listingClient;
+    private final ReviewEventProducer eventProducer;
 
-    public ClientService(ClientRepository clientRepository, ClientReviewRepository clientReviewRepository, ListingClient listingClient) {
+    public ClientService(ClientRepository clientRepository, ClientReviewRepository clientReviewRepository, ListingClient listingClient, ReviewEventProducer eventProducer) {
         this.clientRepository = clientRepository;
         this.clientReviewRepository = clientReviewRepository;
         this.listingClient = listingClient;
+        this.eventProducer = eventProducer;
     }
 
     /**
@@ -204,6 +206,7 @@ public class ClientService {
         clientReviewDTO.setDateModified(clientReview.getDateModified());
 
         log.info("Review created for seller {}",  sellerId);
+        eventProducer.sendReviewEvent("REVIEW_LEFT", clientReview.getClientReviewId(), clientReviewId.getBuyerId(), clientReview.getSellerId());
         return clientReviewDTO;
     }
 

@@ -19,5 +19,4 @@ public class Favourite {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
-
 }

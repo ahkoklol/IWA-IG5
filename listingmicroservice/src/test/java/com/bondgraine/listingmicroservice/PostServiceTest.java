@@ -1,6 +1,8 @@
 package com.bondgraine.listingmicroservice;
 
+import com.bondgraine.listingmicroservice.entity.Category;
 import com.bondgraine.listingmicroservice.entity.Post;
+import com.bondgraine.listingmicroservice.repository.CategoryRepository;
 import com.bondgraine.listingmicroservice.repository.FavouriteRepository;
 import com.bondgraine.listingmicroservice.repository.PostRepository;
 import com.bondgraine.listingmicroservice.service.PostService;
@@ -33,16 +35,25 @@ public class PostServiceTest extends PostgresTestcontainer {
     private String hiddenPostId;
     private String soldPostId;
     private final String defaultClientId = "TEST_CLIENT_ID";
+    @Autowired
+    private CategoryRepository categoryRepository;
 
-    // Add this helper method to your PostServiceTest class
-    private Post createBasePost(String postId, String status) {
+    private Category createBaseCategory(String categoryId, String name) {
+        Category category = new Category();
+        category.setCategoryId(categoryId);
+        category.setName(name);
+        categoryRepository.save(category);
+        return category;
+    }
+
+    private Post createBasePost(String postId, String status, String category) {
         Post post = new Post();
         post.setPostId(postId);
         post.setDescription("Default Test Post Description");
         post.setWeight(10.0);
         post.setQuantity(2);
         post.setPrice(15.99);
-        post.setType("Fruit");
+        post.setCategory(category);
         post.setEdible(true);
         post.setStatus(status); // Set the specific status
         post.setClientId(defaultClientId);
@@ -52,18 +63,25 @@ public class PostServiceTest extends PostgresTestcontainer {
 
     @BeforeEach
     void setUp() {
+        createBaseCategory("vegetables", "Vegetables");
+        createBaseCategory("fruits", "Fruits");
+        createBaseCategory("aromatic_herbs_spices", "Aromatic herbs / Spices");
+        createBaseCategory("medicinal_plants", "Medicinal plants");
+        createBaseCategory("decorative_flowers", "Decorative flowers");
+        createBaseCategory("exotic_rare_plants", "Exotic rare plants");
+
         // 1. VISIBLE Post
-        Post visiblePost = createBasePost("PST-VIS-123", "visible");
+        Post visiblePost = createBasePost("PST-VIS-123", "visible", "Fruits");
         this.defaultPost = postRepository.save(visiblePost);
         this.defaultPostId = this.defaultPost.getPostId();
 
         // 2. HIDDEN Post
-        Post hiddenPostInstance = createBasePost("PST-HID-456", "hidden");
+        Post hiddenPostInstance = createBasePost("PST-HID-456", "hidden", "Vegetables");
         this.hiddenPost = postRepository.save(hiddenPostInstance);
         this.hiddenPostId = this.hiddenPost.getPostId();
 
         // 3. SOLD Post
-        Post soldPostInstance = createBasePost("PST-SOLD-789", "sold");
+        Post soldPostInstance = createBasePost("PST-SOLD-789", "sold", "Fruits");
         this.soldPost = postRepository.save(soldPostInstance);
         this.soldPostId = this.soldPost.getPostId();
     }
@@ -76,11 +94,11 @@ public class PostServiceTest extends PostgresTestcontainer {
         newPost.getPhotos().add("photo1");
         newPost.setSeason("season");
         newPost.setFloweringSeason("floweringSeason");
-        newPost.setHarvestDate(new Date());
+        newPost.setHarvestDate("January - March 2026");
         newPost.setWeight(1.0);
         newPost.setQuantity(1);
         newPost.setPrice(10.0);
-        newPost.setType("Test");
+        newPost.setCategory("Fruits");
         newPost.setEdible(true);
         newPost.setClientId(defaultClientId);
 
@@ -225,7 +243,7 @@ public class PostServiceTest extends PostgresTestcontainer {
     }
 
     @Test
-    void testIUnfavourite_Successful() {
+    void testUnfavourite_Successful() {
         String postId = defaultPostId;
         String clientId = "fan1";
 
@@ -337,5 +355,29 @@ public class PostServiceTest extends PostgresTestcontainer {
         assertThat(exception.getMessage())
                 .contains("cannot be purchased")
                 .contains("Current status is: hidden");
+    }
+
+    @Test
+    void testGetPostByCategory() {
+        List<Post> posts = postService.getPostByCategory("Fruits");
+
+        assertThat(posts).isNotEmpty();
+        assertThat(posts).hasSize(2);
+        assertThat(posts.getFirst().getCategory()).isEqualTo("Fruits");
+    }
+
+    @Test
+    void testDeletePost() {
+        Optional<Post> post = postService.getPostById(defaultPostId);
+        assertThat(post).isPresent();
+        postService.deletePost(defaultPostId);
+        assertThat(postService.getPostById(defaultPostId).isPresent()).isFalse();
+    }
+
+    @Test
+    void testDeletePost_ThrowsNoSuchElementException() {
+        assertThrows(NoSuchElementException.class, () -> {
+            postService.deletePost("fakepostid");
+        });
     }
 }

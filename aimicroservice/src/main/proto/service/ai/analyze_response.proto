@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package ai.service;
+
+option java_package = "com.ai.aimicroservice.grpc";
+option java_multiple_files = true;
+
+message AnalyzeResponse {
+  string filename = 1;
+  string response = 2;
+}
