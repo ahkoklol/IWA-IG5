@@ -10,8 +10,8 @@ import org.springframework.grpc.client.GrpcChannelFactory;
 public class GrpcClientConfiguration {
 
     @Bean
-    public ListingServiceBlockingStub coreOrderManagementStub(GrpcChannelFactory channels) {
+    public ListingServiceBlockingStub listingStub(GrpcChannelFactory channels) {
 
-        return ListingServiceGrpc.newBlockingStub(channels.createChannel("core"));
+        return ListingServiceGrpc.newBlockingStub(channels.createChannel("listing"));
     }
 }

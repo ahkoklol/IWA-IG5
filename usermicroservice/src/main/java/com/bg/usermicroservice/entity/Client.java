@@ -34,6 +34,6 @@ public class Client {
     @Column(name = "user_id")
     private String userId;
 
-    @Column(name = "photoId")
+    @Column(name = "photo_id")
     private String photoId;
 }

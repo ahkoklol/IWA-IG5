@@ -13,4 +13,5 @@ public interface PostRepository extends JpaRepository<Post, String> {
      */
     List<Post> findByClientIdAndStatus(String clientId, String status);
 
+    List<Post> findByCategory(String category);
 }
