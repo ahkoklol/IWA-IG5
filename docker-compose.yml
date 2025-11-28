@@ -142,7 +142,7 @@ services:
       - bg-network
 
   ai-service:
-    build: ./aimicroservice
+    #build: ./aimicroservice
     image: ${WAYNE_DOCKER_USERNAME}/aimicroservice:latest
     environment:
       - SPRING_PROFILES_ACTIVE=docker
