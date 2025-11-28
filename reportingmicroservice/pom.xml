@@ -30,6 +30,9 @@
 		<java.version>21</java.version>
         <lombok.version>1.18.30</lombok.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
+        <grpc.version>1.76.0</grpc.version>
+        <protobuf-java.version>4.32.1</protobuf-java.version>
+        <spring-grpc.version>0.12.0</spring-grpc.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -103,8 +106,6 @@
 			<artifactId>postgresql</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-        <!--		Eureka-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
@@ -119,11 +120,6 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-        </dependencies>
-    </dependencyManagement>
-
-    <dependencyManagement>
-        <dependencies>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -133,8 +129,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-
 
     <build>
 		<plugins>
