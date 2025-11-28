@@ -54,7 +54,7 @@ public class NotificationEventListener {
         String message = switch (event.getEventType()) {
             case "POST_BOUGHT" -> String.format("Your post %s has been bought!", event.getPostId()); //ok
             case "POST_FAVOURITE" -> String.format("Product %s received a new like.", event.getPostId()); //ok
-            case "REVIEW_LEFT" -> String.format("%s has left you a review.", event.getUserId());
+            case "REVIEW_LEFT" -> String.format("%s has left you a review.", event.getUserId()); //ok
             case "POST_FAVOURITE_REMOVED" -> String.format("The product %s has been removed.", event.getPostId()); //ok
             case "REPOST_REQUEST_ACCEPTED" -> String.format("The product %s repost request has been accepted.", event.getPostId());
             case "REPOST_REQUEST_REJECTED" -> String.format("The product %s repost request has been rejected.", event.getPostId());
