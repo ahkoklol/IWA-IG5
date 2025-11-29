@@ -1,5 +1,5 @@
 //iwa-app/src/screens/profil/ProfileMenuScreen.tsx
-import React, {useContext} from "react";
+import React, { useContext } from "react";
 import {
   View,
   Text,
@@ -8,14 +8,13 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
-import { ChevronRight, LogOut} from "lucide-react-native";
+import { ChevronRight, LogOut } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { User } from "../../shared/types";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
-import { AuthContext } from '../../context/authContext';
-import GatewayTestButton from "../../components/GatewayTestButton";
+import { AuthContext } from "../../context/authContext";
 
 type Navigation = NativeStackNavigationProp<RootStackParamList>;
 
@@ -34,7 +33,7 @@ export function ProfileMenuScreen({
 }: ProfileMenuScreenProps) {
   const navigation = useNavigation<Navigation>();
 
-  const { signOut} = useContext(AuthContext);
+  const { signOut } = useContext(AuthContext);
 
   const menuItems = [
     { id: "myProfile", label: "Voir mon profil", showAvatar: true },
@@ -126,7 +125,6 @@ export function ProfileMenuScreen({
             <Text style={styles.logoutText}>Se déconnecter</Text>
           </View>
         </TouchableOpacity>
-        <GatewayTestButton />
       </View>
     </ScrollView>
   );
