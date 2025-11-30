@@ -13,6 +13,14 @@ CREATE TABLE IF NOT EXISTS category (
     name VARCHAR(100) NOT NULL UNIQUE
 );
 
+INSERT INTO category (category_id, name) VALUES
+    ('vegetables', 'Vegetables'),
+    ('fruits', 'Fruits'),
+    ('aromatic_herbs_spices', 'Aromatic herbs / Spices'),
+    ('medicinal_plants', 'Medicinal plants'),
+    ('decorative_flowers', 'Decorative flowers'),
+    ('exotic_rare_plants', 'Exotic rare plants');
+
 CREATE TABLE IF NOT EXISTS post (
     post_id VARCHAR(100) PRIMARY KEY,
     date_created TIMESTAMP NOT NULL,
@@ -21,7 +29,7 @@ CREATE TABLE IF NOT EXISTS post (
     photos TEXT,
     weight DOUBLE PRECISION,
     quantity INT,
-    category_id VARCHAR(100) NOT NULL,
+    category VARCHAR(100) NOT NULL,
     season VARCHAR(50),
     edible BOOLEAN,
     flowering_season VARCHAR(100),
@@ -30,6 +38,42 @@ CREATE TABLE IF NOT EXISTS post (
     status VARCHAR(50),
     client_id VARCHAR(100),
     FOREIGN KEY (category_id) REFERENCES category (category_id)
+);
+
+INSERT INTO post (
+    post_id,
+    date_created,
+    date_modified,
+    description,
+    photos,
+    weight,
+    quantity,
+    category,
+    season,
+    edible,
+    flowering_season,
+    harvest_date,
+    price,
+    status,
+    client_id
+) VALUES
+-- 1. A Vegetable Example
+(
+    'post_001',
+    '2023-10-25 08:30:00',
+    '2023-10-25 08:30:00',
+    'Organic Heirloom Tomatoes, grown without pesticides.',
+    'http://img.com/tomato1.jpg,http://img.com/tomato2.jpg',
+    1.5,
+    20,
+    'vegetables',
+    'Summer',
+    TRUE,
+    'January - March 2026',
+    'January - March 2026',
+    4.50,
+    'AVAILABLE',
+    'user_123'
 );
 
 CREATE TABLE IF NOT EXISTS favourite (
@@ -71,6 +115,30 @@ CREATE TABLE client (
     user_id VARCHAR(255),
     photo_id VARCHAR(255)
 );
+
+INSERT INTO client (
+    client_id,
+    address,
+    nationality,
+    phone,
+    photo,
+    stripe_id,
+    date_modified,
+    date_of_birth,
+    user_id,
+    photo_id
+) VALUES (
+    'user_123',
+    '12 Rue de la République, Lyon',
+    'French',
+    '+33 6 12 34 56 78',
+    'http://img.com/users/u123.jpg',
+    'stripeid',
+    '2023-10-30 10:00:00',
+    '1990-05-15',
+    'keycloakid',
+    NULL
+    );
 
 CREATE TABLE client_review (
     buyer_id VARCHAR(255) NOT NULL,
