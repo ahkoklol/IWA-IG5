@@ -2,9 +2,26 @@
 
 export interface Report {
   reportId: string;
-  type: string;
-  date: Date;
+  date: string;
   description: string;
   clientId: string;
+  postId: string;
+}
+
+export interface ModerationRequest {
+  requestId: string;
+  date: string;
+  description: string;
+  postId: string;
+}
+
+export interface CreateReportPayload {
+  description: string;
+  clientId: string;
+  postId: string;
+}
+
+export interface CreateModerationRequestPayload {
+  description: string;
   postId: string;
 }
