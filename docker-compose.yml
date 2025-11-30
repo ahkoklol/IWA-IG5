@@ -141,25 +141,25 @@ services:
     networks:
       - bg-network
 
-  #ai-service:
+  ai-service:
     #build: ./aimicroservice
-    #image: ${WAYNE_DOCKER_USERNAME}/aimicroservice:latest
-    #environment:
-      #- SPRING_PROFILES_ACTIVE=docker
+    image: ${WAYNE_DOCKER_USERNAME}/aimicroservice:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
       #- EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://admin:admin@eureka-server:8761/eureka/
-      #- MISTRAL_API_KEY=${MISTRAL_API_KEY}
-      #- AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      #- AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      #- AWS_REGION=us-west-1
-      #- AWS_ENDPOINT=http://localstack:4566
-      #- SPRING_PORT=8089
-    #ports:
-      #- "8089:8089"
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=us-west-1
+      - AWS_ENDPOINT=http://localstack:4566
+      - SPRING_PORT=8089
+    ports:
+      - "8089:8089"
     #depends_on:
       #localstack:
         #condition: service_started
-    #networks:
-      #- bg-network
+    networks:
+      - bg-network
 
   gateway-service:
     #build: ./gateway-front

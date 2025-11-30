@@ -8,6 +8,11 @@ CREATE DATABASE reportingmicroservice;
 -- 2. Setup 'listingmicroservice'
 \connect listingmicroservice
 
+CREATE TABLE IF NOT EXISTS category (
+    category_id VARCHAR(100) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
 CREATE TABLE IF NOT EXISTS post (
     post_id VARCHAR(100) PRIMARY KEY,
     date_created TIMESTAMP NOT NULL,
@@ -20,7 +25,7 @@ CREATE TABLE IF NOT EXISTS post (
     season VARCHAR(50),
     edible BOOLEAN,
     flowering_season VARCHAR(100),
-    harvest_date DATE,
+    harvest_date VARCHAR(50),
     price DOUBLE PRECISION,
     status VARCHAR(50),
     client_id VARCHAR(100),
@@ -34,11 +39,6 @@ CREATE TABLE IF NOT EXISTS favourite (
     PRIMARY KEY (client_id, post_id),
     FOREIGN KEY (post_id) REFERENCES post (post_id) ON DELETE CASCADE
 );
-
-CREATE TABLE IF NOT EXISTS category (
-    category_id VARCHAR(100) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE,
-    );
 
 -- 3. Setup 'transactionmicroservice'
 \connect transactionmicroservice
@@ -67,7 +67,7 @@ CREATE TABLE client (
     photo VARCHAR(255),
     stripe_id VARCHAR(255),
     date_modified TIMESTAMP NOT NULL,
-    date_of_birth TIMESTAMP NOT NULL,
+    date_of_birth DATE NOT NULL,
     user_id VARCHAR(255),
     photo_id VARCHAR(255)
 );
