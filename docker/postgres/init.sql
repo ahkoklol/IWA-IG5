@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS post (
     price DOUBLE PRECISION,
     status VARCHAR(50),
     client_id VARCHAR(100),
-    FOREIGN KEY (category_id) REFERENCES category (category_id)
+    FOREIGN KEY (category) REFERENCES category (category_id)
 );
 
 INSERT INTO post (
