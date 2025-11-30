@@ -1,3 +1,4 @@
+//iwa-app/src/api/productApi.ts
 import type {
   Product,
   Category,
@@ -14,6 +15,11 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
     throw new Error(`Request failed with status ${response.status}: ${text}`);
   }
   return response.json() as Promise<T>;
+}
+
+export async function getAllProducts(): Promise<Product[]> {
+  const response = await fetch(LISTING_BASE_URL);
+  return handleJsonResponse<Product[]>(response);
 }
 
 async function handleVoidResponse(response: Response): Promise<void> {

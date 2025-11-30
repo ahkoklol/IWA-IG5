@@ -1,36 +1,81 @@
-//iwa-app/src/api/notificationApi.ts
+// iwa-app/src/api/notificationApi.ts
 import type { Notification } from "../shared/types/notification";
 import { NOTIFICATION_BASE_URL } from "./config";
 
-export async function fetchNotificationsByClientId(clientId: string) {
-  const res = await fetch(`${NOTIFICATION_BASE_URL}/notification/${clientId}`);
-  if (!res.ok) throw new Error("Failed to fetch notifications");
-  return res.json();
+async function handleJsonResponse<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Request failed with status ${res.status}: ${text}`);
+  }
+  return res.json() as Promise<T>;
 }
 
-export async function markNotificationAsRead(notificationId: string) {
-  const res = await fetch(`${NOTIFICATION_BASE_URL}/notification/${notificationId}`, {
-    method: "PUT",
+async function handleVoidResponse(res: Response): Promise<void> {
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Request failed with status ${res.status}: ${text}`);
+  }
+}
+
+/**
+ * Fetch notifications for a given client.
+ * In the future, Keycloak token should be provided here.
+ */
+export async function fetchNotificationsByClientId(
+  clientId: string,
+  token?: string,
+): Promise<Notification[]> {
+  const res = await fetch(`${NOTIFICATION_BASE_URL}/notification/${clientId}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
   });
-  if (!res.ok) throw new Error("Failed to mark notification as read");
+
+  return handleJsonResponse<Notification[]>(res);
 }
 
-export async function sendReviewNotification({
-  sellerId,
-  reviewerId,
-  productId,
-  message,
-}: {
-  sellerId: string;
-  reviewerId: string;
-  productId: string;
-  message: string;
-}) {
+/**
+ * Mark a notification as read.
+ */
+export async function markNotificationAsRead(
+  notificationId: string,
+  token?: string,
+): Promise<void> {
+  const res = await fetch(
+    `${NOTIFICATION_BASE_URL}/notification/${notificationId}`,
+    {
+      method: "PUT",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    },
+  );
+
+  return handleVoidResponse(res);
+}
+
+export async function sendReviewNotification(
+  {
+    sellerId,
+    reviewerId,
+    productId,
+    message,
+  }: {
+    sellerId: string;
+    reviewerId: string;
+    productId: string;
+    message: string;
+  },
+  token?: string,
+) {
   const res = await fetch(`${NOTIFICATION_BASE_URL}/notification`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({
-      clientId: sellerId,        // celui qui reçoit la notif = Vendeur
+      clientId: sellerId, // receiver = seller
       type: "REVIEW_LEFT",
       message,
       date: new Date(),
@@ -38,19 +83,21 @@ export async function sendReviewNotification({
     }),
   });
 
-  if (!res.ok) throw new Error("Failed to send review notification");
-  return res.json();
+  return handleJsonResponse<Notification>(res);
 }
 
-export async function sendRepostDecisionNotification({
-  sellerId,
-  productName,
-  accepted,
-}: {
-  sellerId: string;
-  productName: string;
-  accepted: boolean;
-}) {
+export async function sendRepostDecisionNotification(
+  {
+    sellerId,
+    productName,
+    accepted,
+  }: {
+    sellerId: string;
+    productName: string;
+    accepted: boolean;
+  },
+  token?: string,
+) {
   const type = accepted
     ? "REPOST_REQUEST_ACCEPTED"
     : "REPOST_REQUEST_REJECTED";
@@ -61,9 +108,12 @@ export async function sendRepostDecisionNotification({
 
   const res = await fetch(`${NOTIFICATION_BASE_URL}/notification`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({
-      clientId: sellerId, // vendeur qui reçoit la notif
+      clientId: sellerId,
       type,
       message,
       date: new Date(),
@@ -71,10 +121,5 @@ export async function sendRepostDecisionNotification({
     }),
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to send repost decision notification");
-  }
-
-  return res.json();
+  return handleJsonResponse<Notification>(res);
 }
-

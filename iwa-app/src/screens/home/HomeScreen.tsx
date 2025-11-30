@@ -1,66 +1,130 @@
 // iwa-app/src/screens/home/HomeScreen.tsx
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
-  TextInput,
   StyleSheet,
   StatusBar,
   Text,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
-import { Search as SearchIcon } from "lucide-react-native";
 import ProductCard from "../../components/product/ProductCard";
-import type { Product } from "../../shared/types";
-import { allProducts } from "../../mocks/products";
+import type { Product } from "../../shared/types/product";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import { Screen } from "../../components/Screen";
 import { useTranslation } from "react-i18next";
+import {
+  getCategories,
+  getProductsByCategory,
+  favouriteProduct,
+  unfavouriteProduct,
+} from "../../api/productApi";
+
+type UiProduct = Product & { isFavorite?: boolean };
 
 type Props = {
   products?: Product[];
-  onProductClick?: (product: Product) => void;
-  onToggleFavorite?: (productId: number) => void;
 };
 
-export default function HomeScreen({
-  products,
-  onProductClick,
-  onToggleFavorite,
-}: Props) {
+export default function HomeScreen({ products }: Props) {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
   const { t } = useTranslation();
+
   const [query, setQuery] = useState("");
+  const [data, setData] = useState<UiProduct[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Données : utilise les mocks si rien n'est passé en prop
-  const data = products ?? allProducts;
+  // TODO: replace with real logged-in client id from your auth state
+  const currentClientId = "REPLACE_WITH_CLIENT_ID";
 
-  // Navigation / clic produit
-  const handleClick = (p: Product) => {
-    if (onProductClick) return onProductClick(p);
-    navigation.navigate("ProductDetail", { productId: String(p.id) });
+  useEffect(() => {
+    if (products && products.length > 0) {
+      setData(products.map((p) => ({ ...p })));
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadProducts() {
+      setLoading(true);
+      setError(null);
+      try {
+        const categories = await getCategories();
+        const lists = await Promise.all(
+          categories.map((c) =>
+            getProductsByCategory(c.name).catch(() => [] as Product[]),
+          ),
+        );
+        const merged = lists.flat();
+
+        if (!cancelled) {
+          setData(merged.map((p) => ({ ...p, isFavorite: false })));
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          setError(e?.message ?? "Failed to load products");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [products]);
+
+  const handleClick = (p: UiProduct) => {
+    navigation.navigate("ProductDetail", { productId: String(p.postId) });
   };
 
-  // Favoris : si un handler est fourni, on l'utilise, sinon no-op
-  const handleFav = onToggleFavorite ?? (() => {});
+  const handleToggleFavorite = async (product: UiProduct) => {
+    if (!currentClientId || currentClientId === "REPLACE_WITH_CLIENT_ID") {
+      return;
+    }
 
-  // ✅ Filtrage : uniquement produits NON vendus et NON supprimés par l'IA
-  // + filtre de recherche
+    const wasFavorite = !!product.isFavorite;
+
+    setData((prev) =>
+      prev.map((p) =>
+        p.postId === product.postId ? { ...p, isFavorite: !wasFavorite } : p,
+      ),
+    );
+
+    try {
+      if (!wasFavorite) {
+        await favouriteProduct(product.postId, currentClientId);
+      } else {
+        await unfavouriteProduct(product.postId, currentClientId);
+      }
+    } catch {
+      setData((prev) =>
+        prev.map((p) =>
+          p.postId === product.postId ? { ...p, isFavorite: wasFavorite } : p,
+        ),
+      );
+    }
+  };
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
     return data.filter((p) => {
-      // on masque les produits vendus ou supprimés par IA
-      if (p.sold || p.removedByAI) return false;
+      if (p.status !== "visible") return false;
 
       if (!q) return true;
 
       return (
-        p.name.toLowerCase().includes(q) ||
-        p.seller?.username?.toLowerCase().includes(q)
+        p.description.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
       );
     });
   }, [data, query]);
@@ -74,26 +138,39 @@ export default function HomeScreen({
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Grille produits */}
-        <View style={styles.content}>
-          {filtered.length === 0 ? (
-            <View style={styles.empty}>
-              <Text style={styles.emptyText}>{t("my_products_empty")}</Text>
-            </View>
-          ) : (
-            <View style={styles.grid}>
-              {filtered.map((product) => (
-                <View key={product.id} style={styles.productWrapper}>
-                  <ProductCard
-                    product={product}
-                    onClick={() => handleClick(product)}
-                    onToggleFavorite={() => handleFav(product.id)}
-                  />
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
+        {loading && (
+          <View style={styles.loader}>
+            <ActivityIndicator />
+          </View>
+        )}
+
+        {error && !loading && (
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>{error}</Text>
+          </View>
+        )}
+
+        {!loading && !error && (
+          <View style={styles.content}>
+            {filtered.length === 0 ? (
+              <View style={styles.empty}>
+                <Text style={styles.emptyText}>{t("my_products_empty")}</Text>
+              </View>
+            ) : (
+              <View style={styles.grid}>
+                {filtered.map((product) => (
+                  <View key={product.postId} style={styles.productWrapper}>
+                    <ProductCard
+                      product={product}
+                      onClick={() => handleClick(product)}
+                      onToggleFavorite={() => handleToggleFavorite(product)}
+                    />
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
       </ScrollView>
     </Screen>
   );
@@ -107,36 +184,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingBottom: 32,
   },
-
-  // Search bar (pas utilisée dans le JSX ici, tu peux la réutiliser si besoin)
-  searchWrapper: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-    backgroundColor: "#FFFFFF",
-  },
-  searchInner: {
-    position: "relative",
-    borderWidth: 2,
-    borderColor: "#7BCCEB",
-    borderRadius: 12,
-    backgroundColor: "#FFFFFF",
-    paddingLeft: 40,
-  },
-  searchIcon: {
-    position: "absolute",
-    left: 12,
-    top: "50%",
-    marginTop: -10,
-  },
-  searchInput: {
-    height: 44,
-    fontSize: 14,
-    color: "#111827",
-    paddingRight: 12,
-  },
-
-  // Contenu + grille alignés sur MyProductsScreen
   content: {
     paddingHorizontal: 16,
     paddingTop: 16,
@@ -151,12 +198,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     position: "relative",
   },
-
-  // État vide
   empty: {
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 48,
   },
   emptyText: { color: "#6B7280", fontSize: 14 },
+  loader: {
+    paddingVertical: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });

@@ -14,11 +14,7 @@ import { useTranslation } from "react-i18next";
 
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import { Screen } from "../../components/Screen";
-
-// ✅ On utilise maintenant le type Notification du backend
 import type { Notification } from "../../shared/types/notification";
-
-// ✅ On utilise l’API réelle
 import {
   fetchNotificationsByClientId,
   markNotificationAsRead,
@@ -30,8 +26,9 @@ interface NotificationsScreenProps {
   onNotificationClick?: (notification: Notification) => void;
 }
 
-// ⚠️ En attendant la vraie auth : on simule un utilisateur connecté
-const MOCK_CLIENT_ID = "client-123";
+// TODO: replace these placeholders with real auth (Keycloak) integration
+const MOCK_CLIENT_ID = "REPLACE_WITH_CONNECTED_CLIENT_ID";
+const MOCK_ACCESS_TOKEN = "REPLACE_WITH_VALID_JWT_TOKEN";
 
 export function NotificationsScreen({
   onNotificationClick,
@@ -43,17 +40,19 @@ export function NotificationsScreen({
   const navigation = useNavigation<NavigationProp>();
   const { t } = useTranslation();
 
-  // Le back construit déjà le texte => on affiche directement notification.message
   const getNotificationText = (notification: Notification) => {
     return notification.message ?? "";
   };
 
-  // Chargement des notifs depuis le microservice
   const loadNotifications = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchNotificationsByClientId(MOCK_CLIENT_ID);
+
+      const data = await fetchNotificationsByClientId(
+        MOCK_CLIENT_ID,
+        MOCK_ACCESS_TOKEN,
+      );
       setNotifications(data);
     } catch (e) {
       setError((e as Error).message);
@@ -63,30 +62,27 @@ export function NotificationsScreen({
   };
 
   useEffect(() => {
-    // En vrai : utiliser l’ID du user connecté via ton système d’auth
     loadNotifications();
   }, []);
 
   const handlePress = async (notification: Notification) => {
-    // 1) Appel au backend pour marquer comme lue
     try {
-      await markNotificationAsRead(notification.notificationId);
+      await markNotificationAsRead(
+        notification.notificationId,
+        MOCK_ACCESS_TOKEN,
+      );
 
-      // 2) Mise à jour en local
       setNotifications((prev) =>
         prev.map((n) =>
           n.notificationId === notification.notificationId
             ? { ...n, read: true }
-            : n
-        )
+            : n,
+        ),
       );
     } catch (e) {
-      // Pour l’instant on log juste l’erreur, on pourra ajouter un toast plus tard
       console.error("Failed to mark notification as read", e);
     }
 
-    // 3) Navigation : pour l’instant on ne connaît pas le produit / user côté back,
-    // donc on ne redirige nulle part. On garde uniquement le callback externe.
     if (onNotificationClick) {
       onNotificationClick(notification);
     }
@@ -115,12 +111,10 @@ export function NotificationsScreen({
 
   return (
     <Screen>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t("navbar_notifications")}</Text>
       </View>
 
-      {/* Notifications list */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {notifications.map((notification) => {
           const itemStyle = [
@@ -135,8 +129,6 @@ export function NotificationsScreen({
               style={itemStyle}
               activeOpacity={0.7}
             >
-              {/* On n’a plus d’image produit ni de seller dans le modèle backend,
-                  donc on affiche juste texte + date pour l’instant */}
               <View style={styles.textContainer}>
                 <Text style={styles.notificationText}>
                   {getNotificationText(notification)}

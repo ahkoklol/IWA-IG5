@@ -1,20 +1,28 @@
-// iwa-app/src/components/product/ProductCard.tsx (chemin à adapter selon ton projet)
-
+// iwa-app/src/components/product/ProductCard.tsx
 import React from "react";
 import { View, Text, Image, Pressable, StyleSheet } from "react-native";
 import { Heart } from "lucide-react-native";
-import type { Product } from "../../shared/types/index";
+import type { Product } from "../../shared/types/product";
 import { useTranslation } from "react-i18next";
 
+type UiProduct = Product & { isFavorite?: boolean };
+
 type Props = {
-  product: Product;
+  product: UiProduct;
   onClick: () => void;
   onToggleFavorite: () => void;
 };
 
-export default function ProductCard({ product, onClick, onToggleFavorite }: Props) {
+export default function ProductCard({
+  product,
+  onClick,
+  onToggleFavorite,
+}: Props) {
   const { t } = useTranslation();
-  const cover = product.images?.[0];
+  const cover = product.photos?.[0];
+
+  const isSold = product.status === "sold";
+  const isRemoved = product.status === "banned" || product.status === "hidden";
 
   return (
     <Pressable style={styles.card} onPress={onClick}>
@@ -27,25 +35,21 @@ export default function ProductCard({ product, onClick, onToggleFavorite }: Prop
           </View>
         )}
 
-        {product.removedByAI || product.sold ? (
+        {isRemoved || isSold ? (
           <View
             style={[
               styles.statusBanner,
-              product.removedByAI
-                ? styles.statusBannerRemoved
-                : styles.statusBannerSold,
+              isRemoved ? styles.statusBannerRemoved : styles.statusBannerSold,
             ]}
           >
             <Text style={styles.statusBannerText}>
-              {product.removedByAI
-                ? t("profile_ad_deleted")
-                : t("profile_sold")}
+              {isRemoved ? t("profile_ad_deleted") : t("profile_sold")}
             </Text>
           </View>
         ) : (
           <Pressable
             onPress={(e) => {
-              // @ts-ignore: stopPropagation existe sur RN SyntheticEvent
+              // @ts-ignore stopPropagation exists on RN events
               e.stopPropagation?.();
               onToggleFavorite();
             }}
@@ -62,7 +66,7 @@ export default function ProductCard({ product, onClick, onToggleFavorite }: Prop
 
       <View style={styles.meta}>
         <Text numberOfLines={1} style={styles.name}>
-          {product.name}
+          {product.description}
         </Text>
         <Text numberOfLines={1} style={styles.quantity}>
           {product.quantity}
@@ -91,8 +95,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ECECF0",
   },
   fallbackText: { color: "#9CA3AF" },
-
-  // ✅ bannière status
   statusBanner: {
     position: "absolute",
     left: 0,
@@ -112,7 +114,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-
   heartBtn: {
     position: "absolute",
     right: 8,

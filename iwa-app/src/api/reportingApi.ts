@@ -83,3 +83,12 @@ export async function deleteModerationRequest(postId: string): Promise<void> {
   });
   return handleVoidResponse(response);
 }
+
+
+export async function getAllReports(): Promise<Report[]> {
+  const response = await fetch(`${REPORTING_BASE_URL}/report`, {
+    method: "GET",
+  });
+  return handleJsonResponse<Report[]>(response);
+}
+

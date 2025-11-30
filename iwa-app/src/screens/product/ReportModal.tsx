@@ -1,33 +1,64 @@
 // src/screens/product/ReportModal.tsx
-import React from "react";
+import React, { useState } from "react";
 import {
   Modal,
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { X, Flag } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
+import { createReport } from "../../api/reportingApi";
+
+// TODO: à remplacer par l'ID du client connecté (Keycloak)
+const MOCK_CLIENT_ID = "REPLACE_WITH_CONNECTED_CLIENT_ID";
 
 interface ReportModalProps {
   visible: boolean;
   onClose: () => void;
   productName?: string;
+  postId: string;
 }
 
 export default function ReportModal({
   visible,
   onClose,
+  productName,
+  postId,
 }: ReportModalProps) {
   const { t } = useTranslation();
+  const [sending, setSending] = useState(false);
 
-  const handleSend = () => {
-    // Plus tard : appel backend pour envoyer le signalement
-    onClose();
+  const handleSend = async () => {
+    if (sending) return;
+
+    try {
+      setSending(true);
+
+      await createReport(postId, {
+        description:
+          productName ??
+          "Reported from mobile app", // description minimale obligatoire côté backend
+        clientId: MOCK_CLIENT_ID,
+        postId,
+      });
+
+      onClose();
+    } catch (e) {
+      console.error("Failed to send report", e);
+      Alert.alert(
+        t("error_title") ?? "Erreur",
+        t("error_generic") ?? "Une erreur est survenue lors de l’envoi du signalement.",
+      );
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleClose = () => {
+    if (sending) return;
     onClose();
   };
 
@@ -49,6 +80,7 @@ export default function ReportModal({
               style={styles.closeBtn}
               onPress={handleClose}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              disabled={sending}
             >
               <X size={18} color="#374151" />
             </TouchableOpacity>
@@ -63,16 +95,23 @@ export default function ReportModal({
               style={styles.cancelBtn}
               onPress={handleClose}
               activeOpacity={0.8}
+              disabled={sending}
             >
               <Text style={styles.cancelText}>{t("report_cancel")}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.confirmBtn}
+              style={[
+                styles.confirmBtn,
+                sending && { opacity: 0.6 },
+              ]}
               onPress={handleSend}
               activeOpacity={0.8}
+              disabled={sending}
             >
-              <Text style={styles.confirmText}>{t("report_send")}</Text>
+              <Text style={styles.confirmText}>
+                {t("report_send")}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -17,8 +17,6 @@ import { AboutSettingsScreen } from "./AboutSettingsScreen";
 
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
-
-import DeleteAccountConfirmationModal from "./DeleteAccountConfirmationModal";
 import { Screen } from "../../components/Screen";
 import { useTranslation } from "react-i18next";
 
@@ -37,7 +35,7 @@ export function SettingsScreen({ navigation, route }: Props) {
   const [currentSubPage, setCurrentSubPage] =
     useState<SettingsSubPage>("main");
 
-  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [setIsDeleteModalVisible] = useState(false);
 
   const { onDeleteAccount } = route.params;
 
@@ -55,19 +53,6 @@ export function SettingsScreen({ navigation, route }: Props) {
 
   const handleSubPageBack = () => {
     setCurrentSubPage("main");
-  };
-
-  const handleOpenDeleteModal = () => {
-    setIsDeleteModalVisible(true);
-  };
-
-  const handleCancelDelete = () => {
-    setIsDeleteModalVisible(false);
-  };
-
-  const handleConfirmDelete = () => {
-    setIsDeleteModalVisible(false);
-    onDeleteAccount();
   };
 
   /* ----------------------------- */
@@ -125,25 +110,7 @@ export function SettingsScreen({ navigation, route }: Props) {
               <ChevronRight size={20} color="#9CA3AF" />
             </TouchableOpacity>
           ))}
-
-          {/* Zone danger : suppression de profil */}
-          <View style={styles.dangerZone}>
-            <TouchableOpacity
-              onPress={handleOpenDeleteModal}
-              style={styles.listItem}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.deleteText}>{t("account_delete_title")}</Text>
-              <ChevronRight size={20} color="transparent" />
-            </TouchableOpacity>
-          </View>
         </ScrollView>
-
-        <DeleteAccountConfirmationModal
-          visible={isDeleteModalVisible}
-          onCancel={handleCancelDelete}
-          onConfirm={handleConfirmDelete}
-        />
       </View>
     </Screen>
   );

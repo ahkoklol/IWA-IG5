@@ -74,7 +74,7 @@ export type RootStackParamList = {
   Settings: { onDeleteAccount: () => void };
 
   AdminLogin: undefined;
-  AdminReportDetail: { reportId: number };
+  AdminReportDetail: { reportId: string };
   AdminRoot: undefined;
   AdminReports: undefined;
 };

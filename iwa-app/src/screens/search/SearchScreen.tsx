@@ -14,7 +14,6 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
 
 import type { RootStackParamList } from "../../navigation/RootNavigator";
-import type { Category } from "../../shared/types";
 import { Screen } from "../../components/Screen";
 
 type NavigationProp = NativeStackNavigationProp<
@@ -22,13 +21,14 @@ type NavigationProp = NativeStackNavigationProp<
   "SearchScreen"
 >;
 
-const CATEGORIES: { value: Category; labelKey: string }[] = [
-  { value: "Légumes", labelKey: "search_cat_vegetables" },
-  { value: "Fruits", labelKey: "search_cat_fruits" },
-  { value: "Herbes aromatiques / épices", labelKey: "search_cat_herbs" },
-  { value: "Plantes médicinales", labelKey: "search_cat_medicinal" },
-  { value: "Fleurs décoratives", labelKey: "search_cat_flowers" },
-  { value: "Plantes exotiques / rares", labelKey: "search_cat_exotic" },
+// On manipule des IDs de catégories en string
+const CATEGORIES: { value: string; labelKey: string }[] = [
+  { value: "VEGETABLES", labelKey: "search_cat_vegetables" },
+  { value: "FRUITS", labelKey: "search_cat_fruits" },
+  { value: "HERBS_SPICES", labelKey: "search_cat_herbs" },
+  { value: "MEDICINAL", labelKey: "search_cat_medicinal" },
+  { value: "FLOWERS", labelKey: "search_cat_flowers" },
+  { value: "EXOTIC", labelKey: "search_cat_exotic" },
 ];
 
 export function SearchScreen() {
@@ -36,18 +36,21 @@ export function SearchScreen() {
   const { t } = useTranslation();
   const [searchValue, setSearchValue] = useState("");
 
-  const handleCategoryPress = (category: Category) => {
+  const handleCategoryPress = (categoryId: string) => {
     navigation.navigate("CategoryResults", {
-      category,
+      // cast pour s'aligner sur le type défini dans RootStackParamList
+      category: categoryId as any,
       searchQuery: undefined,
     });
   };
 
   const handleSearchSubmit = () => {
-    if (!searchValue.trim()) return;
+    const trimmed = searchValue.trim();
+    if (!trimmed) return;
+
     navigation.navigate("CategoryResults", {
-      category: null,
-      searchQuery: searchValue.trim(),
+      category: null as any,
+      searchQuery: trimmed,
     });
   };
 
@@ -158,3 +161,5 @@ const styles = StyleSheet.create({
     color: "#111827",
   },
 });
+
+export default SearchScreen;

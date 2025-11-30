@@ -6,7 +6,13 @@ export interface Report {
   description: string;
   clientId: string;
   postId: string;
+
+  // Champs optionnels pour l’admin (UI)
+  status?: "pending" | "processed";
+  reportCount?: number;
+  productName?: string;
 }
+
 
 export interface ModerationRequest {
   requestId: string;

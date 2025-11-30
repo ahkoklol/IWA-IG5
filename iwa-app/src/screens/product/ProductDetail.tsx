@@ -12,7 +12,8 @@ import {
   Alert,
   Platform,
   Modal,
-  TextInput,         
+  TextInput,
+  ActivityIndicator,
 } from "react-native";
 import {
   ArrowLeft,
@@ -23,13 +24,13 @@ import {
   Image as ImageIcon,
   Heart,
 } from "lucide-react-native";
-import type { Product, User, Category } from "../../shared/types"; 
+import type { Product } from "../../shared/types/product";
+import type { User } from "../../shared/types";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { RootStackParamList } from "../../navigation/RootNavigator";
-import { demoProducts } from "../../mocks/products";
 
 import PurchaseConfirmationModal from "./PurchaseConfirmationModal";
 import ReportModal from "./ReportModal";
@@ -38,7 +39,11 @@ import { useTranslation } from "react-i18next";
 import RepostRequestModal from "./RepostRequestModal";
 import RepostRequestSuccessModal from "./RepostRequestSuccessModal";
 import * as ImagePicker from "expo-image-picker";
-
+import {
+  getProductById,
+  favouriteProduct,
+  unfavouriteProduct,
+} from "../../api/productApi";
 
 type DetailRoute = RouteProp<RootStackParamList, "ProductDetail">;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -46,9 +51,22 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 const DOT_SIZE = 6;
 const { width } = Dimensions.get("window");
 const HEADER_TOP =
-  Platform.OS === "android"
-    ? (StatusBar.currentHeight || 0) + 16
-    : 24;
+  Platform.OS === "android" ? (StatusBar.currentHeight || 0) + 16 : 24;
+
+// TODO: à remplacer par l'ID du client connecté (Keycloak)
+const MOCK_CLIENT_ID = "REPLACE_WITH_CONNECTED_CLIENT_ID";
+
+// On enrichit le Product backend avec quelques props UI optionnelles
+type UiProduct = Product & {
+  name?: string;
+  seller?: User;
+  id?: string;
+  images?: string[];
+  plantingPeriod?: string[];
+  floweringPeriod?: string[];
+  createdAt?: string;
+};
+
 
 function renderStars(rating: number) {
   return (
@@ -69,13 +87,13 @@ function renderStars(rating: number) {
 export default function ProductDetail() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<DetailRoute>();
+  const { t } = useTranslation();
 
   const productId = route.params?.productId;
 
-  const product = useMemo<Product | undefined>(
-    () => demoProducts.find((p) => String(p.id) === String(productId)),
-    [productId]
-  );
+  const [product, setProduct] = useState<UiProduct | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [current, setCurrent] = useState(0);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
@@ -87,18 +105,63 @@ export default function ProductDetail() {
 
   const [isFavorite, setIsFavorite] = useState(false);
 
-
   // Fullscreen gallery state
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [initialIndex, setInitialIndex] = useState(0);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const galleryScrollRef = useRef<ScrollView | null>(null);
 
-  const { t } = useTranslation();
   const [showActions, setShowActions] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
+  // Chargement du produit depuis le backend
+  useEffect(() => {
+    let isMounted = true;
 
+    const loadProduct = async () => {
+      if (!productId) {
+        setError("Missing product id");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getProductById(String(productId));
+
+    const uiProduct: UiProduct = {
+      ...data,
+      name: data.description,
+      images: data.photos,
+      id: data.postId,
+      plantingPeriod: [],        // ou une dérivation de season si tu veux
+      floweringPeriod: [],       // ou une dérivation de floweringSeason
+      createdAt: data.dateCreated,
+    };
+
+        if (isMounted) {
+          setProduct(uiProduct);
+          // TODO: quand le back renverra l'info, initialiser isFavorite correctement
+          setIsFavorite(false);
+        }
+      } catch (e) {
+        if (isMounted) {
+          setError((e as Error).message);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadProduct();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [productId]);
 
   useEffect(() => {
     if (isGalleryOpen && galleryScrollRef.current) {
@@ -110,11 +173,44 @@ export default function ProductDetail() {
     }
   }, [isGalleryOpen, initialIndex]);
 
-  if (!product) {
+  const handleToggleFavorite = async () => {
+    if (!product) return;
+    const postId = product.postId;
+
+    setIsFavorite((prev) => !prev);
+    const previous = isFavorite;
+
+    try {
+      if (!previous) {
+        await favouriteProduct(postId, MOCK_CLIENT_ID);
+      } else {
+        await unfavouriteProduct(postId, MOCK_CLIENT_ID);
+      }
+    } catch (e) {
+      // rollback en cas d'erreur
+      console.error("Failed to toggle favorite", e);
+      setIsFavorite(previous);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Screen>
+        <View style={styles.center}>
+          <ActivityIndicator />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (error || !product) {
     return (
       <View style={styles.center}>
         <StatusBar barStyle="dark-content" />
-        <Text style={styles.notFound}>Produit introuvable</Text>
+        <Text style={styles.notFound}>
+          {error ? t("error_generic") : "Produit introuvable"}
+        </Text>
+        {error && <Text style={styles.errorDetails}>{error}</Text>}
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backBtn2}
@@ -126,8 +222,12 @@ export default function ProductDetail() {
     );
   }
 
-  const images = product.images?.length ? product.images : [undefined];
-  const isDisabled = product.removedByAI || product.sold;
+  const images = product.photos && product.photos.length ? product.photos : [undefined];
+
+  const isRemoved =
+    product.status === "banned" || product.status === "hidden";
+  const isSold = product.status === "sold";
+  const isDisabled = isRemoved || isSold;
 
   const onBuy = () => {
     if (isDisabled) {
@@ -136,27 +236,21 @@ export default function ProductDetail() {
     setShowPurchaseModal(true);
   };
 
+  const planting = product.season ?? "—";
+  const flowering = product.floweringSeason ?? "—";
 
-  const planting = Array.isArray(product.plantingPeriod)
-    ? product.plantingPeriod.join(" - ")
-    : product.plantingPeriod ?? "—";
+  const sellerUser = (product as any).seller as User | undefined;
 
-  const flowering = Array.isArray(product.floweringPeriod)
-    ? product.floweringPeriod.join(" - ")
-    : product.floweringPeriod ?? "—";
+  const timeAgoLabel = useMemo(() => {
+    const createdAt = product.dateCreated;
+    if (!createdAt) return null;
 
-  const sellerUser = product.seller as User;
-
-    const timeAgoLabel = useMemo(() => {
-    if (!product?.createdAt) return null;
-
-    const createdDate = new Date(product.createdAt);
+    const createdDate = new Date(createdAt);
     if (Number.isNaN(createdDate.getTime())) return null;
 
     const now = new Date();
     let diffMs = now.getTime() - createdDate.getTime();
 
-    // In case createdAt is in the future, avoid negative values
     if (diffMs < 0) diffMs = 0;
 
     const minute = 60 * 1000;
@@ -190,8 +284,7 @@ export default function ProductDetail() {
 
     const years = Math.floor(days / 365) || 1;
     return t("ad_time_years", { count: years });
-  }, [product?.createdAt, t]);
-
+  }, [product.dateCreated, t]);
 
   return (
     <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
@@ -215,7 +308,6 @@ export default function ProductDetail() {
         </TouchableOpacity>
       </View>
 
-
       <ScrollView
         contentContainerStyle={{ paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
@@ -226,7 +318,7 @@ export default function ProductDetail() {
           showsHorizontalScrollIndicator={false}
           onScroll={(e) => {
             const page = Math.round(
-              e.nativeEvent.contentOffset.x / width
+              e.nativeEvent.contentOffset.x / width,
             );
             setCurrent(page);
           }}
@@ -257,17 +349,17 @@ export default function ProductDetail() {
                   <Text style={{ color: "#9CA3AF" }}>Image</Text>
                 </View>
               )}
-              {(product.removedByAI || product.sold) && (
+              {(isRemoved || isSold) && (
                 <View
                   style={[
                     styles.statusBanner,
-                    product.removedByAI
+                    isRemoved
                       ? styles.statusBannerRemoved
                       : styles.statusBannerSold,
                   ]}
                 >
                   <Text style={styles.statusBannerText}>
-                    {product.removedByAI
+                    {isRemoved
                       ? t("profile_ad_deleted")
                       : t("profile_sold")}
                   </Text>
@@ -282,7 +374,7 @@ export default function ProductDetail() {
           <TouchableOpacity
             activeOpacity={0.8}
             style={styles.favoriteButton}
-            onPress={() => setIsFavorite((prev) => !prev)}
+            onPress={handleToggleFavorite}
           >
             <Heart
               size={18}
@@ -291,7 +383,9 @@ export default function ProductDetail() {
               style={{ marginRight: 8 }}
             />
             <Text style={styles.favoriteText}>
-              {isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+              {isFavorite
+                ? t("favorite_remove") || "Retirer des favoris"
+                : t("favorite_add") || "Ajouter aux favoris"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -310,7 +404,8 @@ export default function ProductDetail() {
             />
           ))}
         </View>
-        {product.removedByAI && (
+
+        {isRemoved && (
           <TouchableOpacity
             onPress={() => {
               if (hasSentRepostRequest) return;
@@ -337,23 +432,19 @@ export default function ProductDetail() {
         )}
 
         <View style={styles.body}>
-          <Text style={styles.title}>{product.name}</Text>
+          <Text style={styles.title}>{product.name ?? product.description}</Text>
           <Text style={styles.quantity}>{product.quantity}</Text>
           <Text style={styles.price}>{product.price}</Text>
 
-          {timeAgoLabel && (
-            <Text style={styles.timeAgo}>{timeAgoLabel}</Text>
-          )}
+          {timeAgoLabel && <Text style={styles.timeAgo}>{timeAgoLabel}</Text>}
 
           <View style={{ marginTop: 16 }}>
             <Text style={styles.sectionTitle}>{t("ad_description")}</Text>
-            <Text style={styles.description}>
-              {product.description}
-            </Text>
+            <Text style={styles.description}>{product.description}</Text>
           </View>
 
           <View style={{ marginTop: 16 }}>
-            <Row label={t("ad_quantity")} value={product.quantity} />
+            <Row label={t("ad_quantity")} value={String(product.quantity)} />
             <Row label={t("ad_category")} value={product.category} />
             <Row label={t("ad_planting_period")} value={planting} />
             <Row label={t("ad_fruiting_period")} value={flowering} />
@@ -367,51 +458,51 @@ export default function ProductDetail() {
             />
           </View>
 
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => {
-              navigation.navigate("MyProfileScreen", {
-                user: sellerUser,
-                initialTab: "profile",
-              });
-            }}
-            style={styles.seller}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center" }}
+          {sellerUser && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                navigation.navigate("MyProfileScreen", {
+                  user: sellerUser,
+                  initialTab: "profile",
+                });
+              }}
+              style={styles.seller}
             >
-              <Image
-                source={{ uri: product.seller.avatar }}
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  marginRight: 12,
-                }}
-              />
-              <View>
-                <Text style={styles.sellerName}>
-                  {product.seller.username}
-                </Text>
-                <View
+              <View
+                style={{ flexDirection: "row", alignItems: "center" }}
+              >
+                <Image
+                  source={{ uri: sellerUser.avatar }}
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    marginTop: 2,
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    marginRight: 12,
                   }}
-                >
-                  {renderStars(
-                    Math.round(product.seller.rating || 0)
-                  )}
-                  <Text style={styles.sellerCount}>
-                    {" "}
-                    ({product.seller.reviewCount})
+                />
+                <View>
+                  <Text style={styles.sellerName}>
+                    {sellerUser.username}
                   </Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginTop: 2,
+                    }}
+                  >
+                    {renderStars(Math.round(sellerUser.rating || 0))}
+                    <Text style={styles.sellerCount}>
+                      {" "}
+                      ({sellerUser.reviewCount})
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-            <ChevronRight size={18} color="#6B7280" />
-          </TouchableOpacity>
+              <ChevronRight size={18} color="#6B7280" />
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             onPress={isDisabled ? undefined : onBuy}
@@ -431,7 +522,6 @@ export default function ProductDetail() {
               {t("ad_buy")}
             </Text>
           </TouchableOpacity>
-
         </View>
       </ScrollView>
 
@@ -452,10 +542,11 @@ export default function ProductDetail() {
       <ReportModal
         visible={showReportModal}
         onClose={() => setShowReportModal(false)}
-        productName={product.name}
+        productName={product.name ?? product.description}
+        postId={product.postId}
       />
 
-            {/* Menu d'actions ... */}
+      {/* Menu d'actions */}
       <Modal
         visible={showActions}
         transparent
@@ -472,7 +563,7 @@ export default function ProductDetail() {
               style={styles.actionRow}
               onPress={() => {
                 setShowActions(false);
-                setShowEditModal(true); // 👈 on ouvre le modal d’édition
+                setShowEditModal(true);
               }}
             >
               <Text style={styles.actionTextPrimary}>
@@ -480,7 +571,7 @@ export default function ProductDetail() {
               </Text>
             </TouchableOpacity>
 
-            {!product.removedByAI && (
+            {!isRemoved && (
               <TouchableOpacity
                 style={styles.actionRow}
                 onPress={() => {
@@ -497,7 +588,7 @@ export default function ProductDetail() {
         </TouchableOpacity>
       </Modal>
 
-            {/* Fullscreen gallery modal */}
+      {/* Fullscreen gallery modal */}
       <Modal
         visible={isGalleryOpen}
         transparent
@@ -513,7 +604,7 @@ export default function ProductDetail() {
               showsHorizontalScrollIndicator={false}
               onScroll={(e) => {
                 const page = Math.round(
-                  e.nativeEvent.contentOffset.x / width
+                  e.nativeEvent.contentOffset.x / width,
                 );
                 setGalleryIndex(page);
               }}
@@ -554,17 +645,20 @@ export default function ProductDetail() {
           </View>
         </Screen>
       </Modal>
+
       <RepostRequestModal
         visible={showRepostModal}
         onClose={() => setShowRepostModal(false)}
+        postId={product.postId}                          // <--- AJOUT
         onSubmit={(message) => {
-          // Plus tard: appel API pour envoyer la requête
+          // Appelé uniquement si la requête backend a bien réussi
           console.log("Repost request justification:", message);
           setShowRepostModal(false);
           setHasSentRepostRequest(true);
-          setShowRepostSuccessModal(true); 
+          setShowRepostSuccessModal(true);
         }}
       />
+
 
       <RepostRequestSuccessModal
         visible={showRepostSuccessModal}
@@ -582,8 +676,6 @@ export default function ProductDetail() {
           }}
         />
       )}
-
-
     </View>
   );
 }
@@ -598,36 +690,37 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 interface EditProductModalProps {
-  product: Product;
+  product: UiProduct;
   onClose: () => void;
-  onSave: (updated: Partial<Product>) => void;
+  // on laisse any pour l’instant, tant que l’API update n’est pas branchée
+  onSave: (updated: any) => void;
 }
 
-const categoryOptions: { value: Category; labelKey: string }[] = [
-  { value: "Légumes", labelKey: "search_cat_vegetables" },
-  { value: "Fruits", labelKey: "search_cat_fruits" },
-  { value: "Herbes aromatiques / épices", labelKey: "search_cat_herbs" },
-  { value: "Plantes médicinales", labelKey: "search_cat_medicinal" },
-  { value: "Fleurs décoratives", labelKey: "search_cat_flowers" },
-  { value: "Plantes exotiques / rares", labelKey: "search_cat_exotic" },
+const categoryOptions: { value: string; labelKey: string }[] = [
+  { value: "VEGETABLES", labelKey: "search_cat_vegetables" },
+  { value: "FRUITS", labelKey: "search_cat_fruits" },
+  { value: "HERBS_SPICES", labelKey: "search_cat_herbs" },
+  { value: "MEDICINAL", labelKey: "search_cat_medicinal" },
+  { value: "FLOWERS", labelKey: "search_cat_flowers" },
+  { value: "EXOTIC", labelKey: "search_cat_exotic" },
 ];
 
 function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
   const { t } = useTranslation();
 
-  const [title, setTitle] = useState(product.name);
+  const [title, setTitle] = useState(product.name ?? product.description);
   const [description, setDescription] = useState(product.description);
-  const [priceInput, setPriceInput] = useState(product.price);
-  const [quantity, setQuantity] = useState(product.quantity);
-  const [category, setCategory] = useState<Category | string>(
-    product.category || ""
-  );
-  const [images, setImages] = useState<string[]>(product.images ?? []); 
+  const [priceInput, setPriceInput] = useState(String(product.price));
+  const [quantity, setQuantity] = useState(String(product.quantity));
+  const [category, setCategory] = useState<string>(product.category || "");
+  const [images, setImages] = useState<string[]>(product.photos ?? []);
 
-  const parsePrice = (value: string): string | null => {
-    const cleaned = value.replace("€", "").trim();
+  const parsePrice = (value: string): number | null => {
+    const cleaned = value.replace(/[^\d,\.]/g, "").replace(",", ".");
     if (!cleaned) return null;
-    return cleaned.endsWith("€") ? cleaned : `${cleaned} €`;
+    const num = Number(cleaned);
+    if (Number.isNaN(num)) return null;
+    return num;
   };
 
   const handleSubmit = () => {
@@ -639,24 +732,22 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
     }
 
     onSave({
-      name: title,
       description,
       price: parsedPrice,
-      quantity,
-      category: category as Category,
-      images,
+      quantity: Number(quantity) || 0,
+      category,
+      photos: images,
     });
 
     onClose();
   };
 
-
-    const pickFromLibrary = async () => {
+  const pickFromLibrary = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
         t("edit_profile_change_photo_permission_title"),
-        t("edit_profile_change_photo_permission_message")
+        t("edit_profile_change_photo_permission_message"),
       );
       return;
     }
@@ -670,7 +761,6 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
     if (!result.canceled) {
       const uris = result.assets.map((asset) => asset.uri);
       setImages((prev: string[]) => [...prev, ...uris]);
-
     }
   };
 
@@ -679,7 +769,7 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
     if (status !== "granted") {
       Alert.alert(
         t("edit_profile_change_photo_permission_title"),
-        t("edit_profile_change_photo_permission_message")
+        t("edit_profile_change_photo_permission_message"),
       );
       return;
     }
@@ -691,40 +781,28 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
     if (!result.canceled) {
       const uris = result.assets.map((asset) => asset.uri);
       setImages((prev: string[]) => [...prev, ...uris]);
-
     }
   };
 
   const handleAddPhoto = () => {
-    // Sur web : l’Alert avec boutons ne marche pas bien, on ouvre direct la galerie
     if (Platform.OS === "web") {
       pickFromLibrary();
       return;
     }
 
-    Alert.alert(
-      t("sell_photos"),
-      "",
-      [
-        { text: "Galerie", onPress: pickFromLibrary },
-        { text: "Appareil photo", onPress: takePhoto },
-        { text: "Annuler", style: "cancel" },
-      ]
-    );
+    Alert.alert(t("sell_photos"), "", [
+      { text: "Galerie", onPress: pickFromLibrary },
+      { text: "Appareil photo", onPress: takePhoto },
+      { text: "Annuler", style: "cancel" },
+    ]);
   };
 
   const handleRemovePhoto = (uriToRemove: string) => {
     setImages((prev: string[]) => prev.filter((uri) => uri !== uriToRemove));
   };
 
-
   return (
-    <Modal
-      visible
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.editBackdrop}>
         <View style={styles.editSheet}>
           {/* Header */}
@@ -745,7 +823,7 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
             keyboardShouldPersistTaps="handled"
           >
             <Text style={styles.headerTitle}>
-              {t("edit_listing_title")} {/* ex: "Modifier l'annonce" */}
+              {t("edit_listing_title")}
             </Text>
 
             {/* Photos */}
@@ -775,7 +853,6 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
                 </TouchableOpacity>
               </ScrollView>
             </View>
-
 
             {/* Title */}
             <View style={styles.block}>
@@ -842,6 +919,7 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
                 placeholder={t("sell_quantity_placeholder")}
                 style={styles.input}
                 placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
               />
             </View>
 
@@ -867,7 +945,7 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
               style={styles.submitButton}
             >
               <Text style={styles.submitText}>
-                {t("edit_listing_submit")} {/* ex: "Enregistrer les modifications" */}
+                {t("edit_listing_submit")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -876,7 +954,6 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
     </Modal>
   );
 }
-
 
 const styles = StyleSheet.create({
   center: {
@@ -891,6 +968,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 8,
+  },
+  errorDetails: {
+    marginTop: 4,
+    fontSize: 12,
+    color: "#EF4444",
   },
   header: {
     position: "absolute",
@@ -991,7 +1073,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  // Gallery styles
   galleryOverlay: {
     flex: 1,
     backgroundColor: "#000000",
@@ -1016,9 +1097,9 @@ const styles = StyleSheet.create({
     color: "#9CA3AF",
     fontSize: 16,
   },
-    galleryCloseBtn: {
+  galleryCloseBtn: {
     position: "absolute",
-    top: 16, // était: top: HEADER_TOP
+    top: 16,
     left: 16,
     width: 40,
     height: 40,
@@ -1042,7 +1123,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // ✅ nouvelle bannière statut image
   statusBanner: {
     position: "absolute",
     left: 0,
@@ -1063,12 +1143,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   buyBtnDisabled: {
-    backgroundColor: "#D1D5DB", // gris clair
+    backgroundColor: "#D1D5DB",
   },
   buyTextDisabled: {
-    color: "#9CA3AF", // texte gris
+    color: "#9CA3AF",
   },
-    moreBtn: {
+  moreBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -1100,7 +1180,7 @@ const styles = StyleSheet.create({
   repostBtnTextDisabled: {
     color: "#9CA3AF",
   },
-    timeAgo: {
+  timeAgo: {
     marginTop: 4,
     color: "#6B7280",
     fontSize: 12,
@@ -1139,7 +1219,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-editBackdrop: {
+  editBackdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.45)",
     justifyContent: "flex-end",
@@ -1153,8 +1233,6 @@ editBackdrop: {
     overflow: "hidden",
   },
 
-  // ces styles sont déjà utilisés dans AddProductModal, mais si tu ne les as
-  // pas encore dans ce fichier, il faut les copier ici :
   block: {
     marginBottom: 16,
   },
@@ -1231,8 +1309,8 @@ editBackdrop: {
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "600",
-  }, 
-  
+  },
+
   headerTitle: {
     fontSize: 16,
     fontWeight: "600",
@@ -1253,7 +1331,7 @@ editBackdrop: {
     paddingVertical: 16,
     paddingBottom: 8,
   },
-    editCloseButton: {
+  editCloseButton: {
     position: "absolute",
     top: 12,
     right: 12,
@@ -1265,7 +1343,7 @@ editBackdrop: {
     justifyContent: "center",
     zIndex: 10,
   },
-    photoItem: {
+  photoItem: {
     width: 96,
     height: 96,
     borderRadius: 16,
@@ -1288,7 +1366,7 @@ editBackdrop: {
     alignItems: "center",
     justifyContent: "center",
   },
-    favoriteWrapper: {
+  favoriteWrapper: {
     marginTop: 12,
     paddingHorizontal: 16,
     alignItems: "center",
@@ -1306,6 +1384,4 @@ editBackdrop: {
     color: "#111827",
     fontWeight: "500",
   },
-
-
 });

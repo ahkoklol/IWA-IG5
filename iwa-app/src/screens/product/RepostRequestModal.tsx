@@ -9,14 +9,17 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from "react-native";
 import { HelpCircle } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
+import { createModerationRequest } from "../../api/reportingApi";
 
 interface RepostRequestModalProps {
   visible: boolean;
   onClose: () => void;
   onSubmit: (message: string) => void;
+  postId: string;
 }
 
 const MAX_LENGTH = 250;
@@ -25,17 +28,39 @@ export default function RepostRequestModal({
   visible,
   onClose,
   onSubmit,
+  postId,
 }: RepostRequestModalProps) {
   const { t } = useTranslation();
   const [justification, setJustification] = useState("");
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = () => {
-    if (!justification.trim()) {
+  const handleSubmit = async () => {
+    const trimmed = justification.trim();
+    if (!trimmed || sending) {
       return;
     }
-    onSubmit(justification.trim());
-    setJustification("");
-    Keyboard.dismiss();
+
+    try {
+      setSending(true);
+
+      await createModerationRequest(postId, {
+        description: trimmed,
+        postId,
+      });
+
+      onSubmit(trimmed);
+      setJustification("");
+      Keyboard.dismiss();
+    } catch (e) {
+      console.error("Failed to send repost request", e);
+      Alert.alert(
+        t("error_title") ?? "Erreur",
+        t("error_generic") ??
+          "Une erreur est survenue lors de l’envoi de la demande de remise en ligne.",
+      );
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -84,6 +109,7 @@ export default function RepostRequestModal({
                 }}
                 style={styles.secondaryButton}
                 activeOpacity={0.9}
+                disabled={sending}
               >
                 <Text style={styles.secondaryButtonText}>
                   {t("common_cancel")}
@@ -94,15 +120,17 @@ export default function RepostRequestModal({
                 onPress={handleSubmit}
                 style={[
                   styles.primaryButton,
-                  !justification.trim() && styles.primaryButtonDisabled,
+                  (!justification.trim() || sending) &&
+                    styles.primaryButtonDisabled,
                 ]}
-                disabled={!justification.trim()}
+                disabled={!justification.trim() || sending}
                 activeOpacity={0.9}
               >
                 <Text
                   style={[
                     styles.primaryButtonText,
-                    !justification.trim() && styles.primaryButtonTextDisabled,
+                    (!justification.trim() || sending) &&
+                      styles.primaryButtonTextDisabled,
                   ]}
                 >
                   {t("repost_request_submit")}

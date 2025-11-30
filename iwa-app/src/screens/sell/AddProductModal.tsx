@@ -8,13 +8,16 @@ import {
   TextInput,
   ScrollView,
   StyleSheet,
-  Alert,  
-  Image, 
+  Alert,
+  Image,
+  ActivityIndicator,
 } from "react-native";
 import { X, Image as ImageIcon } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import type { Category } from "../../shared/types";
 import * as ImagePicker from "expo-image-picker";
+import { createProduct } from "../../api/productApi";
+import type { CreateProductPayload, Product } from "../../shared/types/product";
 
 export interface NewListing {
   title: string;
@@ -47,17 +50,35 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
   const [priceInput, setPriceInput] = useState("");
   const [quantity, setQuantity] = useState("");
   const [category, setCategory] = useState<Category | "">("");
+  const [images, setImages] = useState<string[]>([]);
+
+  const [weightInput, setWeightInput] = useState("");
+  const [season, setSeason] = useState("");
+  const [floweringSeason, setFloweringSeason] = useState("");
+  const [harvestDate, setHarvestDate] = useState("");
+  const [edible, setEdible] = useState<boolean | null>(null);
+
   const [showSuccess, setShowSuccess] = useState(false);
-  const [images, setImages] = useState<string[]>([]); 
+  const [submitting, setSubmitting] = useState(false);
+
+  // TODO: remplacer par l'id du client connecté (depuis ton state Auth)
+  const CURRENT_CLIENT_ID = "REPLACE_WITH_CLIENT_ID";
 
   const parsePrice = (value: string): number | null => {
     const cleaned = value.replace("€", "").trim().replace(",", ".");
     const num = Number(cleaned);
-    if (Number.isNaN(num) || num < 0) return null;
+    if (Number.isNaN(num) || num <= 0) return null;
     return num;
   };
 
-    const pickFromLibrary = async () => {
+  const parseWeight = (value: string): number | null => {
+    const cleaned = value.trim().replace(",", ".");
+    const num = Number(cleaned);
+    if (Number.isNaN(num) || num <= 0) return null;
+    return num;
+  };
+
+  const pickFromLibrary = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("Permission refusée", "L'accès à la galerie est nécessaire.");
@@ -94,49 +115,105 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
   };
 
   const handleAddPhoto = () => {
-    Alert.alert(
-      t("sell_photos"),
-      "",
-      [
-        { text: "Galerie", onPress: pickFromLibrary },
-        { text: "Appareil photo", onPress: takePhoto },
-        { text: "Annuler", style: "cancel" },
-      ]
-    );
+    Alert.alert(t("sell_photos"), "", [
+      { text: "Galerie", onPress: pickFromLibrary },
+      { text: "Appareil photo", onPress: takePhoto },
+      { text: "Annuler", style: "cancel" },
+    ]);
   };
 
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const parsedPrice = parsePrice(priceInput);
+    const parsedWeight = parseWeight(weightInput);
+    const parsedQuantity = parseInt(quantity, 10);
 
-    if (!title || !parsedPrice || !category) {
-      // TODO: show error / toast
+    if (!CURRENT_CLIENT_ID || CURRENT_CLIENT_ID === "REPLACE_WITH_CLIENT_ID") {
+      Alert.alert(
+        t("sell_error_title", "Erreur"),
+        t(
+          "sell_error_client_not_set",
+          "Aucun utilisateur connecté, impossible de créer l'annonce.",
+        ),
+      );
       return;
     }
 
-    onAdd({
-      title,
-      description,
-      price: parsedPrice,
-      quantity,
-      category,
-      images,
-    });
+    if (!description && !title) {
+      Alert.alert(
+        t("sell_error_title", "Erreur"),
+        t(
+          "sell_error_description_required",
+          "Merci de renseigner un titre ou une description.",
+        ),
+      );
+      return;
+    }
 
-    setShowSuccess(true);
+    if (
+      !category ||
+      parsedPrice === null ||
+      Number.isNaN(parsedQuantity) ||
+      parsedQuantity <= 0 ||
+      parsedWeight === null ||
+      !season ||
+      !floweringSeason ||
+      !harvestDate ||
+      edible === null ||
+      images.length === 0
+    ) {
+      Alert.alert(
+        t("sell_error_title", "Erreur"),
+        t(
+          "sell_error_required",
+          "Merci de remplir tous les champs obligatoires et d'ajouter au moins une photo.",
+        ),
+      );
+      return;
+    }
+
+    const payload: CreateProductPayload = {
+      description: description || title,
+      photos: images,
+      weight: parsedWeight,
+      quantity: parsedQuantity,
+      category: category as string,
+      season,
+      edible,
+      floweringSeason,
+      harvestDate,
+      price: parsedPrice,
+      clientId: CURRENT_CLIENT_ID,
+    };
+
+    try {
+      setSubmitting(true);
+
+      const created: Product = await createProduct(payload);
+
+      onAdd({
+        title,
+        description: description || title,
+        price: parsedPrice,
+        quantity,
+        category,
+        images,
+      });
+
+      setShowSuccess(true);
+    } catch (e: any) {
+      Alert.alert(
+        t("sell_error_title", "Erreur"),
+        e?.message || "Impossible de créer l'annonce.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-
   return (
-    <Modal
-      visible
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
-          {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>{t("sell_title")}</Text>
             <TouchableOpacity
@@ -148,14 +225,11 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
             </TouchableOpacity>
           </View>
 
-          {/* Content */}
           <ScrollView
             style={styles.content}
             contentContainerStyle={styles.contentInner}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Photo upload (placeholder) */}
-            {/* Photo upload */}
             <View style={styles.block}>
               <Text style={styles.label}>{t("sell_photos")}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -176,7 +250,6 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
               </ScrollView>
             </View>
 
-            {/* Title */}
             <View style={styles.block}>
               <Text style={styles.label}>{t("sell_title_label")}</Text>
               <TextInput
@@ -188,7 +261,6 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
               />
             </View>
 
-            {/* Description */}
             <View style={styles.block}>
               <Text style={styles.label}>{t("sell_description")}</Text>
               <TextInput
@@ -201,7 +273,6 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
               />
             </View>
 
-            {/* Category */}
             <View style={styles.block}>
               <Text style={styles.label}>{t("sell_category")}</Text>
 
@@ -232,7 +303,6 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
               </View>
             </View>
 
-            {/* Quantity */}
             <View style={styles.block}>
               <Text style={styles.label}>{t("sell_quantity")}</Text>
               <TextInput
@@ -241,10 +311,117 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
                 placeholder={t("sell_quantity_placeholder")}
                 style={styles.input}
                 placeholderTextColor="#9CA3AF"
+                keyboardType="number-pad"
               />
             </View>
 
-            {/* Price */}
+            <View style={styles.block}>
+              <Text style={styles.label}>
+                {t("sell_weight_label", "Poids (en grammes)")}
+              </Text>
+              <TextInput
+                value={weightInput}
+                onChangeText={setWeightInput}
+                placeholder={t(
+                  "sell_weight_placeholder",
+                  "Ex : 100 pour 100g",
+                )}
+                style={styles.input}
+                placeholderTextColor="#9CA3AF"
+                keyboardType="decimal-pad"
+              />
+            </View>
+
+            <View style={styles.block}>
+              <Text style={styles.label}>
+                {t("sell_season_label", "Période de plantation")}
+              </Text>
+              <TextInput
+                value={season}
+                onChangeText={setSeason}
+                placeholder={t(
+                  "sell_season_placeholder",
+                  "Printemps, automne...",
+                )}
+                style={styles.input}
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+
+            <View style={styles.block}>
+              <Text style={styles.label}>
+                {t("sell_flowering_label", "Période de floraison")}
+              </Text>
+              <TextInput
+                value={floweringSeason}
+                onChangeText={setFloweringSeason}
+                placeholder={t(
+                  "sell_flowering_placeholder",
+                  "Ex : mai à juillet",
+                )}
+                style={styles.input}
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+
+            <View style={styles.block}>
+              <Text style={styles.label}>
+                {t("sell_harvest_label", "Date / période de récolte")}
+              </Text>
+              <TextInput
+                value={harvestDate}
+                onChangeText={setHarvestDate}
+                placeholder={t(
+                  "sell_harvest_placeholder",
+                  "Ex : 09/2024 ou fin d'été 2024",
+                )}
+                style={styles.input}
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+
+            <View style={styles.block}>
+              <Text style={styles.label}>
+                {t("sell_edible_label", "Cette graine est-elle comestible ?")}
+              </Text>
+              <View style={styles.categoryList}>
+                <TouchableOpacity
+                  style={[
+                    styles.categoryPill,
+                    edible === true && styles.categoryPillSelected,
+                  ]}
+                  onPress={() => setEdible(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.categoryPillText,
+                      edible === true && styles.categoryPillTextSelected,
+                    ]}
+                  >
+                    {t("sell_edible_yes", "Oui")}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.categoryPill,
+                    edible === false && styles.categoryPillSelected,
+                  ]}
+                  onPress={() => setEdible(false)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.categoryPillText,
+                      edible === false && styles.categoryPillTextSelected,
+                    ]}
+                  >
+                    {t("sell_edible_no", "Non")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <View style={styles.block}>
               <Text style={styles.label}>{t("sell_price")}</Text>
               <TextInput
@@ -258,26 +435,32 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
             </View>
           </ScrollView>
 
-          {/* Add button */}
           <View style={styles.footer}>
             <TouchableOpacity
               onPress={handleSubmit}
               activeOpacity={0.8}
-              style={styles.submitButton}
+              style={[
+                styles.submitButton,
+                submitting && { opacity: 0.6 },
+              ]}
+              disabled={submitting}
             >
-              <Text style={styles.submitText}>{t("sell_submit")}</Text>
+              {submitting ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.submitText}>{t("sell_submit")}</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
 
-      <AddProductSuccessModal
-        visible={showSuccess}
-        onClose={() => {
-          setShowSuccess(false);
-          onClose(); // ferme le modal de vente et laisse le parent gérer la navigation vers l’onglet précédent
-        }}
-      />
-        
+        <AddProductSuccessModal
+          visible={showSuccess}
+          onClose={() => {
+            setShowSuccess(false);
+            onClose();
+          }}
+        />
       </View>
     </Modal>
   );
@@ -303,9 +486,7 @@ function AddProductSuccessModal({
     >
       <View style={styles.successBackdrop}>
         <View style={styles.successCard}>
-          <Text style={styles.successTitle}>
-            {t("sell_success_title")}
-          </Text>
+          <Text style={styles.successTitle}>{t("sell_success_title")}</Text>
           <Text style={styles.successMessage}>
             {t("sell_success_message")}
           </Text>
@@ -324,7 +505,6 @@ function AddProductSuccessModal({
     </Modal>
   );
 }
-
 
 const styles = StyleSheet.create({
   backdrop: {
@@ -444,8 +624,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
-
-    successBackdrop: {
+  successBackdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.45)",
     alignItems: "center",
@@ -488,7 +667,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
-    photoPreviewWrapper: {
+  photoPreviewWrapper: {
     width: 96,
     height: 96,
     borderRadius: 16,
@@ -500,6 +679,4 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-
-
 });
