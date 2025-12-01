@@ -2,7 +2,6 @@ package com.bg.transactionmicroservice.service;
 
 import com.bg.transactionmicroservice.client.UserClient;
 import com.bg.transactionmicroservice.entity.ClientDTO;
-import com.bg.transactionmicroservice.entity.Transaction;
 import com.bg.usermicroservice.grpc.UpdateStripeIdRequest;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
