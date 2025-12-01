@@ -23,4 +23,5 @@ message GetPostResponse {
   google.protobuf.Timestamp dateCreated = 13;
   google.protobuf.Timestamp dateModified = 14;
   string description = 15;
+  string title = 16;
 }
