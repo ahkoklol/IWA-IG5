@@ -23,6 +23,7 @@ INSERT INTO category (category_id, name) VALUES
 
 CREATE TABLE IF NOT EXISTS post (
     post_id VARCHAR(100) PRIMARY KEY,
+    title VARCHAR(100),
     date_created TIMESTAMP NOT NULL,
     date_modified TIMESTAMP NOT NULL,
     description VARCHAR(500),
@@ -42,6 +43,7 @@ CREATE TABLE IF NOT EXISTS post (
 
 INSERT INTO post (
     post_id,
+    title,
     date_created,
     date_modified,
     description,
@@ -60,6 +62,7 @@ INSERT INTO post (
 -- 1. A Vegetable Example
 (
     'post_001',
+    'Heirloom Tomatoes',
     '2023-10-25 08:30:00',
     '2023-10-25 08:30:00',
     'Organic Heirloom Tomatoes, grown without pesticides.',
