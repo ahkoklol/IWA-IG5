@@ -46,6 +46,7 @@ public class ListingServiceImpl {
 
             GetPostResponse response = GetPostResponse.newBuilder()
                     .setPostId(post.getPostId())
+                    .setTitle(post.getTitle())
                     .addAllPhoto(post.getPhotos())
                     .setWeight(post.getWeight())
                     .setQuantity(post.getQuantity())
