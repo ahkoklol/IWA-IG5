@@ -24,8 +24,8 @@ export interface NewListing {
   description: string;
   price: number;
   quantity: string;
-  category: Category | "";
-  images?: string[];
+  category: Category;
+  images: string[];
 }
 
 interface AddProductModalProps {
@@ -138,12 +138,13 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
       return;
     }
 
-    if (!description && !title) {
+    // Tous les champs obligatoires
+    if (!title || !description) {
       Alert.alert(
         t("sell_error_title", "Erreur"),
         t(
-          "sell_error_description_required",
-          "Merci de renseigner un titre ou une description.",
+          "sell_error_title_description_required",
+          "Merci de renseigner un titre et une description.",
         ),
       );
       return;
@@ -151,9 +152,11 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
 
     if (
       !category ||
+      !priceInput ||
       parsedPrice === null ||
       Number.isNaN(parsedQuantity) ||
       parsedQuantity <= 0 ||
+      !weightInput ||
       parsedWeight === null ||
       !season ||
       !floweringSeason ||
@@ -172,7 +175,8 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
     }
 
     const payload: CreateProductPayload = {
-      description: description || title,
+      title,
+      description,
       photos: images,
       weight: parsedWeight,
       quantity: parsedQuantity,
@@ -192,10 +196,10 @@ export function AddProductModal({ onClose, onAdd }: AddProductModalProps) {
 
       onAdd({
         title,
-        description: description || title,
+        description,
         price: parsedPrice,
         quantity,
-        category,
+        category: category as Category,
         images,
       });
 

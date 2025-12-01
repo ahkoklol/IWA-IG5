@@ -132,7 +132,7 @@ export default function ProductDetail() {
 
     const uiProduct: UiProduct = {
       ...data,
-      name: data.description,
+      name: data.title,
       images: data.photos,
       id: data.postId,
       plantingPeriod: [],        // ou une dérivation de season si tu veux
@@ -432,7 +432,7 @@ export default function ProductDetail() {
         )}
 
         <View style={styles.body}>
-          <Text style={styles.title}>{product.name ?? product.description}</Text>
+          <Text style={styles.title}>{product.title ?? product.name}</Text>
           <Text style={styles.quantity}>{product.quantity}</Text>
           <Text style={styles.price}>{product.price}</Text>
 
@@ -708,12 +708,14 @@ const categoryOptions: { value: string; labelKey: string }[] = [
 function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
   const { t } = useTranslation();
 
-  const [title, setTitle] = useState(product.name ?? product.description);
   const [description, setDescription] = useState(product.description);
   const [priceInput, setPriceInput] = useState(String(product.price));
   const [quantity, setQuantity] = useState(String(product.quantity));
   const [category, setCategory] = useState<string>(product.category || "");
   const [images, setImages] = useState<string[]>(product.photos ?? []);
+  const [title, setTitle] = useState(
+    product.title ?? product.name ?? product.description,
+  );
 
   const parsePrice = (value: string): number | null => {
     const cleaned = value.replace(/[^\d,\.]/g, "").replace(",", ".");
@@ -732,6 +734,7 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
     }
 
     onSave({
+      title,
       description,
       price: parsedPrice,
       quantity: Number(quantity) || 0,
@@ -741,6 +744,7 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
 
     onClose();
   };
+
 
   const pickFromLibrary = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();

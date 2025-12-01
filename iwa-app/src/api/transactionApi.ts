@@ -1,3 +1,4 @@
+// iwa-app/src/api/transactionApi.ts
 import type {
   Transaction,
   CreateTransactionPayload,
@@ -7,42 +8,41 @@ import type {
   StripeOnboardingLinkResponse,
 } from "../shared/types/transaction";
 
+import { httpClient } from "./httpClient";
+
 const TRANSACTION_BASE_URL = "http://localhost:8080/transaction";
 const STRIPE_BASE_URL = "http://localhost:8080/stripe";
 
-async function handleJsonResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const text = await response.text().catch(() => "");
-    throw new Error(`Request failed with status ${response.status}: ${text}`);
-  }
-  return response.json() as Promise<T>;
-}
-
-async function handleVoidResponse(response: Response): Promise<void> {
-  if (!response.ok) {
-    const text = await response.text().catch(() => "");
-    throw new Error(`Request failed with status ${response.status}: ${text}`);
-  }
-}
-
+/**
+ * Create a purchase transaction.
+ */
 export async function purchaseTransaction(
   payload: CreateTransactionPayload,
 ): Promise<Transaction> {
-  const response = await fetch(`${TRANSACTION_BASE_URL}/purchase`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  return handleJsonResponse<Transaction>(response);
+  const response = await httpClient.post<Transaction>(
+    `${TRANSACTION_BASE_URL}/purchase`,
+    payload,
+  );
+
+  return response.data;
 }
 
+/**
+ * Get transactions for a client by ID.
+ */
 export async function getTransactionsByClientId(
   clientId: string,
 ): Promise<Transaction[]> {
-  const response = await fetch(`${TRANSACTION_BASE_URL}/${clientId}`);
-  return handleJsonResponse<Transaction[]>(response);
+  const response = await httpClient.get<Transaction[]>(
+    `${TRANSACTION_BASE_URL}/${clientId}`,
+  );
+
+  return response.data;
 }
 
+/**
+ * Register a Stripe account for payouts.
+ */
 export async function registerStripeAccount(
   payload: StripeRegisterPayload,
 ): Promise<StripeRegisterResponse> {
@@ -51,15 +51,17 @@ export async function registerStripeAccount(
     email: payload.email,
   };
 
-  const response = await fetch(`${STRIPE_BASE_URL}/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  const response = await httpClient.post<StripeRegisterResponse>(
+    `${STRIPE_BASE_URL}/register`,
+    body,
+  );
 
-  return handleJsonResponse<StripeRegisterResponse>(response);
+  return response.data;
 }
 
+/**
+ * Request an onboarding link for Stripe Express dashboard setup.
+ */
 export async function getStripeOnboardingLink(
   payload: StripeOnboardingLinkPayload,
 ): Promise<StripeOnboardingLinkResponse> {
@@ -67,11 +69,10 @@ export async function getStripeOnboardingLink(
     stripeId: payload.stripeId,
   };
 
-  const response = await fetch(`${STRIPE_BASE_URL}/onboarding-link`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  const response = await httpClient.post<StripeOnboardingLinkResponse>(
+    `${STRIPE_BASE_URL}/onboarding-link`,
+    body,
+  );
 
-  return handleJsonResponse<StripeOnboardingLinkResponse>(response);
+  return response.data;
 }

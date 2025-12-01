@@ -66,7 +66,7 @@ export default function ProductCard({
 
       <View style={styles.meta}>
         <Text numberOfLines={1} style={styles.name}>
-          {product.description}
+          {product.title}
         </Text>
         <Text numberOfLines={1} style={styles.quantity}>
           {product.quantity}

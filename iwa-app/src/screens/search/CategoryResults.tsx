@@ -98,11 +98,23 @@ export function CategoryResults({ route, navigation }: Props) {
         return false;
       }
 
+      // si aucune recherche saisie → on garde le produit
       if (!activeQuery) return true;
 
-      return p.description.toLowerCase().includes(activeQuery);
+      // On normalise les champs pour éviter les undefined
+      const title = (p.title ?? "").toLowerCase();
+      const description = (p.description ?? "").toLowerCase();
+      const cat = (p.category ?? "").toLowerCase();
+
+      // On teste sur title + description + category
+      return (
+        title.includes(activeQuery) ||
+        description.includes(activeQuery) ||
+        cat.includes(activeQuery)
+      );
     });
   }, [products, category, activeQuery]);
+
 
   const handleBack = () => navigation.goBack();
 

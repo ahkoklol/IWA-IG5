@@ -4,6 +4,7 @@ export interface Product {
   postId: string;
   dateCreated: string;
   dateModified: string;
+  title: string;                // NEW
   description: string;
   photos: string[];
   weight: number;
@@ -26,6 +27,7 @@ export interface Category {
 export type ProductStatus = "visible" | "hidden" | "banned" | "sold" | string;
 
 export interface CreateProductPayload {
+  title: string;                // NEW
   description: string;
   photos: string[];
   weight: number;
@@ -40,5 +42,12 @@ export interface CreateProductPayload {
 }
 
 export type UpdateProductPayload = Partial<
-  Omit<Product, "postId" | "clientId" | "status" | "dateCreated" | "dateModified">
+  Omit<
+    Product,
+    | "postId"
+    | "clientId"
+    | "status"
+    | "dateCreated"
+    | "dateModified"
+  >
 >;
