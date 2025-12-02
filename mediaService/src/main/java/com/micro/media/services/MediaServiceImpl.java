@@ -1,5 +1,6 @@
 package com.micro.media.services;
 
+import com.micro.media.entity.PostResult;
 import com.micro.media.grpc.UploadRequestProto;
 import com.micro.media.grpc.UploadResponseProto;
 import com.micro.media.grpc.MediaServiceGrpc;
@@ -9,11 +10,13 @@ import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 @GrpcService
 public class MediaServiceImpl extends MediaServiceGrpc.MediaServiceImplBase {
 
     private final MediaService mediaService;
+    Logger logger = Logger.getLogger(MediaServiceImpl.class.getName());
 
     @Autowired
     public MediaServiceImpl(MediaService mediaService) {
@@ -32,11 +35,14 @@ public class MediaServiceImpl extends MediaServiceGrpc.MediaServiceImplBase {
                 throw new IllegalArgumentException("Le nom de fichier est requis");
             }
 
-            String finalUrl = mediaService.uploadPostImage(imageBytes, filename, contentType);
+            PostResult result = mediaService.uploadPostImage(imageBytes, filename, contentType);
+            String finalUrl = result.getUrl();
+
+
 
             UploadResponseProto.UploadResponse response = UploadResponseProto.UploadResponse.newBuilder()
                     .setUrl(finalUrl)
-                    .setMessage("Image de post traitée avec succès")
+                    .setMessage(result.isApproved() ? "Approved" : "Banned")
                     .setContentType(contentType)
                     .build();
 
@@ -76,7 +82,7 @@ public class MediaServiceImpl extends MediaServiceGrpc.MediaServiceImplBase {
 
             UploadResponseProto.UploadResponse response = UploadResponseProto.UploadResponse.newBuilder()
                     .setUrl(finalUrl)
-                    .setMessage("Image de profil uploadée avec succès")
+                    .setMessage("Success")
                     .setContentType(contentType)
                     .build();
 

@@ -1,5 +1,6 @@
 package com.micro.media.services;
 
+import com.micro.media.entity.PostResult;
 import com.micro.media.repository.ImageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,7 @@ public class MediaService {
      * @throws IOException en cas d'erreur d'upload ou de déplacement
      * @throws IllegalArgumentException si l'image est invalide (format, taille, etc.)
      */
-    public String uploadPostImage(byte[] imageBytes, String originalFilename, String contentType) throws IOException {
+    public PostResult uploadPostImage(byte[] imageBytes, String originalFilename, String contentType) throws IOException {
         validateImageBytes(imageBytes, contentType);
         File tempFile = createTemporaryFile(imageBytes, originalFilename);
 
@@ -55,7 +56,7 @@ public class MediaService {
             String uniqueFileName = generateUniqueFileName(originalFilename);
             String pendingUrl = imageRepository.uploadFile(tempFile, PENDING_FOLDER, uniqueFileName);
             boolean isImageApproved = aiValidationService.validateImage(tempFile, pendingUrl);
-            return moveToFinalDestination(uniqueFileName, isImageApproved);
+            return new PostResult(moveToFinalDestination(uniqueFileName, isImageApproved), isImageApproved);
         } finally {
             cleanupTemporaryFile(tempFile);
         }
@@ -197,4 +198,6 @@ public class MediaService {
             }
         }
     }
+
+
 }
