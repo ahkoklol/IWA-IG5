@@ -75,7 +75,7 @@ INSERT INTO post (
     'January - March 2026',
     'January - March 2026',
     4.50,
-    'AVAILABLE',
+    'visible',
     'user_123'
 );
 
