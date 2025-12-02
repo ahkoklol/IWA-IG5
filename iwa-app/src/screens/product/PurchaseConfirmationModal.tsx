@@ -1,3 +1,4 @@
+//iwa-app/src/screens/product/PurchaseConfirmationModal.tsx
 import React from "react";
 import {
   Modal,
@@ -10,11 +11,12 @@ import {
 } from "react-native";
 import { X, Star } from "lucide-react-native";
 import type { Product } from "../../shared/types";
+import { useTranslation } from "react-i18next";
 
 interface PurchaseConfirmationModalProps {
   product: Product;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (total: number) => void;
 }
 
 export default function PurchaseConfirmationModal({
@@ -22,14 +24,16 @@ export default function PurchaseConfirmationModal({
   onClose,
   onConfirm,
 }: PurchaseConfirmationModalProps) {
+  const { t } = useTranslation();
   if (!product) {
     return null;
   }
 
   // --- Image principale : supporte string (URL) ou require() ---
-  const rawImage = Array.isArray(product.images) && product.images.length > 0
-    ? product.images[0]
-    : undefined;
+  const rawImage =
+    Array.isArray(product.images) && product.images.length > 0
+      ? product.images[0]
+      : undefined;
 
   const mainImageSource =
     typeof rawImage === "string"
@@ -40,7 +44,9 @@ export default function PurchaseConfirmationModal({
 
   // --- Parsing prix robuste ---
   const rawPrice =
-    typeof product.price === "string" ? product.price : String(product.price ?? "0");
+    typeof product.price === "string"
+      ? product.price
+      : String(product.price ?? "0");
   const numericPrice = parseFloat(
     rawPrice
       .replace(/\s/g, "") // retire espaces
@@ -83,7 +89,7 @@ export default function PurchaseConfirmationModal({
         <View style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Confirmation d'achat</Text>
+            <Text style={styles.headerTitle}>{t("purchase_confirmation")}</Text>
             <TouchableOpacity
               onPress={onClose}
               style={styles.closeButton}
@@ -101,7 +107,7 @@ export default function PurchaseConfirmationModal({
           >
             {/* Product info */}
             <View style={styles.block}>
-              <Text style={styles.blockTitle}>Article</Text>
+              <Text style={styles.blockTitle}>{t("purchase_item")}</Text>
               <View style={styles.productRow}>
                 {mainImageSource ? (
                   <Image source={mainImageSource} style={styles.productImage} />
@@ -113,7 +119,9 @@ export default function PurchaseConfirmationModal({
                 <View style={styles.productInfo}>
                   <Text style={styles.productName}>{product.name ?? "—"}</Text>
                   {!!product.quantity && (
-                    <Text style={styles.productQuantity}>{product.quantity}</Text>
+                    <Text style={styles.productQuantity}>
+                      {product.quantity}
+                    </Text>
                   )}
                 </View>
               </View>
@@ -121,7 +129,7 @@ export default function PurchaseConfirmationModal({
 
             {/* Seller info */}
             <View style={styles.block}>
-              <Text style={styles.blockTitle}>Vendeur</Text>
+              <Text style={styles.blockTitle}>{t("review_seller")}</Text>
               <View style={styles.sellerRow}>
                 {seller?.avatar ? (
                   <Image
@@ -136,7 +144,9 @@ export default function PurchaseConfirmationModal({
                   </View>
                 )}
                 <View style={styles.sellerInfo}>
-                  <Text style={styles.sellerName}>{seller?.username ?? "—"}</Text>
+                  <Text style={styles.sellerName}>
+                    {seller?.username ?? "—"}
+                  </Text>
                   <View style={styles.sellerRatingRow}>
                     {renderStars(seller?.rating)}
                     {!!seller?.reviewCount && (
@@ -152,17 +162,17 @@ export default function PurchaseConfirmationModal({
             {/* Price breakdown */}
             <View style={styles.priceCard}>
               <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Prix de vente</Text>
+                <Text style={styles.priceLabel}>{t("purchase_price")}</Text>
                 <Text style={styles.priceValue}>{formatPrice(priceValue)}</Text>
               </View>
               <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Commission (10%)</Text>
+                <Text style={styles.priceLabel}>{t("purchase_commission")}</Text>
                 <Text style={styles.priceValue}>
                   {formatPrice(commission)}
                 </Text>
               </View>
               <View style={styles.priceTotalRow}>
-                <Text style={styles.priceTotalLabel}>Total</Text>
+                <Text style={styles.priceTotalLabel}>{t("purchase_total")}</Text>
                 <Text style={styles.priceTotalValue}>
                   {formatPrice(total)}
                 </Text>
@@ -173,11 +183,11 @@ export default function PurchaseConfirmationModal({
           {/* Confirm button */}
           <View style={styles.footer}>
             <TouchableOpacity
-              onPress={onConfirm}
+              onPress={() => onConfirm(total)}
               activeOpacity={0.9}
               style={styles.confirmButton}
             >
-              <Text style={styles.confirmButtonText}>Valider l'achat</Text>
+              <Text style={styles.confirmButtonText}>{t("purchase_validate")}</Text>
             </TouchableOpacity>
           </View>
         </View>

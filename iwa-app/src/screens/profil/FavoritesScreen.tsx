@@ -8,15 +8,19 @@ import {
   StyleSheet,
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import type { Product } from "../../shared/types";
 import ProductCard from "../../components/product/ProductCard";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import { demoProducts } from "../../mocks/products";
+import { Screen } from "../../components/Screen";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Favorites">;
 
 export function FavoritesScreen({ navigation }: Props) {
+  const { t } = useTranslation();
+
   const [products, setProducts] = useState<Product[]>(
     demoProducts.filter((p) => p.isFavorite)
   );
@@ -38,49 +42,48 @@ export function FavoritesScreen({ navigation }: Props) {
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-    >
-      {/* Phone notch simulation */}
-      <View style={styles.notch} />
-
-      {/* Header */}
-      <View style={styles.headerWrapper}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={handleBack}
-            style={styles.backButton}
-            activeOpacity={0.7}
-          >
-            <ArrowLeft size={20} color="#1F2937" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Favoris</Text>
-          <View style={styles.headerRightPlaceholder} />
+    <Screen>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      >
+        {/* Header */}
+        <View style={styles.headerWrapper}>
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={handleBack}
+              style={styles.backButton}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={20} color="#1F2937" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{t("profile_favorites")}</Text>
+            <View style={styles.headerRightPlaceholder} />
+          </View>
         </View>
-      </View>
 
-      {/* Products grid */}
-      <View style={styles.content}>
-        {products.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>Aucun article en favori</Text>
-          </View>
-        ) : (
-          <View style={styles.grid}>
-            {products.map((product) => (
-              <View key={product.id} style={styles.gridItem}>
-                <ProductCard
-                  product={product}
-                  onClick={() => handleProductClick(product)}
-                  onToggleFavorite={() => handleToggleFavorite(product.id)}
-                />
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-    </ScrollView>
+        {/* Products grid */}
+        <View style={styles.content}>
+          {products.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>{t("favorites_empty")}</Text>
+            </View>
+          ) : (
+            <View style={styles.grid}>
+              {products.map((product) => (
+                <View key={product.id} style={styles.gridItem}>
+                  <ProductCard
+                    product={product}
+                    onClick={() => handleProductClick(product)}
+                    onToggleFavorite={() => handleToggleFavorite(product.id)}
+                  />
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </Screen>
   );
 }
 
@@ -91,14 +94,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingBottom: 32,
-  },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
   },
   headerWrapper: {
     borderBottomWidth: 1,

@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package user.service;
+
+option java_package = "com.bg.usermicroservice.grpc";
+option java_multiple_files = true;
+
+message GetUserResponse {
+  string phone = 1;
+  string stripeId = 2;
+  string userId = 3;
+}

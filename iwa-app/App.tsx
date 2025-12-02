@@ -1,8 +1,13 @@
+// App.tsx
 import React from "react";
 import { View, ActivityIndicator } from "react-native";
 import { useFonts } from "expo-font";
+import { StripeProvider } from "@stripe/stripe-react-native";
+
+import { SafeAreaProvider } from "react-native-safe-area-context"; // ← AJOUT
 import RootNavigator from "./src/navigation/RootNavigator";
 import { AuthProvider } from "./src/context/authContext";
+import "./src/i18n/i18n";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -25,9 +30,13 @@ export default function App() {
   }
 
   return (
-  
-  <AuthProvider>
-    <RootNavigator />
-  </AuthProvider>
+    <SafeAreaProvider>   {/* ← IMPORTANT */}
+      <StripeProvider
+        publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY as string}
+        merchantIdentifier="merchant.com.iwa.app"
+      >
+        <RootNavigator />
+      </StripeProvider>
+    </SafeAreaProvider>
   );
 }

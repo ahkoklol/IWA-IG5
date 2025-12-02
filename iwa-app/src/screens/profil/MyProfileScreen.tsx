@@ -16,39 +16,36 @@ import {
   Users,
   MoreHorizontal,
 } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import type { Product, Review } from "../../shared/types";
 import ProductCard from "../../components/product/ProductCard";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import { demoProducts, reviewsByUser } from "../../mocks/products";
 import { EditProfileModal } from "./EditProfileModal";
-
+import { Screen } from "../../components/Screen";
 
 type Props = NativeStackScreenProps<RootStackParamList, "MyProfileScreen">;
 
 export function MyProfileScreen({ route, navigation }: Props) {
-    const { user, initialTab } = route.params;
+  const { user, initialTab } = route.params;
+  const { t } = useTranslation();
 
-  // User modifiable localement (nom, bio, localisation, avatar)
   const [currentUser, setCurrentUser] = useState(user);
-
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
-
-  // Produits de ce user (mock depuis demoProducts)
   const initialUserProducts = demoProducts.filter(
     (p) => p.seller.id === user.id
   );
-
   const [userProducts, setUserProducts] =
     useState<Product[]>(initialUserProducts);
 
-  // Pour l’instant, pas encore de mock de reviews => tableau vide
   const [userReviews] = useState<Review[]>(reviewsByUser[user.id] ?? []);
 
-    const [activeTab, setActiveTab] = useState<"profile" | "reviews">(
+  const [activeTab, setActiveTab] = useState<"profile" | "reviews">(
     initialTab ?? "profile"
   );
+
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }).map((_, index) => {
       const filled = index < rating;
@@ -86,26 +83,16 @@ export function MyProfileScreen({ route, navigation }: Props) {
 
   const handleUserClick = (userId: number) => {
     console.log("Review user clicked:", userId);
-    // Plus tard: navigation vers profil public d'un autre utilisateur
   };
 
-    const handleEditProfile = () => {
+  const handleEditProfile = () => {
     setIsEditModalVisible(true);
-    };
-
+  };
 
   return (
-    <>
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-    >
-      {/* Phone notch simulation */}
-      <View style={styles.notch} />
-
-      {/* Header + tabs */}
+    <Screen>
+      {/* Header + Tabs */}
       <View style={styles.headerWrapper}>
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -118,7 +105,6 @@ export function MyProfileScreen({ route, navigation }: Props) {
           <View style={styles.headerRightPlaceholder} />
         </View>
 
-        {/* Tabs */}
         <View style={styles.tabsRow}>
           <TouchableOpacity
             onPress={() => setActiveTab("profile")}
@@ -133,7 +119,7 @@ export function MyProfileScreen({ route, navigation }: Props) {
                   : styles.tabTextInactive,
               ]}
             >
-              Mon profil
+              {t("profile_button_title")}
             </Text>
             {activeTab === "profile" && <View style={styles.tabIndicator} />}
           </TouchableOpacity>
@@ -151,170 +137,183 @@ export function MyProfileScreen({ route, navigation }: Props) {
                   : styles.tabTextInactive,
               ]}
             >
-              Mes évaluations
+              {t("profile_my_reviews")}
             </Text>
             {activeTab === "reviews" && <View style={styles.tabIndicator} />}
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Profile Tab */}
-      {activeTab === "profile" && (
-        <View style={styles.contentPadding}>
-          {/* User info */}
-          <View style={styles.userInfoRow}>
-            <View style={styles.userInfoLeft}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      >
+        {/* Profile Tab */}
+        {activeTab === "profile" && (
+          <View style={styles.contentPadding}>
+            {/* User info */}
+            <View style={styles.userInfoRow}>
+              <View style={styles.userInfoLeft}>
                 {currentUser.avatar ? (
-                <Image
+                  <Image
                     source={{ uri: currentUser.avatar }}
                     style={styles.avatar}
                     resizeMode="cover"
-                />
+                  />
                 ) : (
-                <View style={[styles.avatar, styles.avatarPlaceholder]} />
+                  <View style={[styles.avatar, styles.avatarPlaceholder]} />
                 )}
-              <View style={styles.userMainInfos}>
-                <Text style={styles.usernameText}>{currentUser.username}</Text>
-                <View style={styles.ratingRow}>
-                  {renderStars(currentUser.rating)}
-                  <Text style={styles.ratingCountText}>
-                    ({currentUser.reviewCount})
+                <View style={styles.userMainInfos}>
+                  <Text style={styles.usernameText}>
+                    {currentUser.username}
                   </Text>
+                  <View style={styles.ratingRow}>
+                    {renderStars(currentUser.rating)}
+                    <Text style={styles.ratingCountText}>
+                      ({currentUser.reviewCount})
+                    </Text>
+                  </View>
                 </View>
               </View>
+              <TouchableOpacity
+                onPress={handleEditProfile}
+                style={styles.moreButton}
+                activeOpacity={0.7}
+              >
+                <MoreHorizontal size={20} color="#374151" />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              onPress={handleEditProfile}
-              style={styles.moreButton}
-              activeOpacity={0.7}
-            >
-              <MoreHorizontal size={20} color="#374151" />
-            </TouchableOpacity>
-          </View>
 
-          {/* User details */}
-          <View style={styles.detailsBlock}>
-            <View style={styles.detailRow}>
-              <Users size={16} color="#6B7280" />
-              <Text style={styles.detailText}>{currentUser.fullName}</Text>
+            {/* User details */}
+            <View style={styles.detailsBlock}>
+              <View style={styles.detailRow}>
+                <Users size={16} color="#6B7280" />
+                <Text style={styles.detailText}>{currentUser.fullName}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <MapPin size={16} color="#6B7280" />
+                <Text style={styles.detailText}>{currentUser.location}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Flag size={16} color="#6B7280" />
+                <Text style={styles.detailText}>{currentUser.nationality}</Text>
+              </View>
             </View>
-            <View style={styles.detailRow}>
-              <MapPin size={16} color="#6B7280" />
-              <Text style={styles.detailText}>{currentUser.location}</Text>
+
+            {/* Bio */}
+            <View style={styles.bioBlock}>
+              <Text style={styles.sectionTitle}>
+                {t("profile_button_title")}
+              </Text>
+              <Text style={styles.bioText}>{currentUser.bio}</Text>
             </View>
-            <View style={styles.detailRow}>
-              <Flag size={16} color="#6B7280" />
-              <Text style={styles.detailText}>{currentUser.nationality}</Text>
+
+            {/* User products */}
+            <View style={styles.productsBlock}>
+              <Text style={styles.sectionTitle}>
+                {t("profile_x_items").replace(
+                  "X",
+                  String(userProducts.length)
+                )}
+              </Text>
+              <View style={styles.productsGrid}>
+                {userProducts.map((product) => (
+                  <View key={product.id} style={styles.productItemWrapper}>
+                    <ProductCard
+                      product={product}
+                      onClick={() => handleProductClick(product)}
+                      onToggleFavorite={() =>
+                        handleToggleFavorite(product.id)
+                      }
+                    />
+                  </View>
+                ))}
+              </View>
             </View>
-            <View style={styles.detailRow}>
-              <Users size={16} color="#6B7280" />
-              <Text style={styles.detailText}>
-                {currentUser.followers} Abonnés, {currentUser.following} Abonnements
+          </View>
+        )}
+
+        {/* Reviews Tab */}
+        {activeTab === "reviews" && (
+          <View style={styles.contentPadding}>
+            {/* Average rating */}
+            <View style={styles.averageRatingBlock}>
+              <Text style={styles.averageRatingText}>{averageRating}</Text>
+              <View style={styles.averageStarsRow}>
+                {renderStars(Math.round(Number(averageRating)))}
+              </View>
+              <Text style={styles.averageSubtitle}>
+                {t("profile_x_reviews").replace(
+                  "X",
+                  String(userReviews.length)
+                )}
               </Text>
             </View>
-          </View>
 
-          {/* Bio */}
-          <View style={styles.bioBlock}>
-            <Text style={styles.sectionTitle}>Profil</Text>
-            <Text style={styles.bioText}>{currentUser.bio}</Text>
-          </View>
+            {/* Sort info */}
+            <View style={styles.sortInfoBlock}>
+              <Text style={styles.sortInfoText}>
+                {t("profile_sorted_recent")}
+              </Text>
+            </View>
 
-          {/* User products */}
-          <View style={styles.productsBlock}>
-            <Text style={styles.sectionTitle}>
-              {userProducts.length} article
-              {userProducts.length > 1 ? "s" : ""}
-            </Text>
-            <View style={styles.productsGrid}>
-              {userProducts.map((product) => (
-                <View key={product.id} style={styles.productItemWrapper}>
-                  <ProductCard
-                    product={product}
-                    onClick={() => handleProductClick(product)}
-                    onToggleFavorite={() => handleToggleFavorite(product.id)}
-                  />
+            {/* Reviews list */}
+            <View style={styles.reviewsList}>
+              {userReviews.map((review) => (
+                <View key={review.id} style={styles.reviewItem}>
+                  <TouchableOpacity
+                    style={styles.reviewHeaderRow}
+                    onPress={() => handleUserClick(review.reviewer.id)}
+                    activeOpacity={0.7}
+                  >
+                    {review.reviewer.avatar ? (
+                      <Image
+                        source={{ uri: review.reviewer.avatar }}
+                        style={styles.reviewAvatar}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View
+                        style={[styles.reviewAvatar, styles.avatarPlaceholder]}
+                      />
+                    )}
+                    <View style={styles.reviewHeaderTextBlock}>
+                      <View style={styles.reviewHeaderTopRow}>
+                        <Text style={styles.reviewUsernameText}>
+                          {review.reviewer.username}
+                        </Text>
+                        <Text style={styles.reviewDateText}>
+                          {review.date}
+                        </Text>
+                      </View>
+                      <View style={styles.reviewStarsRow}>
+                        {renderStars(review.rating)}
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                  <Text style={styles.reviewCommentText}>
+                    {review.comment}
+                  </Text>
                 </View>
               ))}
             </View>
           </View>
-        </View>
+        )}
+      </ScrollView>
+
+      {isEditModalVisible && (
+        <EditProfileModal
+          user={currentUser}
+          onClose={() => setIsEditModalVisible(false)}
+          onSave={(updatedUser) => {
+            setCurrentUser((prev) => ({
+              ...prev,
+              ...updatedUser,
+            }));
+          }}
+        />
       )}
-
-      {/* Reviews Tab */}
-      {activeTab === "reviews" && (
-        <View style={styles.contentPadding}>
-          {/* Average rating */}
-          <View style={styles.averageRatingBlock}>
-            <Text style={styles.averageRatingText}>{averageRating}</Text>
-            <View style={styles.averageStarsRow}>
-              {renderStars(Math.round(Number(averageRating)))}
-            </View>
-            <Text style={styles.averageSubtitle}>
-              {userReviews.length} évaluation
-              {userReviews.length > 1 ? "s" : ""}
-            </Text>
-          </View>
-
-          {/* Sort info */}
-          <View style={styles.sortInfoBlock}>
-            <Text style={styles.sortInfoText}>
-              Trié du plus récent au plus ancien
-            </Text>
-          </View>
-
-          {/* Reviews list */}
-          <View style={styles.reviewsList}>
-            {userReviews.map((review) => (
-              <View key={review.id} style={styles.reviewItem}>
-                <TouchableOpacity
-                  style={styles.reviewHeaderRow}
-                  onPress={() => handleUserClick(review.reviewer.id)}
-                  activeOpacity={0.7}
-                >
-                  {review.reviewer.avatar ? (
-                    <Image
-                      source={{ uri: review.reviewer.avatar }}
-                      style={styles.reviewAvatar}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View
-                      style={[styles.reviewAvatar, styles.avatarPlaceholder]}
-                    />
-                  )}
-                  <View style={styles.reviewHeaderTextBlock}>
-                    <View style={styles.reviewHeaderTopRow}>
-                      <Text style={styles.reviewUsernameText}>
-                        {review.reviewer.username}
-                      </Text>
-                      <Text style={styles.reviewDateText}>{review.date}</Text>
-                    </View>
-                    <View style={styles.reviewStarsRow}>
-                      {renderStars(review.rating)}
-                    </View>
-                  </View>
-                </TouchableOpacity>
-                <Text style={styles.reviewCommentText}>{review.comment}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
-    </ScrollView>
-        {isEditModalVisible && (
-      <EditProfileModal
-        user={currentUser}
-        onClose={() => setIsEditModalVisible(false)}
-        onSave={(updatedUser) => {
-          setCurrentUser((prev) => ({
-            ...prev,
-            ...updatedUser,
-          }));
-        }}
-      />
-    )}
-    </>
+    </Screen>
   );
 }
 
@@ -325,14 +324,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingBottom: 32,
-  },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
   },
   headerWrapper: {
     borderBottomWidth: 1,
@@ -362,16 +353,17 @@ const styles = StyleSheet.create({
   tabsRow: {
     flexDirection: "row",
     borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
+    borderTopColor: "#ffffffff",
   },
   tabButton: {
     flex: 1,
-    paddingVertical: 12,
     alignItems: "center",
     justifyContent: "center",
   },
   tabText: {
     fontSize: 14,
+    marginTop: 15,
+    marginBottom: 8,
   },
   tabTextActive: {
     color: "#111827",

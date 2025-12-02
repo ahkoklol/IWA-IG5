@@ -1,6 +1,5 @@
 // iwa-app/src/screens/search/CategoryResults.tsx
-
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -8,54 +7,147 @@ import {
   TouchableOpacity,
   TextInput,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { ArrowLeft, Search, SlidersHorizontal } from "lucide-react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
 import ProductCard from "../../components/product/ProductCard";
-import { demoProducts } from "../../mocks/products";
-import type { Product, Category, Filters } from "../../shared/types";
+import type { Product } from "../../shared/types/product";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
+import { Screen } from "../../components/Screen";
+import {
+  getAllProducts,
+  getProductsByCategory,
+  favouriteProduct,
+  unfavouriteProduct,
+} from "../../api/productApi";
+import type { Filters } from "../../shared/types";
+
+// TODO: à remplacer plus tard par les infos de l'utilisateur connecté (Keycloak)
+const MOCK_CLIENT_ID = "REPLACE_WITH_CONNECTED_CLIENT_ID";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CategoryResults">;
 
+// UiProduct basé sur LE Product du backend (product.ts)
+type UiProduct = Product & { isFavorite?: boolean };
+
 export function CategoryResults({ route, navigation }: Props) {
   const { category, searchQuery } = route.params;
+  const { t } = useTranslation();
 
   const [searchValue, setSearchValue] = useState(searchQuery ?? "");
   const [filters] = useState<Filters>({
     sortBy: null,
-    category: (category as Category | null) ?? null,
+    category: null, // on laisse null pour être compatible avec le type global
     plantingPeriod: [],
     floweringPeriod: [],
     edible: null,
   });
 
-  let products: Product[] = demoProducts;
+  const [products, setProducts] = useState<UiProduct[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (category) {
-    products = products.filter((p) => p.category === category);
-  }
+  const activeQuery = (searchValue || searchQuery || "").trim().toLowerCase();
 
-  if (searchQuery) {
-    const queryLower = searchQuery.toLowerCase();
-    products = products.filter((p) =>
-      p.name.toLowerCase().includes(queryLower) // 🔹 ICI : name et pas title
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      let base: Product[];
+
+      if (category) {
+        // produits d’une catégorie donnée (category est un ID de catégorie string)
+        base = await getProductsByCategory(category as string);
+      } else {
+        // tous les produits
+        base = await getAllProducts();
+      }
+
+      // On initialise isFavorite à false (le back ne le gère pas encore)
+      const uiProducts: UiProduct[] = base.map((p) => ({
+        ...p,
+        isFavorite: false,
+      }));
+
+      setProducts(uiProducts);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category]);
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      // masque les produits vendus / bannis / cachés
+      if (p.status === "sold" || p.status === "banned" || p.status === "hidden") {
+        return false;
+      }
+
+      // si on a une catégorie dans l’URL, on filtre dessus
+      if (category && p.category !== category) {
+        return false;
+      }
+
+      // si aucune recherche saisie → on garde le produit
+      if (!activeQuery) return true;
+
+      // On normalise les champs pour éviter les undefined
+      const title = (p.title ?? "").toLowerCase();
+      const description = (p.description ?? "").toLowerCase();
+      const cat = (p.category ?? "").toLowerCase();
+
+      // On teste sur title + description + category
+      return (
+        title.includes(activeQuery) ||
+        description.includes(activeQuery) ||
+        cat.includes(activeQuery)
+      );
+    });
+  }, [products, category, activeQuery]);
+
+
+  const handleBack = () => navigation.goBack();
+
+  const handleProductClick = (product: UiProduct) => {
+    navigation.navigate("ProductDetail", { productId: String(product.postId) });
+  };
+
+  const handleToggleFavorite = async (postId: string) => {
+    // Optimistic update
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.postId === postId ? { ...p, isFavorite: !p.isFavorite } : p,
+      ),
     );
-  }
 
-  const handleBack = () => {
-    navigation.goBack();
-  };
+    const target = products.find((p) => p.postId === postId);
+    const currentlyFavorite = target?.isFavorite ?? false;
 
-  const handleProductClick = (product: Product) => {
-    // 🔹 Aligne avec ton HomeRootScreen : on passe productId
-    navigation.navigate("ProductDetail", { productId: String(product.id) });
-  };
-
-  const handleToggleFavorite = (productId: number) => {
-    // À brancher plus tard sur ton state / backend
-    console.log("Toggle favorite product", productId);
+    try {
+      if (!currentlyFavorite) {
+        await favouriteProduct(postId, MOCK_CLIENT_ID);
+      } else {
+        await unfavouriteProduct(postId, MOCK_CLIENT_ID);
+      }
+    } catch (e) {
+      // rollback en cas d’erreur
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.postId === postId ? { ...p, isFavorite: currentlyFavorite } : p,
+        ),
+      );
+      console.error("Failed to toggle favorite", e);
+    }
   };
 
   const handleFilterClick = () => {
@@ -65,70 +157,123 @@ export function CategoryResults({ route, navigation }: Props) {
   };
 
   const handleSearchSubmit = () => {
-    if (!searchValue.trim()) return;
+    const trimmed = searchValue.trim();
+    if (!trimmed) return;
+
     navigation.setParams({
       category: null,
-      searchQuery: searchValue.trim(),
+      searchQuery: trimmed,
     });
   };
 
-  return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-    >
-      {/* Phone notch simulation */}
-      <View style={styles.notch} />
-
-      {/* Header with back and filter buttons */}
-      <View style={styles.headerWrapper}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
-            <ArrowLeft size={20} color="#1f2937" />
-          </TouchableOpacity>
-
-          <View style={styles.searchContainer}>
-            <Search size={18} color="#9ca3af" style={styles.searchIcon} />
-            <TextInput
-              value={searchValue}
-              onChangeText={setSearchValue}
-              placeholder="Rechercher un article ou un membre"
-              placeholderTextColor="#9ca3af"
-              style={styles.searchInput}
-              returnKeyType="search"
-              onSubmitEditing={handleSearchSubmit}
-            />
-          </View>
-
-          <TouchableOpacity
-            onPress={handleFilterClick}
-            style={styles.filterButton}
-          >
-            <SlidersHorizontal size={20} color="#1f2937" />
-          </TouchableOpacity>
+  if (loading) {
+    return (
+      <Screen>
+        <View style={styles.center}>
+          <ActivityIndicator />
         </View>
+      </Screen>
+    );
+  }
 
-        <Text style={styles.categoryLabel}>
-          {category ? String(category) : searchQuery ?? "Résultats"}
-        </Text>
-      </View>
+  if (error) {
+    return (
+      <Screen>
+        <View style={styles.center}>
+          <Text>{t("error_generic")}</Text>
+          <Text style={styles.errorDetails}>{error}</Text>
+        </View>
+      </Screen>
+    );
+  }
 
-      {/* Products grid */}
-      <View style={styles.productsWrapper}>
-        <View style={styles.productsGrid}>
-          {products.map((product) => (
-            <View key={product.id} style={styles.cardWrapper}>
-              <ProductCard
-                product={product}
-                onClick={() => handleProductClick(product)}
-                onToggleFavorite={() => handleToggleFavorite(product.id)}
+  return (
+    <Screen>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      >
+        {/* Header */}
+        <View style={styles.headerWrapper}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity onPress={handleBack} style={styles.iconButton}>
+              <ArrowLeft size={20} color="#1f2937" />
+            </TouchableOpacity>
+
+            <View style={styles.searchContainer}>
+              <Search size={18} color="#9ca3af" style={styles.searchIcon} />
+              <TextInput
+                value={searchValue}
+                onChangeText={setSearchValue}
+                placeholder={t("search_placeholder")}
+                placeholderTextColor="#9ca3af"
+                style={styles.searchInput}
+                returnKeyType="search"
+                onSubmitEditing={handleSearchSubmit}
               />
             </View>
-          ))}
+
+            <TouchableOpacity
+              onPress={handleFilterClick}
+              style={styles.filterButton}
+            >
+              <SlidersHorizontal size={20} color="#1f2937" />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.categoryLabel}>
+            {category
+              ? t(`search_cat_${categoryKey(category as string)}`)
+              : searchQuery || t("search_results")}
+          </Text>
         </View>
-      </View>
-    </ScrollView>
+
+        {/* Products grid */}
+        <View style={styles.productsWrapper}>
+          <View style={styles.productsGrid}>
+            {filteredProducts.map((product) => (
+              <View key={product.postId} style={styles.cardWrapper}>
+                <ProductCard
+                  product={product}
+                  onClick={() => handleProductClick(product)}
+                  onToggleFavorite={() => handleToggleFavorite(product.postId)}
+                />
+              </View>
+            ))}
+          </View>
+
+          {filteredProducts.length === 0 && (
+            <View style={styles.center}>
+              <Text>{t("search_no_results")}</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </Screen>
   );
+}
+
+/**
+ * Convert category ID -> suffix de clé i18n
+ * (cohérent avec les IDs utilisés dans SearchScreen)
+ */
+function categoryKey(cat: string): string {
+  switch (cat) {
+    case "VEGETABLES":
+      return "vegetables";
+    case "FRUITS":
+      return "fruits";
+    case "HERBS_SPICES":
+      return "herbs";
+    case "MEDICINAL":
+      return "medicinal";
+    case "FLOWERS":
+      return "flowers";
+    case "EXOTIC":
+      return "exotic";
+    default:
+      return "unknown";
+  }
 }
 
 const styles = StyleSheet.create({
@@ -139,15 +284,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingBottom: 32,
   },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
-    marginTop: 8,
-  },
+
   headerWrapper: {
     paddingHorizontal: 16,
     paddingTop: 16,
@@ -213,4 +350,16 @@ const styles = StyleSheet.create({
     width: "48%",
     marginBottom: 16,
   },
+  center: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  errorDetails: {
+    marginTop: 4,
+    fontSize: 12,
+    color: "#EF4444",
+  },
 });
+
+export default CategoryResults;

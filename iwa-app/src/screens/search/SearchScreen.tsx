@@ -1,3 +1,4 @@
+// src/screens/search/SearchScreen.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -10,51 +11,54 @@ import {
 import { Search as SearchIcon } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
 import type { RootStackParamList } from "../../navigation/RootNavigator";
-import type { Category } from "../../shared/types";
+import { Screen } from "../../components/Screen";
 
 type NavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   "SearchScreen"
 >;
 
-const CATEGORIES: Category[] = [
-  "Légumes",
-  "Fruits",
-  "Herbes aromatiques / épices",
-  "Plantes médicinales",
-  "Fleurs décoratives",
-  "Plantes exotiques / rares",
+// On manipule des IDs de catégories en string
+const CATEGORIES: { value: string; labelKey: string }[] = [
+  { value: "VEGETABLES", labelKey: "search_cat_vegetables" },
+  { value: "FRUITS", labelKey: "search_cat_fruits" },
+  { value: "HERBS_SPICES", labelKey: "search_cat_herbs" },
+  { value: "MEDICINAL", labelKey: "search_cat_medicinal" },
+  { value: "FLOWERS", labelKey: "search_cat_flowers" },
+  { value: "EXOTIC", labelKey: "search_cat_exotic" },
 ];
 
 export function SearchScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const { t } = useTranslation();
   const [searchValue, setSearchValue] = useState("");
 
-  const handleCategoryPress = (category: Category) => {
+  const handleCategoryPress = (categoryId: string) => {
     navigation.navigate("CategoryResults", {
-      category,
+      // cast pour s'aligner sur le type défini dans RootStackParamList
+      category: categoryId as any,
       searchQuery: undefined,
     });
   };
 
   const handleSearchSubmit = () => {
-    if (!searchValue.trim()) return;
+    const trimmed = searchValue.trim();
+    if (!trimmed) return;
+
     navigation.navigate("CategoryResults", {
-      category: null,
-      searchQuery: searchValue.trim(),
+      category: null as any,
+      searchQuery: trimmed,
     });
   };
 
   return (
-    <View style={styles.container}>
-      {/* Phone notch simulation */}
-      <View style={styles.notch} />
-
+    <Screen>
       {/* Header / titre */}
       <View style={styles.header}>
-        <Text style={styles.title}>Rechercher</Text>
+        <Text style={styles.title}>{t("navbar_search")}</Text>
       </View>
 
       {/* Barre de recherche */}
@@ -63,7 +67,7 @@ export function SearchScreen() {
         <TextInput
           value={searchValue}
           onChangeText={setSearchValue}
-          placeholder="Rechercher un article ou un membre"
+          placeholder={t("search_placeholder")}
           placeholderTextColor="#9ca3af"
           style={styles.searchInput}
           returnKeyType="search"
@@ -73,21 +77,21 @@ export function SearchScreen() {
 
       {/* Catégories */}
       <ScrollView contentContainerStyle={styles.categoriesContainer}>
-        <Text style={styles.sectionTitle}>Catégories</Text>
+        <Text style={styles.sectionTitle}>{t("search_categories")}</Text>
         <View style={styles.categoriesGrid}>
           {CATEGORIES.map((category) => (
             <TouchableOpacity
-              key={category}
+              key={category.value}
               style={styles.categoryCard}
-              onPress={() => handleCategoryPress(category)}
+              onPress={() => handleCategoryPress(category.value)}
               activeOpacity={0.8}
             >
-              <Text style={styles.categoryText}>{category}</Text>
+              <Text style={styles.categoryText}>{t(category.labelKey)}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
-    </View>
+    </Screen>
   );
 }
 
@@ -95,15 +99,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
-  },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
-    marginTop: 8,
   },
   header: {
     paddingHorizontal: 16,
@@ -166,3 +161,5 @@ const styles = StyleSheet.create({
     color: "#111827",
   },
 });
+
+export default SearchScreen;

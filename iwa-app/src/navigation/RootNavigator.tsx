@@ -9,6 +9,7 @@ import RegisterScreen2, { SignupData2 } from "../screens/(auth)/RegisterScreen2"
 import RegisterScreen3 from "../screens/(auth)/RegisterScreen3";
 import HomeRootScreen from "../screens/home/HomeRootScreen";
 import ProductDetail from "../screens/product/ProductDetail";
+import PaymentScreen from "../screens/product/PaymentScreen";
 import { MyProfileScreen } from "../screens/profil/MyProfileScreen";
 import { FavoritesScreen } from "../screens/profil/FavoritesScreen";
 import { MyProductsScreen } from "../screens/profil/MyProductsScreen";
@@ -23,11 +24,13 @@ import AuthPrompt from "../screens/(auth)/authPrompt";
 
 import { AuthContext } from "../context/authContext";
 
-import type { User, Category, Filters } from "../shared/types";
+
+import type { User, Category, Filters, Product } from "../shared/types";
 
 export type RootStackParamList = {
   Intro: undefined;
   Login: undefined;
+  Language: undefined;
   Register1: undefined;
   Register2: { step1: SignupData1 };
   Register3: { step1: SignupData1; step2: SignupData2 };
@@ -36,6 +39,11 @@ export type RootStackParamList = {
   AuthPrompt: undefined;
 
   ProductDetail: { productId: string };
+
+  Payment: {
+    product: Product;
+    total: number; // montant total en euros
+  };
 
   SearchScreen: undefined;
   CategoryResults: {
@@ -63,6 +71,11 @@ export type RootStackParamList = {
   SellerReview: { transactionId: number };
 
   Settings: { onDeleteAccount: () => void };
+
+  AdminLogin: undefined;
+  AdminReportDetail: { reportId: string };
+  AdminRoot: undefined;
+  AdminReports: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

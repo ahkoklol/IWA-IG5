@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package listing.service;
+
+import "google/protobuf/timestamp.proto";
+
+option java_package = "com.bondgraine.listingmicroservice.grpc";
+option java_multiple_files = true;
+
+message GetPostResponse {
+  string postId = 1;
+  repeated string photo = 2;
+  double weight = 3;
+  int64 quantity = 4;
+  string type = 5;
+  string season = 6;
+  bool edible = 7;
+  string floweringSeason = 8;
+  google.protobuf.Timestamp harvestDate = 9;
+  double price = 10;
+  string status = 11;
+  string clientId = 12;
+  google.protobuf.Timestamp dateCreated = 13;
+  google.protobuf.Timestamp dateModified = 14;
+  string description = 15;
+}

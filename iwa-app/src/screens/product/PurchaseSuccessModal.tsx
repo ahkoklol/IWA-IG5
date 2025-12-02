@@ -8,10 +8,12 @@ import {
   StyleSheet,
 } from "react-native";
 import { Check } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 interface PurchaseSuccessModalProps {
   onClose: () => void;
 }
+const { t } = useTranslation();
 
 export default function PurchaseSuccessModal({ onClose }: PurchaseSuccessModalProps) {
   return (
@@ -24,11 +26,10 @@ export default function PurchaseSuccessModal({ onClose }: PurchaseSuccessModalPr
               <Check size={40} color="#059669" />
             </View>
 
-            <Text style={styles.title}>Achat validé !</Text>
+            <Text style={styles.title}>{t("purchase_success_title")}</Text>
 
             <Text style={styles.subtitle}>
-              Votre commande a été confirmée avec succès. Vous recevrez bientôt
-              une notification avec les détails de livraison.
+              {t("purchase_success_message")}
             </Text>
 
             <TouchableOpacity
@@ -36,7 +37,7 @@ export default function PurchaseSuccessModal({ onClose }: PurchaseSuccessModalPr
               style={styles.button}
               activeOpacity={0.9}
             >
-              <Text style={styles.buttonText}>Continuer</Text>
+              <Text style={styles.buttonText}>{t("common_continue")}</Text>
             </TouchableOpacity>
           </View>
         </View>

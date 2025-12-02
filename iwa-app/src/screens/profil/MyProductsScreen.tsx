@@ -7,21 +7,31 @@ import {
   TouchableOpacity,
   StyleSheet,
   Pressable,
+  Modal,
 } from "react-native";
 import { ArrowLeft, MoreHorizontal } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
+
 import type { Product } from "../../shared/types";
 import ProductCard from "../../components/product/ProductCard";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import { demoProducts, currentUser } from "../../mocks/products";
+import { Screen } from "../../components/Screen";
 
 type Props = NativeStackScreenProps<RootStackParamList, "MyProducts">;
 
 export function MyProductsScreen({ navigation }: Props) {
+  const { t } = useTranslation();
+
   const [products, setProducts] = useState<Product[]>(
     demoProducts.filter((p) => p.seller.id === currentUser.id)
   );
   const [showMenu, setShowMenu] = useState<number | null>(null);
+
+  // Etat pour la suppression
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
   const handleBack = () => {
     navigation.goBack();
@@ -44,8 +54,22 @@ export function MyProductsScreen({ navigation }: Props) {
     // Plus tard : navigation vers un écran d'édition
   };
 
-  const handleDeleteProduct = (productId: number) => {
-    setProducts((prev) => prev.filter((p) => p.id !== productId));
+  const handleDeleteProduct = (product: Product) => {
+    setProductToDelete(product);
+    setDeleteModalVisible(true);
+  };
+
+  const confirmDeleteProduct = () => {
+    if (productToDelete) {
+      setProducts((prev) => prev.filter((p) => p.id !== productToDelete.id));
+    }
+    setProductToDelete(null);
+    setDeleteModalVisible(false);
+  };
+
+  const cancelDeleteProduct = () => {
+    setProductToDelete(null);
+    setDeleteModalVisible(false);
   };
 
   const handleMenuToggle = (productId: number) => {
@@ -53,93 +77,128 @@ export function MyProductsScreen({ navigation }: Props) {
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-    >
-      {/* Phone notch simulation */}
-      <View style={styles.notch} />
-
-      {/* Header */}
-      <View style={styles.headerWrapper}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={handleBack}
-            style={styles.backButton}
-            activeOpacity={0.7}
-          >
-            <ArrowLeft size={20} color="#1F2937" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Mes graines</Text>
-          <View style={styles.headerRightPlaceholder} />
-        </View>
-      </View>
-
-      {/* Products grid */}
-      <View style={styles.content}>
-        {products.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>Aucune annonce publiée</Text>
+    <Screen>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+      >
+        {/* Header */}
+        <View style={styles.headerWrapper}>
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={handleBack}
+              style={styles.backButton}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={20} color="#1F2937" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{t("profile_my_seeds")}</Text>
+            <View style={styles.headerRightPlaceholder} />
           </View>
-        ) : (
-          <View style={styles.grid}>
-            {products.map((product) => (
-              <View key={product.id} style={styles.productWrapper}>
-                <ProductCard
-                  product={product}
-                  onClick={() => handleProductClick(product)}
-                  onToggleFavorite={() => handleToggleFavorite(product.id)}
-                />
+        </View>
 
-                {/* Bouton menu (3 points) */}
-                <Pressable
-                  onPress={(e) => {
-                    // @ts-ignore
-                    e.stopPropagation?.();
-                    handleMenuToggle(product.id);
-                  }}
-                  style={styles.menuButton}
-                >
-                  <MoreHorizontal size={16} color="#1F2937" />
-                </Pressable>
+        {/* Products grid */}
+        <View style={styles.content}>
+          {products.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>{t("my_products_empty")}</Text>
+            </View>
+          ) : (
+            <View style={styles.grid}>
+              {products.map((product) => (
+                <View key={product.id} style={styles.productWrapper}>
+                  <ProductCard
+                    product={product}
+                    onClick={() => handleProductClick(product)}
+                    onToggleFavorite={() => handleToggleFavorite(product.id)}
+                  />
 
-                {/* Menu contextuel */}
+                  {/* Context menu button (3 dots) */}
+                  <Pressable
+                    onPress={(e) => {
+                      // @ts-ignore
+                      e.stopPropagation?.();
+                      handleMenuToggle(product.id);
+                    }}
+                    style={styles.menuButton}
+                  >
+                    <MoreHorizontal size={16} color="#1F2937" />
+                  </Pressable>
+
+                {/* Context menu */}
                 {showMenu === product.id && (
                   <View style={styles.menuContainer}>
-                    {!product.removedByAI && (
-                      <TouchableOpacity
-                        activeOpacity={0.7}
-                        onPress={(e) => {
-                          // @ts-ignore
-                          e.stopPropagation?.();
-                          handleEditProduct(product);
-                          setShowMenu(null);
-                        }}
-                        style={styles.menuItem}
-                      >
-                        <Text style={styles.menuItemText}>Modifier</Text>
-                      </TouchableOpacity>
-                    )}
                     <TouchableOpacity
                       activeOpacity={0.7}
                       onPress={(e) => {
                         // @ts-ignore
                         e.stopPropagation?.();
-                        handleDeleteProduct(product.id);
+                        handleDeleteProduct(product);
                         setShowMenu(null);
                       }}
                       style={styles.menuItem}
                     >
-                      <Text style={styles.menuItemTextDelete}>Supprimer</Text>
+                      <Text style={styles.menuItemTextDelete}>
+                        {t("common_delete")}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 )}
-              </View>
-            ))}
+
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Modal de confirmation de suppression */}
+      <Modal
+        visible={deleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={cancelDeleteProduct}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>
+              {t("common_delete")} ?
+            </Text>
+            <Text style={styles.modalSubtitle}>
+              Es-tu sûre de vouloir supprimer cette annonce ?
+            </Text>
+
+            {productToDelete && (
+              <Text style={styles.modalProductName}>
+                {productToDelete.name}
+              </Text>
+            )}
+
+            <View style={styles.modalButtonsRow}>
+              <TouchableOpacity
+                onPress={cancelDeleteProduct}
+                style={styles.modalSecondaryButton}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.modalSecondaryButtonText}>
+                  {t("common_cancel")}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={confirmDeleteProduct}
+                style={styles.modalDangerButton}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.modalDangerButtonText}>
+                  {t("common_delete")}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        )}
-      </View>
-    </ScrollView>
+        </View>
+      </Modal>
+    </Screen>
   );
 }
 
@@ -150,14 +209,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingBottom: 32,
-  },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
   },
   headerWrapper: {
     borderBottomWidth: 1,
@@ -251,4 +302,74 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#EF4444",
   },
+
+  // Styles du modal de confirmation
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+  },
+  modalContainer: {
+    width: "100%",
+    maxWidth: 360,
+    backgroundColor: "white",
+    borderRadius: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: "#4B5563",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  modalProductName: {
+    fontSize: 14,
+    color: "#111827",
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  modalButtonsRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 4,
+  },
+  modalSecondaryButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalSecondaryButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  modalDangerButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: "#EF4444",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalDangerButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "white",
+  },
 });
+

@@ -15,6 +15,7 @@ import type { RootStackParamList } from "../../navigation/RootNavigator";
 import type { SignupData1 } from "./RegisterScreen1";
 import type { SignupData2 } from "./RegisterScreen2";
 import useRegisterWithKeycloak from "../../components/auth/useRegisterWithKeycloak";
+import { useTranslation } from "react-i18next";
 
 export default function RegisterScreen3() {
   const navigation =
@@ -25,6 +26,9 @@ export default function RegisterScreen3() {
 
   const { startRegister, loading } = useRegisterWithKeycloak();
   const [attempted, setAttempted] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Trigger Keycloak registration flow as soon as the screen mounts
@@ -68,7 +72,7 @@ export default function RegisterScreen3() {
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.notch} />
+      
 
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.iconBtn}>
@@ -77,22 +81,19 @@ export default function RegisterScreen3() {
       </View>
 
       <View style={styles.body}>
-        <View style={{ gap: 14, alignItems: "center" }}>
-          <Text style={styles.label}>Redirection vers Keycloak...</Text>
-          {loading ? (
-            <ActivityIndicator size="large" color="#111827" />
-          ) : (
-            <Text style={{ color: "#111827" }}>
-              Si rien ne se passe, appuyez sur Réessayer.
-            </Text>
-          )}
+        <View style={{ gap: 14 }}>
+          <View>
+            <Text style={styles.label}>{t("register_password")}</Text>
+            <TextInput value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
+          </View>
 
-          <Pressable onPress={handleRetry} style={styles.validateBtn}>
-            <Text style={styles.validateText}>Réessayer</Text>
-          </Pressable>
+          <View>
+            <Text style={styles.label}>{t("register_confirm_password")}</Text>
+            <TextInput value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry style={styles.input} />
+          </View>
 
-          <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Text style={{ color: "#111827" }}>Retour</Text>
+          <Pressable onPress={handleComplete} style={styles.validateBtn}>
+            <Text style={styles.validateText}>{t("login_submit")}</Text>
           </Pressable>
         </View>
       </View>
@@ -104,15 +105,7 @@ const BG = "#B9ECFF";
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
-    marginTop: 8,
-  },
+
   header: { paddingHorizontal: 16, paddingVertical: 12 },
   iconBtn: {
     width: 40,

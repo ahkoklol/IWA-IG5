@@ -12,7 +12,10 @@ import {
   Alert,
 } from "react-native";
 import { X, Camera } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import type { User } from "../../shared/types";
+import * as ImagePicker from "expo-image-picker";
+
 
 interface EditProfileModalProps {
   user: User;
@@ -20,9 +23,16 @@ interface EditProfileModalProps {
   onSave: (updatedUser: Partial<User>) => void;
 }
 
-export function EditProfileModal({ user, onClose, onSave }: EditProfileModalProps) {
+export function EditProfileModal({
+  user,
+  onClose,
+  onSave,
+}: EditProfileModalProps) {
+  const { t } = useTranslation();
+
   const [fullName, setFullName] = useState(user.fullName);
   const [location, setLocation] = useState(user.location);
+  const [nationality, setNationality] = useState(user.nationality);
   const [bio, setBio] = useState(user.bio);
   const [avatar, setAvatar] = useState(user.avatar);
 
@@ -30,32 +40,64 @@ export function EditProfileModal({ user, onClose, onSave }: EditProfileModalProp
     onSave({
       fullName,
       location,
+      nationality,
       bio,
       avatar,
     });
     onClose();
   };
 
+  const pickAvatarFromLibrary = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        t("edit_profile_change_photo_permission_title"),
+        t("edit_profile_change_photo_permission_message")
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: false,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setAvatar(result.assets[0].uri);
+    }
+  };
+
+  const takeAvatarPhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        t("edit_profile_change_photo_permission_title"),
+        t("edit_profile_change_photo_permission_message")
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setAvatar(result.assets[0].uri);
+    }
+  };
+
   const handleChangeAvatar = () => {
-    // You can replace this with an ImagePicker later
-    Alert.alert(
-      "Changer la photo",
-      "La modification de la photo de profil sera bientôt disponible."
-    );
+    pickAvatarFromLibrary();
   };
 
   return (
-    <Modal
-      visible
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <View style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Modifier mon profil</Text>
+            <Text style={styles.headerTitle}>{t("edit_profile_title")}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <X size={20} color="#1f2933" />
             </TouchableOpacity>
@@ -71,10 +113,7 @@ export function EditProfileModal({ user, onClose, onSave }: EditProfileModalProp
             <View style={styles.avatarSection}>
               <View style={styles.avatarWrapper}>
                 {avatar ? (
-                  <Image
-                    source={{ uri: avatar }}
-                    style={styles.avatarImage}
-                  />
+                  <Image source={{ uri: avatar }} style={styles.avatarImage} />
                 ) : (
                   <View style={styles.avatarPlaceholder}>
                     <Text style={styles.avatarPlaceholderText}>
@@ -90,12 +129,14 @@ export function EditProfileModal({ user, onClose, onSave }: EditProfileModalProp
                   <Camera size={16} color="#ffffff" />
                 </TouchableOpacity>
               </View>
-              <Text style={styles.changePhotoText}>Changer la photo</Text>
+              <Text style={styles.changePhotoText}>
+                {t("edit_profile_change_photo")}
+              </Text>
             </View>
 
             {/* Username (read-only) */}
             <View style={styles.field}>
-              <Text style={styles.label}>Pseudo</Text>
+              <Text style={styles.label}>{t("edit_profile_username_label")}</Text>
               <TextInput
                 value={user.username}
                 editable={false}
@@ -105,35 +146,49 @@ export function EditProfileModal({ user, onClose, onSave }: EditProfileModalProp
 
             {/* Full Name */}
             <View style={styles.field}>
-              <Text style={styles.label}>Nom complet</Text>
+              <Text style={styles.label}>{t("edit_profile_fullname_label")}</Text>
               <TextInput
                 value={fullName}
                 onChangeText={setFullName}
                 style={styles.input}
-                placeholder="Votre nom complet"
+                placeholder={t("edit_profile_fullname_placeholder")}
                 placeholderTextColor="#9ca3af"
               />
             </View>
 
             {/* Location */}
             <View style={styles.field}>
-              <Text style={styles.label}>Localisation</Text>
+              <Text style={styles.label}>{t("edit_profile_location_label")}</Text>
               <TextInput
                 value={location}
                 onChangeText={setLocation}
                 style={styles.input}
-                placeholder="Votre ville / région"
+                placeholder={t("edit_profile_location_placeholder")}
+                placeholderTextColor="#9ca3af"
+              />
+            </View>
+
+            {/* Nationality */}
+            <View style={styles.field}>
+              <Text style={styles.label}>
+                {t("edit_profile_nationality_label")}
+              </Text>
+              <TextInput
+                value={nationality}
+                onChangeText={setNationality}
+                style={styles.input}
+                placeholder={t("edit_profile_nationality_placeholder")}
                 placeholderTextColor="#9ca3af"
               />
             </View>
 
             {/* Bio */}
             <View style={styles.field}>
-              <Text style={styles.label}>Bio</Text>
+              <Text style={styles.label}>{t("edit_profile_bio_label")}</Text>
               <TextInput
                 value={bio}
                 onChangeText={setBio}
-                placeholder="Parlez-nous de vous..."
+                placeholder={t("edit_profile_bio_placeholder")}
                 placeholderTextColor="#9ca3af"
                 style={[styles.input, styles.textArea]}
                 multiline
@@ -145,7 +200,9 @@ export function EditProfileModal({ user, onClose, onSave }: EditProfileModalProp
           {/* Save button */}
           <View style={styles.footer}>
             <TouchableOpacity onPress={handleSubmit} style={styles.saveButton}>
-              <Text style={styles.saveButtonText}>Enregistrer</Text>
+              <Text style={styles.saveButtonText}>
+                {t("edit_profile_save")}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -165,6 +222,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: "90%",
+    flex: 1,
     overflow: "hidden",
   },
   header: {
@@ -187,9 +245,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  content: {
-    flex: 1,
-  },
+  content: {},
   contentInner: {
     paddingHorizontal: 24,
     paddingVertical: 16,

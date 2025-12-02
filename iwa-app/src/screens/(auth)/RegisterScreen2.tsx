@@ -13,6 +13,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import type { SignupData1 } from "./RegisterScreen1";
 import AuthService from "../../components/auth/AuthService";
+import { useTranslation } from "react-i18next";
 
 export interface SignupData2 {
   address: string;
@@ -31,6 +32,7 @@ export default function RegisterScreen2() {
   const [postalCode, setPostalCode] = useState("");
   const [country, setCountry] = useState("");
   const [nationality, setNationality] = useState("");
+  const { t } = useTranslation();
 
   const handleNext = () => {
     const step2: SignupData2 = { address, postalCode, country, nationality };
@@ -41,7 +43,7 @@ export default function RegisterScreen2() {
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.notch} />
+      
 
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.iconBtn}>
@@ -52,48 +54,29 @@ export default function RegisterScreen2() {
       <View style={styles.body}>
         <View style={{ gap: 14 }}>
           <View>
-            <Text style={styles.label}>Adresse</Text>
-            <TextInput
-              value={address}
-              onChangeText={setAddress}
-              style={styles.input}
-            />
+            <Text style={styles.label}>{t("register_address")}</Text>
+            <TextInput value={address} onChangeText={setAddress} style={styles.input} />
           </View>
 
           <View>
-            <Text style={styles.label}>Code Postal</Text>
-            <TextInput
-              value={postalCode}
-              onChangeText={setPostalCode}
-              keyboardType="number-pad"
-              style={styles.input}
-            />
+            <Text style={styles.label}>{t("register_postal_code")}</Text>
+            <TextInput value={postalCode} onChangeText={setPostalCode} keyboardType="number-pad" style={styles.input} />
           </View>
 
           <View>
-            <Text style={styles.label}>Pays</Text>
-            <TextInput
-              value={country}
-              onChangeText={setCountry}
-              placeholder="Ex: France"
-              style={styles.input}
-            />
+            <Text style={styles.label}>{t("register_country")}</Text>
+            <TextInput value={country} onChangeText={setCountry} placeholder={t("register_country_placeholder")} style={styles.input} />
           </View>
 
           <View>
-            <Text style={styles.label}>Nationalité</Text>
-            <TextInput
-              value={nationality}
-              onChangeText={setNationality}
-              placeholder="Ex: Française"
-              style={styles.input}
-            />
+            <Text style={styles.label}>{t("register_nationality")}</Text>
+            <TextInput value={nationality} onChangeText={setNationality} placeholder={t("register_nationality_placeholder")}  style={styles.input} />
           </View>
         </View>
 
         <View style={styles.footer}>
           <Pressable onPress={handleNext}>
-            <Text style={styles.next}>Suivant</Text>
+            <Text style={styles.next}>{t("register_next")}</Text>
           </Pressable>
         </View>
       </View>
@@ -105,15 +88,7 @@ const BG = "#B9ECFF";
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
-    marginTop: 8,
-  },
+
   header: { paddingHorizontal: 16, paddingVertical: 12 },
   iconBtn: {
     width: 40,

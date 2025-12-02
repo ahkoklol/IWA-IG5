@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package ai.service;
+
+option java_package = "com.ai.aimicroservice.grpc";
+option java_multiple_files = true;
+
+import "service/ai/analyze_response.proto";
+import "service/ai/analyze_request.proto";
+
+service AiService {
+  rpc Analyze(stream AnalyzeRequest) returns (AnalyzeResponse);
+}

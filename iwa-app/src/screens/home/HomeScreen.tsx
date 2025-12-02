@@ -1,142 +1,212 @@
-import React, { useMemo, useState } from "react";
+// iwa-app/src/screens/home/HomeScreen.tsx
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
-  TextInput,
   StyleSheet,
   StatusBar,
-  FlatList,
-  ListRenderItem,
   Text,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
-import { Search } from "lucide-react-native";
 import ProductCard from "../../components/product/ProductCard";
-import type { Product } from "../../shared/types";
-import { allProducts } from "../../mocks/products";
+import type { Product } from "../../shared/types/product";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
+import { Screen } from "../../components/Screen";
+import { useTranslation } from "react-i18next";
+import {
+  getCategories,
+  getProductsByCategory,
+  favouriteProduct,
+  unfavouriteProduct,
+} from "../../api/productApi";
+
+type UiProduct = Product & { isFavorite?: boolean };
 
 type Props = {
   products?: Product[];
-  onProductClick?: (product: Product) => void;
-  onToggleFavorite?: (productId: number) => void;
 };
-export default function HomeScreen({
-  products,
-  onProductClick,
-  onToggleFavorite,
-}: Props) {
+
+export default function HomeScreen({ products }: Props) {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
-  // Données : utilise les mocks si rien passé en prop
-  const data = products ?? allProducts;
-
-  // ✅ La fonction que tu demandes
-  const handleClick = (p: Product) => {
-    // si un handler custom est fourni, on le laisse faire,
-    // sinon on navigue par défaut
-    if (onProductClick) return onProductClick(p);
-    navigation.navigate("ProductDetail", { productId: String(p.id) });
-  };
-
-  const handleFav = onToggleFavorite ?? (() => {});
+  const { t } = useTranslation();
 
   const [query, setQuery] = useState("");
+  const [data, setData] = useState<UiProduct[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // TODO: replace with real logged-in client id from your auth state
+  const currentClientId = "REPLACE_WITH_CLIENT_ID";
+
+  useEffect(() => {
+    if (products && products.length > 0) {
+      setData(products.map((p) => ({ ...p })));
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadProducts() {
+      setLoading(true);
+      setError(null);
+      try {
+        const categories = await getCategories();
+        const lists = await Promise.all(
+          categories.map((c) =>
+            getProductsByCategory(c.name).catch(() => [] as Product[]),
+          ),
+        );
+        const merged = lists.flat();
+
+        if (!cancelled) {
+          setData(merged.map((p) => ({ ...p, isFavorite: false })));
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          setError(e?.message ?? "Failed to load products");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [products]);
+
+  const handleClick = (p: UiProduct) => {
+    navigation.navigate("ProductDetail", { productId: String(p.postId) });
+  };
+
+  const handleToggleFavorite = async (product: UiProduct) => {
+    if (!currentClientId || currentClientId === "REPLACE_WITH_CLIENT_ID") {
+      return;
+    }
+
+    const wasFavorite = !!product.isFavorite;
+
+    setData((prev) =>
+      prev.map((p) =>
+        p.postId === product.postId ? { ...p, isFavorite: !wasFavorite } : p,
+      ),
+    );
+
+    try {
+      if (!wasFavorite) {
+        await favouriteProduct(product.postId, currentClientId);
+      } else {
+        await unfavouriteProduct(product.postId, currentClientId);
+      }
+    } catch {
+      setData((prev) =>
+        prev.map((p) =>
+          p.postId === product.postId ? { ...p, isFavorite: wasFavorite } : p,
+        ),
+      );
+    }
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return data;
-    return data.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.seller?.username?.toLowerCase().includes(q)
-    );
+
+    return data.filter((p) => {
+      if (p.status !== "visible") return false;
+
+      if (!q) return true;
+
+      return (
+        p.description.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
+      );
+    });
   }, [data, query]);
 
-  const renderItem: ListRenderItem<Product> = ({ item }) => (
-    <ProductCard
-      product={item}
-      onClick={() => handleClick(item)}
-      onToggleFavorite={() => handleFav(item.id)}
-    />
-  );
-
   return (
-    <View style={styles.root}>
+    <Screen>
       <StatusBar barStyle="dark-content" />
 
-      {/* Notch (simu maquette) */}
-      <View style={styles.notch} />
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {loading && (
+          <View style={styles.loader}>
+            <ActivityIndicator />
+          </View>
+        )}
 
-      {/* Grille produits */}
-      {filtered.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyText}>Aucun résultat</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderItem}
-          numColumns={2}
-          columnWrapperStyle={styles.columns}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
-    </View>
+        {error && !loading && (
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>{error}</Text>
+          </View>
+        )}
+
+        {!loading && !error && (
+          <View style={styles.content}>
+            {filtered.length === 0 ? (
+              <View style={styles.empty}>
+                <Text style={styles.emptyText}>{t("my_products_empty")}</Text>
+              </View>
+            ) : (
+              <View style={styles.grid}>
+                {filtered.map((product) => (
+                  <View key={product.postId} style={styles.productWrapper}>
+                    <ProductCard
+                      product={product}
+                      onClick={() => handleClick(product)}
+                      onToggleFavorite={() => handleToggleFavorite(product)}
+                    />
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+      </ScrollView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#FFFFFF" },
-  notch: {
-    width: 128,
-    height: 32,
-    backgroundColor: "#000",
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    alignSelf: "center",
-    marginTop: 8,
-  },
-  searchWrapper: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+  container: {
+    flex: 1,
     backgroundColor: "#FFFFFF",
   },
-  searchInner: {
-    position: "relative",
-    borderWidth: 2,
-    borderColor: "#7BCCEB",
-    borderRadius: 12,
-    backgroundColor: "#FFFFFF",
-    paddingLeft: 40,
-  },
-  searchIcon: {
-    position: "absolute",
-    left: 12,
-    top: "50%",
-    marginTop: -10,
-  },
-  searchInput: {
-    height: 44,
-    fontSize: 14,
-    color: "#111827",
-    paddingRight: 12,
-  },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
+  contentContainer: {
     paddingBottom: 32,
   },
-  columns: { gap: 16 },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  productWrapper: {
+    width: "48%",
+    marginBottom: 16,
+    position: "relative",
+  },
   empty: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
+    paddingVertical: 48,
   },
-  emptyText: { color: "#6B7280" },
+  emptyText: { color: "#6B7280", fontSize: 14 },
+  loader: {
+    paddingVertical: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });
