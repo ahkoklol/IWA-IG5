@@ -30,6 +30,7 @@ export default function App() {
   }
 
   return (
+    <AuthProvider>
     <SafeAreaProvider>   {/* ← IMPORTANT */}
       <StripeProvider
         publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY as string}
@@ -38,5 +39,6 @@ export default function App() {
         <RootNavigator />
       </StripeProvider>
     </SafeAreaProvider>
+    </AuthProvider>
   );
 }

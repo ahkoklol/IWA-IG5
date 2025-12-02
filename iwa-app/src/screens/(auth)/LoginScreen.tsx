@@ -6,7 +6,9 @@ export default function LoginScreen() {
   const { signIn } = useContext(AuthContext);
 
   useEffect(() => {
+    console.log("LoginScreen mounted, calling signIn");
     signIn();
+    console.log("signIn call finished");
   }, [signIn]);
 
   return (

@@ -180,6 +180,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 
   const signIn = useCallback(() => {
+    console.log("signIn called"); 
     if (request && typeof promptAsync === "function") {
       promptAsync().catch((e) => console.warn(e));
     } else {
