@@ -50,7 +50,6 @@ public class S3bgRepository implements ImageRepository {
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
-                .acl(ObjectCannedACL.PUBLIC_READ)
                 .build();
 
         s3Client.putObject(request, RequestBody.fromInputStream(stream, stream.available()));
