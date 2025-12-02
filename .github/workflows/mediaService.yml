@@ -71,7 +71,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./mediaService
-          file: ./Dockerfile
           push: true
           tags: |
             ${{ secrets.SEB_DOCKERHUB_USERNAME }}/bg-media-service:latest
