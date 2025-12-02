@@ -6,6 +6,7 @@ import { StripeProvider } from "@stripe/stripe-react-native";
 
 import { SafeAreaProvider } from "react-native-safe-area-context"; // ← AJOUT
 import RootNavigator from "./src/navigation/RootNavigator";
+import { AuthProvider } from "./src/context/authContext";
 import "./src/i18n/i18n";
 
 export default function App() {

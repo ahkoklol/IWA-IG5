@@ -8,12 +8,12 @@ export default function IntroScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace("Login"); // on remplace l'écran d'intro
-    }, 5000);
+  const timer = setTimeout(() => {
+    navigation.replace("AuthPrompt"); // redirect to authPrompt page
+  }, 5000);
 
-    return () => clearTimeout(timer);
-  }, [navigation]);
+  return () => clearTimeout(timer);
+}, [navigation]);
 
   return (
     <View style={styles.container}>

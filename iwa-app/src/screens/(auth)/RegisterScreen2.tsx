@@ -1,10 +1,18 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, StatusBar } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  StatusBar,
+} from "react-native";
 import { ArrowLeft } from "lucide-react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import type { SignupData1 } from "./RegisterScreen1";
+import AuthService from "../../components/auth/AuthService";
 import { useTranslation } from "react-i18next";
 
 export interface SignupData2 {
@@ -15,7 +23,8 @@ export interface SignupData2 {
 }
 
 export default function RegisterScreen2() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
   const { step1 } = (route.params as { step1: SignupData1 }) || {};
 
@@ -27,6 +36,7 @@ export default function RegisterScreen2() {
 
   const handleNext = () => {
     const step2: SignupData2 = { address, postalCode, country, nationality };
+    AuthService.setRegisterStep2(step2);
     navigation.navigate("Register3", { step1, step2 });
   };
 
@@ -80,10 +90,32 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
 
   header: { paddingHorizontal: 16, paddingVertical: 12 },
-  iconBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
-  body: { flex: 1, paddingHorizontal: 24, justifyContent: "space-between", paddingBottom: 16 },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  body: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: "space-between",
+    paddingBottom: 16,
+  },
   label: { fontSize: 14, color: "#111827", marginBottom: 6 },
-  input: { backgroundColor: "#fff", borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16, color: "#111827" },
+  input: {
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
+    color: "#111827",
+  },
   footer: { paddingVertical: 16, alignItems: "flex-end" },
-  next: { fontSize: 22, color: "#111827", fontFamily: "Gaegu", fontWeight: "700" },
+  next: {
+    fontSize: 22,
+    color: "#111827",
+    fontFamily: "Gaegu",
+    fontWeight: "700",
+  },
 });

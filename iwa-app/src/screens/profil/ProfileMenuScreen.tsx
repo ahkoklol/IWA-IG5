@@ -1,3 +1,5 @@
+//iwa-app/src/screens/profil/ProfileMenuScreen.tsx
+import React, { useContext } from "react";
 // iwa-app/src/screens/profil/ProfileMenuScreen.tsx
 import React from "react";
 import {
@@ -15,6 +17,7 @@ import { useTranslation } from "react-i18next";
 
 import type { User } from "../../shared/types";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
+import { AuthContext } from "../../context/authContext";
 import { Screen } from "../../components/Screen";
 
 type Navigation = NativeStackNavigationProp<RootStackParamList>;
@@ -34,6 +37,8 @@ export function ProfileMenuScreen({
 }: ProfileMenuScreenProps) {
   const navigation = useNavigation<Navigation>();
   const { t } = useTranslation();
+
+  const { signOut } = useContext(AuthContext);
 
   const menuItems = [
     { id: "myProfile", label: t("profile_view_my_profile"), showAvatar: true },
@@ -113,9 +118,26 @@ export function ProfileMenuScreen({
               <Text style={styles.logoutText}>{t("profile_logout")}</Text>
             </View>
           </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </Screen>
+        ))}
+
+        {/* Logout button */}
+        <TouchableOpacity
+          onPress={() => {
+            // call context signOut to clear tokens + reset auth state
+            signOut();
+            // keep parent callback if provided
+            if (onLogout) onLogout();
+          }}
+          style={[styles.menuItem, styles.logoutItem]}
+          activeOpacity={0.7}
+        >
+          <View style={styles.menuLeft}>
+            <LogOut size={20} color="#EF4444" />
+            <Text style={styles.logoutText}>Se déconnecter</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 

@@ -1,37 +1,73 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, StatusBar, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  StatusBar,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { ArrowLeft } from "lucide-react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import type { SignupData1 } from "./RegisterScreen1";
 import type { SignupData2 } from "./RegisterScreen2";
+import useRegisterWithKeycloak from "../../components/auth/useRegisterWithKeycloak";
 import { useTranslation } from "react-i18next";
 
 export default function RegisterScreen3() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
-  const { step1, step2 } = (route.params as { step1: SignupData1; step2: SignupData2 }) || {};
+  const { step1, step2 } =
+    (route.params as { step1: SignupData1; step2: SignupData2 }) || {};
 
+  const { startRegister, loading } = useRegisterWithKeycloak();
+  const [attempted, setAttempted] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { t } = useTranslation();
 
-const handleComplete = () => {
-  if (!password || password !== confirmPassword) {
-    Alert.alert("Erreur", "Les mots de passe ne correspondent pas.");
-    return;
-  }
+  useEffect(() => {
+    // Trigger Keycloak registration flow as soon as the screen mounts
+    if (!attempted) {
+      setAttempted(true);
+      (async () => {
+        const result = await startRegister();
+        if (!result || !result.ok) {
+          Alert.alert(
+            "Erreur",
+            `Inscription échouée: ${String(result?.error ?? "unknown")}`
+          );
+          // keep on screen so user can retry or go back
+        } else {
+          // success -> navigate to Home and clear the stack
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "Home" }],
+          });
+        }
+      })();
+    }
+  }, [attempted, startRegister, navigation]);
 
-  // TODO: Appel API d'inscription avec { ...step1, ...step2, password }
-
-  // Redirige vers Home et nettoie l'historique d'inscription
-  navigation.reset({
-    index: 0,
-    routes: [{ name: "Home" }],
-  });
-};
-
+  const handleRetry = async () => {
+    setAttempted(true);
+    const result = await startRegister();
+    if (!result || !result.ok) {
+      Alert.alert(
+        "Erreur",
+        `Inscription échouée: ${String(result?.error ?? "unknown")}`
+      );
+      return;
+    }
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Home" }],
+    });
+  };
 
   return (
     <View style={styles.root}>
@@ -71,10 +107,25 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
 
   header: { paddingHorizontal: 16, paddingVertical: 12 },
-  iconBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
-  body: { flex: 1, paddingHorizontal: 24, paddingTop: 24 },
-  label: { fontSize: 14, color: "#111827", marginBottom: 6 },
-  input: { backgroundColor: "#fff", borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16, color: "#111827" },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  body: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    justifyContent: "center",
+  },
+  label: { fontSize: 16, color: "#111827", marginBottom: 6 },
   validateBtn: { marginTop: 24, alignItems: "center", paddingVertical: 12 },
-  validateText: { fontSize: 24, color: "#111827", fontFamily: "Gaegu", fontWeight: "700" },
+  validateText: {
+    fontSize: 20,
+    color: "#111827",
+    fontFamily: "Gaegu",
+    fontWeight: "700",
+  },
+  backBtn: { marginTop: 12 },
 });
