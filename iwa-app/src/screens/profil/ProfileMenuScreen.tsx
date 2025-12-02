@@ -1,7 +1,5 @@
 //iwa-app/src/screens/profil/ProfileMenuScreen.tsx
 import React, { useContext } from "react";
-// iwa-app/src/screens/profil/ProfileMenuScreen.tsx
-import React from "react";
 import {
   View,
   Text,
@@ -118,7 +116,6 @@ export function ProfileMenuScreen({
               <Text style={styles.logoutText}>{t("profile_logout")}</Text>
             </View>
           </TouchableOpacity>
-        ))}
 
         {/* Logout button */}
         <TouchableOpacity
@@ -138,6 +135,7 @@ export function ProfileMenuScreen({
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </Screen>
   );
 }
 

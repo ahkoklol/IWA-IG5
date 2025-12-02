@@ -1,6 +1,5 @@
 // iwa-app/src/api/notificationApi.ts
 import type { Notification } from "../shared/types/notification";
-import { NOTIFICATION_BASE_URL } from "./config";
 import { httpClient } from "./httpClient";
 
 /**
@@ -12,7 +11,7 @@ export async function fetchNotificationsByClientId(
   token?: string,
 ): Promise<Notification[]> {
   const response = await httpClient.get<Notification[]>(
-    `${NOTIFICATION_BASE_URL}/notification/${clientId}`,
+    `/notificationmicroservice/notification/${clientId}`,
     {
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -31,7 +30,7 @@ export async function markNotificationAsRead(
   token?: string,
 ): Promise<void> {
   await httpClient.put(
-    `${NOTIFICATION_BASE_URL}/notification/${notificationId}`,
+    `/notificationmicroservice/notification/${notificationId}`,
     undefined,
     {
       headers: {
@@ -56,7 +55,7 @@ export async function sendReviewNotification(
   token?: string,
 ): Promise<Notification> {
   const response = await httpClient.post<Notification>(
-    `${NOTIFICATION_BASE_URL}/notification`,
+    `/notificationmicroservice/notification`,
     {
       clientId: sellerId,
       type: "REVIEW_LEFT",
@@ -95,7 +94,7 @@ export async function sendRepostDecisionNotification(
     : `Votre requête de remise en ligne pour "${productName}" a été rejetée.`;
 
   const response = await httpClient.post<Notification>(
-    `${NOTIFICATION_BASE_URL}/notification`,
+    `/notificationmicroservice/notification`,
     {
       clientId: sellerId,
       type,

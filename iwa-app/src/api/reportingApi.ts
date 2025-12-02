@@ -1,5 +1,4 @@
 // iwa-app/src/api/reportingApi.ts
-
 import type {
   Report,
   ModerationRequest,
@@ -8,8 +7,6 @@ import type {
 } from "../shared/types/report";
 
 import { httpClient } from "./httpClient";
-
-const REPORTING_BASE_URL = "http://localhost:8080/reporting";
 
 /**
  * Create a report for a post.
@@ -24,7 +21,7 @@ export async function createReport(
   };
 
   const response = await httpClient.post<Report>(
-    `${REPORTING_BASE_URL}/report/${postId}`,
+    `/reporting/report/${postId}`,
     body,
   );
 
@@ -36,7 +33,7 @@ export async function createReport(
  */
 export async function getReportByPostId(postId: string): Promise<Report> {
   const response = await httpClient.get<Report>(
-    `${REPORTING_BASE_URL}/report/${postId}`,
+    `/reporting/report/${postId}`,
   );
 
   return response.data;
@@ -46,7 +43,7 @@ export async function getReportByPostId(postId: string): Promise<Report> {
  * Delete report by post ID.
  */
 export async function deleteReport(postId: string): Promise<void> {
-  await httpClient.delete(`${REPORTING_BASE_URL}/report/${postId}`);
+  await httpClient.delete(`/reporting/report/${postId}`);
 }
 
 /**
@@ -62,7 +59,7 @@ export async function createModerationRequest(
   };
 
   const response = await httpClient.post<ModerationRequest>(
-    `${REPORTING_BASE_URL}/request/${postId}`,
+    `/reporting/request/${postId}`,
     body,
   );
 
@@ -76,7 +73,7 @@ export async function getModerationRequestByPostId(
   postId: string,
 ): Promise<ModerationRequest> {
   const response = await httpClient.get<ModerationRequest>(
-    `${REPORTING_BASE_URL}/request/${postId}`,
+    `/reporting/request/${postId}`,
   );
 
   return response.data;
@@ -86,7 +83,7 @@ export async function getModerationRequestByPostId(
  * Delete moderation request by post ID.
  */
 export async function deleteModerationRequest(postId: string): Promise<void> {
-  await httpClient.delete(`${REPORTING_BASE_URL}/request/${postId}`);
+  await httpClient.delete(`/reporting/request/${postId}`);
 }
 
 /**
@@ -94,7 +91,7 @@ export async function deleteModerationRequest(postId: string): Promise<void> {
  */
 export async function getAllReports(): Promise<Report[]> {
   const response = await httpClient.get<Report[]>(
-    `${REPORTING_BASE_URL}/report`,
+    `/reporting/report`,
   );
 
   return response.data;

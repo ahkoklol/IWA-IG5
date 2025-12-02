@@ -1,10 +1,12 @@
 // src/api/httpClient.ts
 import axios from "axios";
 
+const GATEWAY_URL =
+  process.env.EXPO_PUBLIC_URL_GATEWAY ?? "http://localhost:8080";
+
 export const httpClient = axios.create({
-  // No global baseURL here because you already have per-microservice BASE_URL constants.
+  baseURL: GATEWAY_URL.replace(/\/$/, ""), // tout passe par la gateway
   headers: {
     "Content-Type": "application/json",
   },
-  // Axios already rejects promise for status < 200 or >= 300 by default
 });

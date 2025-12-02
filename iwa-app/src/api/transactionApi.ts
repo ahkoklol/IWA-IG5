@@ -10,9 +10,6 @@ import type {
 
 import { httpClient } from "./httpClient";
 
-const TRANSACTION_BASE_URL = "http://localhost:8080/transaction";
-const STRIPE_BASE_URL = "http://localhost:8080/stripe";
-
 /**
  * Create a purchase transaction.
  */
@@ -20,7 +17,7 @@ export async function purchaseTransaction(
   payload: CreateTransactionPayload,
 ): Promise<Transaction> {
   const response = await httpClient.post<Transaction>(
-    `${TRANSACTION_BASE_URL}/purchase`,
+    `/transaction/purchase`,
     payload,
   );
 
@@ -34,7 +31,7 @@ export async function getTransactionsByClientId(
   clientId: string,
 ): Promise<Transaction[]> {
   const response = await httpClient.get<Transaction[]>(
-    `${TRANSACTION_BASE_URL}/${clientId}`,
+    `/transaction/${clientId}`,
   );
 
   return response.data;
@@ -52,7 +49,7 @@ export async function registerStripeAccount(
   };
 
   const response = await httpClient.post<StripeRegisterResponse>(
-    `${STRIPE_BASE_URL}/register`,
+    `/stripe/register`,
     body,
   );
 
@@ -70,7 +67,7 @@ export async function getStripeOnboardingLink(
   };
 
   const response = await httpClient.post<StripeOnboardingLinkResponse>(
-    `${STRIPE_BASE_URL}/onboarding-link`,
+    `/stripe/onboarding-link`,
     body,
   );
 
