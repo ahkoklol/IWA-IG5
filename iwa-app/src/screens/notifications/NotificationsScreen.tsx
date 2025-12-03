@@ -1,5 +1,5 @@
 // src/screens/notifications/NotificationsScreen.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import {
   fetchNotificationsByClientId,
   markNotificationAsRead,
 } from "../../api/notificationApi";
+import { AuthContext } from "../../context/authContext";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -26,9 +27,8 @@ interface NotificationsScreenProps {
   onNotificationClick?: (notification: Notification) => void;
 }
 
-// TODO: replace these placeholders with real auth (Keycloak) integration
-const MOCK_CLIENT_ID = "REPLACE_WITH_CONNECTED_CLIENT_ID";
-const MOCK_ACCESS_TOKEN = "REPLACE_WITH_VALID_JWT_TOKEN";
+// TODO: replace this placeholder with real auth (Keycloak) integration
+const MOCK_CLIENT_ID = "user_123";
 
 export function NotificationsScreen({
   onNotificationClick,
@@ -39,6 +39,9 @@ export function NotificationsScreen({
 
   const navigation = useNavigation<NavigationProp>();
   const { t } = useTranslation();
+
+  const { state } = useContext(AuthContext);
+  const accessToken = state.accessToken; // string | null
 
   const getNotificationText = (notification: Notification) => {
     return notification.message ?? "";
@@ -51,7 +54,7 @@ export function NotificationsScreen({
 
       const data = await fetchNotificationsByClientId(
         MOCK_CLIENT_ID,
-        MOCK_ACCESS_TOKEN,
+        accessToken ?? undefined, // ici on convertit null -> undefined
       );
       setNotifications(data);
     } catch (e) {
@@ -63,13 +66,14 @@ export function NotificationsScreen({
 
   useEffect(() => {
     loadNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handlePress = async (notification: Notification) => {
     try {
       await markNotificationAsRead(
         notification.notificationId,
-        MOCK_ACCESS_TOKEN,
+        accessToken ?? undefined,
       );
 
       setNotifications((prev) =>

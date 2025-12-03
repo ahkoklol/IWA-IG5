@@ -1,5 +1,5 @@
 // src/screens/profil/MyProductsScreen.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -16,28 +16,32 @@ import type { Product } from "../../shared/types";
 import ProductCard from "../../components/product/ProductCard";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
-import { demoProducts, currentUser } from "../../mocks/products";
 import { Screen } from "../../components/Screen";
+import { getSellingProducts } from "../../api/productApi";
+import { AuthContext } from "../../context/authContext";
 
 type Props = NativeStackScreenProps<RootStackParamList, "MyProducts">;
 
 export function MyProductsScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const { state } = useContext(AuthContext);
 
-  const [products, setProducts] = useState<Product[]>(
-    demoProducts.filter((p) => p.seller.id === currentUser.id)
-  );
+  const [products, setProducts] = useState<Product[]>([]);
   const [showMenu, setShowMenu] = useState<number | null>(null);
 
-  // Etat pour la suppression
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   const handleBack = () => {
     navigation.goBack();
   };
 
   const handleProductClick = (product: Product) => {
+    // Attention: selon ton type Product, l'id peut être string ou number.
+    // Ici on garde String(product.id) comme avant.
     navigation.navigate("ProductDetail", { productId: String(product.id) });
   };
 
@@ -75,6 +79,59 @@ export function MyProductsScreen({ navigation }: Props) {
   const handleMenuToggle = (productId: number) => {
     setShowMenu((prev) => (prev === productId ? null : productId));
   };
+
+  const loadSellingProducts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const clientId = state.id_user;
+      if (!clientId) {
+        setProducts([]);
+        setError("Missing user id in auth state.");
+        return;
+      }
+
+      const data = await getSellingProducts(clientId);
+      setProducts(data);
+    } catch (e) {
+      console.error("Failed to load selling products", e);
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Recharge quand l'id_user devient disponible
+    if (state.id_user) {
+      loadSellingProducts();
+    } else {
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.id_user]);
+
+  if (loading) {
+    return (
+      <Screen>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>{t("common_loading")}</Text>
+        </View>
+      </Screen>
+    );
+  }
+
+  if (error) {
+    return (
+      <Screen>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorText}>{t("error_generic")}</Text>
+          <Text style={styles.errorDetails}>{error}</Text>
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen>
@@ -125,26 +182,39 @@ export function MyProductsScreen({ navigation }: Props) {
                     <MoreHorizontal size={16} color="#1F2937" />
                   </Pressable>
 
-                {/* Context menu */}
-                {showMenu === product.id && (
-                  <View style={styles.menuContainer}>
-                    <TouchableOpacity
-                      activeOpacity={0.7}
-                      onPress={(e) => {
-                        // @ts-ignore
-                        e.stopPropagation?.();
-                        handleDeleteProduct(product);
-                        setShowMenu(null);
-                      }}
-                      style={styles.menuItem}
-                    >
-                      <Text style={styles.menuItemTextDelete}>
-                        {t("common_delete")}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-
+                  {/* Context menu */}
+                  {showMenu === product.id && (
+                    <View style={styles.menuContainer}>
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={(e) => {
+                          // @ts-ignore
+                          e.stopPropagation?.();
+                          handleEditProduct(product);
+                          setShowMenu(null);
+                        }}
+                        style={styles.menuItem}
+                      >
+                        <Text style={styles.menuItemText}>
+                          {t("common_edit")}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={(e) => {
+                          // @ts-ignore
+                          e.stopPropagation?.();
+                          handleDeleteProduct(product);
+                          setShowMenu(null);
+                        }}
+                        style={styles.menuItem}
+                      >
+                        <Text style={styles.menuItemTextDelete}>
+                          {t("common_delete")}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               ))}
             </View>
@@ -161,9 +231,7 @@ export function MyProductsScreen({ navigation }: Props) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>
-              {t("common_delete")} ?
-            </Text>
+            <Text style={styles.modalTitle}>{t("common_delete")} ?</Text>
             <Text style={styles.modalSubtitle}>
               Es-tu sûre de vouloir supprimer cette annonce ?
             </Text>
@@ -302,8 +370,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#EF4444",
   },
-
-  // Styles du modal de confirmation
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -371,5 +437,23 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "white",
   },
+  loadingContainer: {
+    flex: 1,
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    fontSize: 14,
+    color: "#6B7280",
+  },
+  errorText: {
+    fontSize: 14,
+    color: "#EF4444",
+    marginBottom: 4,
+  },
+  errorDetails: {
+    fontSize: 12,
+    color: "#9CA3AF",
+  },
 });
-

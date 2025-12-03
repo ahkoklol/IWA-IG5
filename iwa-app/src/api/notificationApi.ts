@@ -10,15 +10,17 @@ export async function fetchNotificationsByClientId(
   clientId: string,
   token?: string,
 ): Promise<Notification[]> {
+  console.log("requête notification");
+  console.log(token);
+  console.log(clientId);
   const response = await httpClient.get<Notification[]>(
-    `/notificationmicroservice/notification/${clientId}`,
+    `/user/${clientId}`,
     {
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     },
-  );
-
+  )
   return response.data;
 }
 
