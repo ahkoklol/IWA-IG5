@@ -29,7 +29,7 @@ public class NotificationServiceRoutes implements BaseRoutes{
                 .before(BeforeFilterFunctions.addRequestHeader("X-Gateway-Source", "NotificationServiceGateway"))
                 .route(RequestPredicates.POST("/notification"), notificationServiceHandler)
 
-                .route(RequestPredicates.GET("/notification/{clientId"), notificationServiceHandler)
+                .route(RequestPredicates.GET("/notification/{clientId}"), notificationServiceHandler)
 
                 .route(RequestPredicates.PUT("/notification/{notificationId}"), notificationServiceHandler)
 
