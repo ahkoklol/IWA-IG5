@@ -1,5 +1,6 @@
 package com.micro.media.repository;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -9,9 +10,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
+import java.util.logging.Logger;
 
 
-
+@Slf4j
 @Repository
 public class S3bgRepository implements ImageRepository {
 
@@ -19,12 +21,14 @@ public class S3bgRepository implements ImageRepository {
     private final String region;
     private final S3Client s3Client;
 
+    Logger logger = Logger.getLogger(S3bgRepository.class.getName());
+
 
 
     public S3bgRepository(
             S3Client s3Client,
-            @Value("${aws.s3.bucket}") String bucketName,
-            @Value("${aws.s3.region:eu-west-1}") String region
+            @Value("${S3_BUCKET}") String bucketName,
+            @Value("${S3_REGION:eu-west-1}") String region
     ) {
         this.s3Client = s3Client;
         this.bucketName = bucketName;
@@ -42,10 +46,10 @@ public class S3bgRepository implements ImageRepository {
     @Override
     public String uploadFile(InputStream stream, String folder, String fileName) throws IOException {
         String key = folder + fileName;
+
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
-                .acl(ObjectCannedACL.PUBLIC_READ)
                 .build();
 
         s3Client.putObject(request, RequestBody.fromInputStream(stream, stream.available()));
@@ -81,10 +85,10 @@ public class S3bgRepository implements ImageRepository {
     }
 
     private void uploadFileToS3(File file, String key) {
+        logger.log(java.util.logging.Level.INFO, "Uploading file to S3 in bucket: " + bucketName);
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
-                .acl(ObjectCannedACL.PUBLIC_READ)
                 .build();
 
         s3Client.putObject(request, Paths.get(file.getPath()));
@@ -96,7 +100,6 @@ public class S3bgRepository implements ImageRepository {
                 .sourceKey(sourceKey)
                 .destinationBucket(bucketName)
                 .destinationKey(destinationKey)
-                .acl(ObjectCannedACL.PUBLIC_READ)
                 .build();
 
         s3Client.copyObject(copyRequest);

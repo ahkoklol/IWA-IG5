@@ -3,8 +3,8 @@ package media;
 option java_package = "com.micro.media.grpc";
 option java_outer_classname = "MediaServiceProto";
 
-import "upload_request.proto";
-import "upload_response.proto";
+import "media/upload_request.proto";
+import "media/upload_response.proto";
 
 service MediaService {
   rpc UploadPostImage(UploadRequest) returns (UploadResponse);

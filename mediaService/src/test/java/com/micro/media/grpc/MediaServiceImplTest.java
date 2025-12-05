@@ -1,6 +1,7 @@
 package com.micro.media.grpc;
 
 import com.google.protobuf.ByteString;
+import com.micro.media.entity.PostResult;
 import com.micro.media.services.MediaServiceImpl;
 import com.micro.media.services.MediaService;
 import io.grpc.ManagedChannel;
@@ -57,7 +58,7 @@ class MediaServiceImplTest {
         // Arrange
         byte[] imageData = {1, 2, 3, 4};
         when(mediaService.uploadPostImage(any(byte[].class), eq("photo.png"), eq("image/png")))
-                .thenReturn("https://final/approved/uuid-photo.png");
+                .thenReturn(new PostResult("https://final/approved/uuid-photo.png", true));
 
         UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                 .setImage(ByteString.copyFrom(imageData))
@@ -70,8 +71,8 @@ class MediaServiceImplTest {
 
         // Assert
         assertThat(response.getUrl()).isEqualTo("https://final/approved/uuid-photo.png");
-        assertThat(response.getMessage()).isEqualTo("Image de post traitée avec succès");
-        verify(mediaService).uploadPostImage(imageData, "photo.png", "image/png");
+        assertThat(response.getMessage()).isEqualTo("Approved");
+        verify(mediaService).uploadPostImage(any(byte[].class), eq("photo.png"), eq("image/png"));
     }
 
     @Test
@@ -171,7 +172,7 @@ class MediaServiceImplTest {
         // Arrange
         byte[] imageData = {1, 2, 3};
         when(mediaService.uploadPostImage(any(byte[].class), eq("nsfw.png"), eq("image/png")))
-                .thenReturn("https://final/rejected/uuid-nsfw.png");
+                .thenReturn(new PostResult("https://final/rejected/uuid-nsfw.png", false));
 
         UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                 .setImage(ByteString.copyFrom(imageData))
@@ -184,7 +185,7 @@ class MediaServiceImplTest {
 
         // Assert
         assertThat(response.getUrl()).isEqualTo("https://final/rejected/uuid-nsfw.png");
-        assertThat(response.getMessage()).isEqualTo("Image de post traitée avec succès");
+        assertThat(response.getMessage()).isEqualTo("Banned");
     }
 
     @Test
@@ -196,7 +197,7 @@ class MediaServiceImplTest {
         for (String format : validFormats) {
             reset(mediaService);
             when(mediaService.uploadPostImage(any(byte[].class), anyString(), eq(format)))
-                    .thenReturn("https://final/approved/uuid." + format.split("/")[1]);
+                    .thenReturn(new PostResult("https://final/approved/uuid." + format.split("/")[1], true));
 
             UploadRequestProto.UploadRequest request = UploadRequestProto.UploadRequest.newBuilder()
                     .setImage(ByteString.copyFrom(imageData))
@@ -256,8 +257,8 @@ class MediaServiceImplTest {
 
         // Assert
         assertThat(response.getUrl()).isEqualTo("https://profile/uuid-profile.png");
-        assertThat(response.getMessage()).isEqualTo("Image de profil uploadée avec succès");
-        verify(mediaService).uploadProfileImage(imageData, "profile.png", "image/png");
+        assertThat(response.getMessage()).isEqualTo("Success");
+        verify(mediaService).uploadProfileImage(any(byte[].class), eq("profile.png"), eq("image/png"));
     }
 
     @Test
