@@ -80,6 +80,11 @@ public class PostService {
     boolean applyUpdates(Post existingPost, Post post) {
         boolean updated = false;
 
+        if (post.getTitle() != null && !post.getTitle().equals(existingPost.getTitle())) {
+            existingPost.setTitle(post.getTitle());
+            updated = true;
+        }
+
         if (post.getDescription() != null && !post.getDescription().equals(existingPost.getDescription())) {
             existingPost.setDescription(post.getDescription());
             updated = true;
@@ -146,6 +151,7 @@ public class PostService {
      * @return true if all fields were sent, false otherwise
      */
     boolean checkCreatePostContent(Post post) {
+        if (post.getTitle() == null || post.getTitle().isEmpty()) return false;
         if (post.getDescription() == null || post.getDescription().isEmpty()) return false;
         if (post.getPhotos() == null || post.getPhotos().isEmpty()) return false;
         if (post.getCategory() == null) return false;

@@ -49,6 +49,7 @@ public class PostServiceTest extends PostgresTestcontainer {
     private Post createBasePost(String postId, String status, String category) {
         Post post = new Post();
         post.setPostId(postId);
+        post.setTitle("title");
         post.setDescription("Default Test Post Description");
         post.setWeight(10.0);
         post.setQuantity(2);
@@ -90,6 +91,7 @@ public class PostServiceTest extends PostgresTestcontainer {
     void testCreatePost_AllFieldsValid() {
         Post newPost = new Post();
         newPost.setDescription("description");
+        newPost.setTitle("title");
         newPost.setPhotos(new ArrayList<>()); // Initialize if null
         newPost.getPhotos().add("photo1");
         newPost.setSeason("season");
