@@ -49,6 +49,17 @@ public class ClientService {
     }
 
     /**
+     * Fetch a client by user_id (auth id)
+     * @param userId the user id (auth)
+     * @return a Client object
+     */
+    public Optional<Client> getClientByUserId(String userId) {
+
+
+        return clientRepository.findFirstByUserId(userId);
+    }
+
+    /**
      * Creates a Client
      * @param client the client to create
      * @return the created Client object

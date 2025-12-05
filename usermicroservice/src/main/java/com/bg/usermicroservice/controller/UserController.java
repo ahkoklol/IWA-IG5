@@ -34,6 +34,14 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{userId}/user")
+    public ResponseEntity<Client> getClientByUser(@PathVariable String userId) {
+        log.info("Fetching client with user_id {}", userId);
+        return clientService.getClientByUserId(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping("/register")
     public ResponseEntity<Client> registerClient(@RequestBody Client client) {
         Client clientResponse = clientService.createClient(client);
