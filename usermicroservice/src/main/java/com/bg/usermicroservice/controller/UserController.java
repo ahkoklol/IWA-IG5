@@ -72,6 +72,11 @@ public class UserController {
 
     @PostMapping("/{clientId}/photo")
     public ResponseEntity<Void> addPhoto(@PathVariable String clientId, @RequestParam("photo") MultipartFile photo) {
+        log.info("Adding photo for client with id {}", clientId);
+        log.info("photo content type: {}", photo.getContentType());
+        if (photo.isEmpty() ) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
         clientService.addPhoto(clientId, photo);
         return ResponseEntity.ok().build();
     }
