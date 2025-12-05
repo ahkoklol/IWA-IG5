@@ -7,8 +7,10 @@ import com.bondgraine.listingmicroservice.service.PostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -49,9 +51,17 @@ public class PostController {
 
     @PostMapping
     public ResponseEntity<Post> createPost(@RequestBody Post post) {
-        log.info("Received request to create post: {}", post);
-        Post createdPost = postService.createPost(post);
-        return new ResponseEntity<>(createdPost, HttpStatus.CREATED);
+        log.info("Received request to create post (no photos): {}", post);
+        Post created = postService.createPost(post);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    }
+
+    @PostMapping(path = "/{postId}/photos")
+    public ResponseEntity<Post> addPhotos(@PathVariable String postId,
+                                          @RequestParam("photos") MultipartFile[] photos) {
+        log.info("Received request to add {} photos to post {}", photos == null ? 0 : photos.length + 1, postId);
+        Post updated = postService.addPhotos(postId, photos);
+        return ResponseEntity.ok(updated);
     }
 
     @PatchMapping("/{postId}/hide")

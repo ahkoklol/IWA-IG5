@@ -27,22 +27,19 @@ public class StringListConverter implements AttributeConverter<List<String>, Str
     // Converts the single String (Database column) back into a List<String> (Java object)
     @Override
     public List<String> convertToEntityAttribute(String dbData) {
-        // Log the input to confirm the converter is being called AND what data it sees
         System.out.println(">>> StringListConverter received data: [" + dbData + "]");
-
         if (dbData == null || dbData.trim().isEmpty()) {
             return Collections.emptyList();
         }
-
         try {
-            // Ensure the delimiter (e.g., comma) is correct
-            List<String> result = Arrays.asList(dbData.split(","));
+            List<String> result = Arrays.stream(dbData.split(SEPARATOR))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
             System.out.println(">>> StringListConverter SUCCESS. Result size: " + result.size());
             return result;
         } catch (Exception e) {
-            // CRITICAL: If an exception is thrown, Hibernate may suppress it and return null/empty
             e.printStackTrace();
-            // Return an empty list to allow the Post object to be constructed
             return Collections.emptyList();
         }
     }
