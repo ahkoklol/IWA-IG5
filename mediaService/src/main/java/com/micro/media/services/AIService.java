@@ -30,7 +30,7 @@ public class AIService {
      */
     public boolean validateAIResult(AiResultDTO aiResult) {
         // Vos critères de validation personnalisés
-        if (aiResult.getConfidence() < 0.7) {
+        if (aiResult.getConfidence() < 0.1) {
             return false; // Confiance trop faible
         }
 

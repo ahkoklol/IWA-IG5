@@ -1,6 +1,8 @@
 package com.micro.media.services;
 
+import com.micro.media.entity.PostResult;
 import com.micro.media.repository.ImageRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,11 +12,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Service de gestion des médias (images de profil et de posts).
  * Gère l'upload, la validation et le déplacement des images via le repository.
  */
+@Slf4j
 @Service
 public class MediaService {
 
@@ -29,6 +34,8 @@ public class MediaService {
     @Autowired
     private AIService aiValidationService;
 
+    private final Logger logger = Logger.getLogger(MediaService.class.getName());
+
     /**
      * Upload une image de post avec validation IA.
      * L'image est d'abord uploadée dans un dossier temporaire (pending),
@@ -41,7 +48,7 @@ public class MediaService {
      * @throws IOException en cas d'erreur d'upload ou de déplacement
      * @throws IllegalArgumentException si l'image est invalide (format, taille, etc.)
      */
-    public String uploadPostImage(byte[] imageBytes, String originalFilename, String contentType) throws IOException {
+    public PostResult uploadPostImage(byte[] imageBytes, String originalFilename, String contentType) throws IOException {
         validateImageBytes(imageBytes, contentType);
         File tempFile = createTemporaryFile(imageBytes, originalFilename);
 
@@ -49,7 +56,7 @@ public class MediaService {
             String uniqueFileName = generateUniqueFileName(originalFilename);
             String pendingUrl = imageRepository.uploadFile(tempFile, PENDING_FOLDER, uniqueFileName);
             boolean isImageApproved = aiValidationService.validateImage(tempFile, pendingUrl);
-            return moveToFinalDestination(uniqueFileName, isImageApproved);
+            return new PostResult(moveToFinalDestination(uniqueFileName, isImageApproved), isImageApproved);
         } finally {
             cleanupTemporaryFile(tempFile);
         }
@@ -68,12 +75,20 @@ public class MediaService {
      */
     public String uploadProfileImage(byte[] imageBytes, String originalFilename, String contentType) throws IOException {
         validateImageBytes(imageBytes, contentType);
+        logger.log(Level.INFO, "Uploading profile image to " + originalFilename);
         File tempFile = createTemporaryFile(imageBytes, originalFilename);
+        logger.log(Level.INFO, "Uploading profile image to " + tempFile.getAbsolutePath());
 
         try {
             String uniqueFileName = generateUniqueFileName(originalFilename);
             return imageRepository.uploadFile(tempFile, PROFILE_FOLDER, uniqueFileName);
-        } finally {
+
+        }
+        catch (Exception e) {
+            logger.log(Level.SEVERE, "Erreur lors de l'upload de l'image de profil", e);
+            throw e;
+
+        }finally {
             cleanupTemporaryFile(tempFile);
         }
     }
@@ -110,6 +125,7 @@ public class MediaService {
         if (imageBytes.length > maxSizeBytes) {
             throw new IllegalArgumentException("Fichier trop volumineux (max 10MB)");
         }
+        logger.log(Level.INFO, "Image validée: type=" + contentType + ", taille=" + imageBytes.length + " bytes");
     }
 
     /**
@@ -182,4 +198,6 @@ public class MediaService {
             }
         }
     }
+
+
 }

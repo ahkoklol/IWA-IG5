@@ -9,12 +9,15 @@ import com.micro.media.entity.AiResultDTO;
 import javax.annotation.PreDestroy;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 @Component
 public class AIGrpcClient {
 
     private final ManagedChannel channel;
     // private final AiServiceGrpc.AiServiceBlockingStub stub;
+
+    private final Logger logger = Logger.getLogger(AIGrpcClient.class.getName());
 
     public AIGrpcClient(
             @Value("${ai.grpc.host:localhost}") String host,

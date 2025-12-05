@@ -1,6 +1,7 @@
 package com.micro.media.services;
 
 import com.micro.media.entity.AiResultDTO;
+import com.micro.media.entity.PostResult;
 import com.micro.media.repository.ImageRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +41,8 @@ class MediaServiceTest {
                 .thenAnswer(inv -> "https://final/approved/" + inv.getArgument(1));
 
         ArgumentCaptor<File> tempFileCaptor = ArgumentCaptor.forClass(File.class);
-        String finalUrl = mediaService.uploadPostImage(imageBytes, filename, contentType);
+        PostResult result = mediaService.uploadPostImage(imageBytes, filename, contentType);
+        String finalUrl = result.getUrl();
 
         assertThat(finalUrl).startsWith("https://final/approved/");
 
@@ -65,7 +67,8 @@ class MediaServiceTest {
         when(imageRepository.move(eq("posts/"), anyString(), eq("banned/"), anyString()))
                 .thenAnswer(inv -> "https://final/rejected/" + inv.getArgument(1));
 
-        String finalUrl = mediaService.uploadPostImage(imageBytes, filename, contentType);
+        PostResult result = mediaService.uploadPostImage(imageBytes, filename, contentType);
+        String finalUrl = result.getUrl();
 
         assertThat(finalUrl).startsWith("https://final/rejected/");
         verify(imageRepository).move(eq("posts/"), anyString(), eq("banned/"), anyString());
