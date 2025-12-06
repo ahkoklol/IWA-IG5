@@ -5,9 +5,12 @@ import com.bondgraine.listingmicroservice.entity.FavouriteId;
 import com.bondgraine.listingmicroservice.entity.Post;
 import com.bondgraine.listingmicroservice.repository.FavouriteRepository;
 import com.bondgraine.listingmicroservice.repository.PostRepository;
+import com.micro.media.grpc.UploadResponseProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import com.bondgraine.listingmicroservice.client.MediaClient;
 
 import java.util.*;
 
@@ -21,11 +24,15 @@ public class PostService {
     private final FavouriteRepository favouriteRepository;
 
     private final PostEventProducer eventProducer;
+    private final MediaClient mediaClient;
 
-    public PostService(PostRepository postRepository, FavouriteRepository favouriteRepository, PostEventProducer eventProducer) {
+
+
+    public PostService(PostRepository postRepository, FavouriteRepository favouriteRepository, PostEventProducer eventProducer, MediaClient mediaClient) {
         this.postRepository = postRepository;
         this.favouriteRepository = favouriteRepository;
         this.eventProducer = eventProducer;
+        this.mediaClient = mediaClient;
     }
 
     /**
@@ -137,12 +144,59 @@ public class PostService {
         if (!checkCreatePostContent(post)) {
             throw new IllegalArgumentException("Some fields are missing");
         }
+
+        post.setStatus("visible");
         post.setPostId(UUID.randomUUID().toString());
         Date now = new Date();
         post.setDateCreated(now);
         post.setDateModified(now);
-        post.setStatus("visible");
+        if (post.getPhotos() == null) {
+            post.setPhotos(new ArrayList<>());
+        }
+        post.setPhotos(null);
         return postRepository.save(post);
+    }
+
+    public Post addPhotos(String postId, MultipartFile[] photos) {
+        log.info("Received request to add photos: {}", photos);
+        Optional<Post> optionalPost = postRepository.findById(postId);
+        if (optionalPost.isEmpty()) {
+            log.error("No post found with id: {}", postId);
+            throw new NoSuchElementException("Post not found with ID: " + postId);
+        }
+        if (photos == null || photos.length == 0) {
+            throw new IllegalArgumentException("No photos provided");
+        }
+
+        Post post = optionalPost.get();
+        List<String> photoUrls = new ArrayList<>(); // On écrase les anciennes photos
+
+        for (MultipartFile photo : photos) {
+            String url = addPhoto(photo, post);
+            photoUrls.add(url);
+        }
+
+        post.setPhotos(photoUrls);
+        post.setDateModified(new Date());
+        return postRepository.save(post);
+    }
+
+    public String addPhoto(MultipartFile photo, Post post) {
+        if (photo == null || photo.isEmpty()) {
+            throw new IllegalArgumentException("Photo is null or empty");
+        }
+
+        UploadResponseProto.UploadResponse resp = mediaClient.uploadProfileImage(photo);
+        String url = resp.getUrl();
+        String message = resp.getMessage() == null ? "" : resp.getMessage();
+
+        String status;
+        if ("Banned".equalsIgnoreCase(message)) {
+            status = "banned";
+            post.setStatus(status);
+        }
+
+        return url;
     }
 
     /**

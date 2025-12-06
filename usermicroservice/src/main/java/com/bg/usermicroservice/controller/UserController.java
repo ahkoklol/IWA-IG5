@@ -34,6 +34,14 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{userId}/user")
+    public ResponseEntity<Client> getClientByUser(@PathVariable String userId) {
+        log.info("Fetching client with user_id {}", userId);
+        return clientService.getClientByUserId(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping("/register")
     public ResponseEntity<Client> registerClient(@RequestBody Client client) {
         Client clientResponse = clientService.createClient(client);
@@ -72,6 +80,11 @@ public class UserController {
 
     @PostMapping("/{clientId}/photo")
     public ResponseEntity<Void> addPhoto(@PathVariable String clientId, @RequestParam("photo") MultipartFile photo) {
+        log.info("Adding photo for client with id {}", clientId);
+        log.info("photo content type: {}", photo.getContentType());
+        if (photo.isEmpty() ) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
         clientService.addPhoto(clientId, photo);
         return ResponseEntity.ok().build();
     }

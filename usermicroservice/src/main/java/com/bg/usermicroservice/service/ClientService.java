@@ -1,6 +1,7 @@
 package com.bg.usermicroservice.service;
 
 import com.bg.usermicroservice.client.ListingClient;
+import com.bg.usermicroservice.client.MediaClient;
 import com.bg.usermicroservice.controller.UserController;
 import com.bg.usermicroservice.entity.Client;
 import com.bg.usermicroservice.entity.ClientReview;
@@ -15,11 +16,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class ClientService {
+    private final MediaClient mediaClient;
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
@@ -28,11 +31,12 @@ public class ClientService {
     private final ListingClient listingClient;
     private final ReviewEventProducer eventProducer;
 
-    public ClientService(ClientRepository clientRepository, ClientReviewRepository clientReviewRepository, ListingClient listingClient, ReviewEventProducer eventProducer) {
+    public ClientService(ClientRepository clientRepository, ClientReviewRepository clientReviewRepository, ListingClient listingClient, ReviewEventProducer eventProducer, MediaClient mediaClient) {
         this.clientRepository = clientRepository;
         this.clientReviewRepository = clientReviewRepository;
         this.listingClient = listingClient;
         this.eventProducer = eventProducer;
+        this.mediaClient = mediaClient;
     }
 
     /**
@@ -45,6 +49,17 @@ public class ClientService {
     }
 
     /**
+     * Fetch a client by user_id (auth id)
+     * @param userId the user id (auth)
+     * @return a Client object
+     */
+    public Optional<Client> getClientByUserId(String userId) {
+
+
+        return clientRepository.findFirstByUserId(userId);
+    }
+
+    /**
      * Creates a Client
      * @param client the client to create
      * @return the created Client object
@@ -52,8 +67,11 @@ public class ClientService {
     public Client createClient(Client client) {
         client.setClientId(UUID.randomUUID().toString());
         client.setDateModified(new Date());
+
         return clientRepository.save(client);
     }
+
+
 
     /**
      * Update a Client details
@@ -222,11 +240,17 @@ public class ClientService {
             throw new IllegalArgumentException("Client with id " + clientId + " does not exist");
         }
 
-        // send bytes to media by grpc
+        // appelle media service
+        com.micro.media.grpc.UploadResponseProto.UploadResponse resp = mediaClient.uploadProfileImage(photo);
 
-        // save the photo name in Client object
+        // resp.getUrl() contient l'URL renvoyée par le service média
+        existingClient.get().setPhoto(resp.getUrl());
+        existingClient.get().setPhotoId(null); // ou utilisez un champ id si le service renvoie un identifiant séparé
 
-        log.info("Added photo for client {}", clientId);
+        existingClient.get().setDateModified(new Date());
+        clientRepository.save(existingClient.get());
+
+        log.info("Added photo for client {} - mediaUrl={}", clientId, resp.getUrl());
     }
 
     /**
