@@ -70,6 +70,7 @@ type AuthContextType = {
     accessToken?: string | null;
     idToken?: string | null;
   }) => Promise<void>;
+  reloadBackendUser: () => void;
 };
 
 const initialState: AuthState = {
@@ -199,6 +200,8 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     discovery
   );
 
+  //-----------------------------FUnctions-----------------------------
+
   const signIn = useCallback(() => {
     if (request && typeof promptAsync === "function") {
       promptAsync().catch((e) => console.warn(e));
@@ -251,41 +254,50 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     []
   );
 
-  // After we have idToken, decode claims and fetch backend user
-  useEffect(() => {
-    async function fetchBackendUser(idTokenLocal: string | null) {
-      if (!idTokenLocal) return;
-      const claims = decodeJwt<{ sub?: string; email?: string }>(idTokenLocal);
-      const sub = claims?.sub ?? null;
-      const email = claims?.email ?? "";
-      console.log("Decoded idToken claims:", claims);
+  async function fetchBackendUser(idTokenLocal: string | null) {
+    if (!idTokenLocal) return;
+    const claims = decodeJwt<{ sub?: string; email?: string }>(idTokenLocal);
+    const sub = claims?.sub ?? null;
+    const email = claims?.email ?? "";
+    console.log("Decoded idToken claims:", claims);
 
-      if (sub) {
-        console.log("Fetching backend user for Keycloak user ID:", sub);
-        dispatch({ type: "USER_INFO", payload: { email, id_user: sub } });
-        dispatch({ type: "LOADING_PROFILE", payload: { loading: true } });
-        try {
+    if (sub) {
+      console.log("Fetching backend user for Keycloak user ID:", sub);
+      dispatch({ type: "USER_INFO", payload: { email, id_user: sub } });
+      dispatch({ type: "LOADING_PROFILE", payload: { loading: true } });
+      try {
 
-          const user = await getUserByKeycloakUserId(sub, idTokenLocal);
-          console.log("user fetched from backend:", user);
-          const clientId = (user as any)?.clientId ?? null;
-          dispatch({ type: "BACKEND_USER", payload: { clientId } });
-        } catch (e: any) {
-          // If 404, mark as no backend account
-          const status = e?.response?.status ?? 0;
-          if (status === 404) {
-            dispatch({ type: "BACKEND_USER", payload: { clientId: null } });
-          } else {
-            console.warn("Failed to fetch backend user:", e);
-            dispatch({ type: "BACKEND_USER", payload: { clientId: null } });
-          }
-        } finally {
-          dispatch({ type: "LOADING_PROFILE", payload: { loading: false } });
+        const user = await getUserByKeycloakUserId(sub, idTokenLocal);
+        console.log("user fetched from backend:", user);
+        const clientId = (user as any)?.clientId ?? null;
+        dispatch({ type: "BACKEND_USER", payload: { clientId } });
+      } catch (e: any) {
+        // If 404, mark as no backend account
+        const status = e?.response?.status ?? 0;
+        if (status === 404) {
+          dispatch({ type: "BACKEND_USER", payload: { clientId: null } });
+        } else {
+          console.warn("Failed to fetch backend user:", e);
+          dispatch({ type: "BACKEND_USER", payload: { clientId: null } });
         }
+      } finally {
+        dispatch({ type: "LOADING_PROFILE", payload: { loading: false } });
       }
     }
+  }
 
+
+  const reloadBackendUser = useCallback(() => {
     fetchBackendUser(authState.idToken);
+  }, [authState.idToken]);
+
+  // -----------------------------End Functions-----------------------------
+
+  // After we have idToken, decode claims and fetch backend user
+  useEffect(() => {
+      fetchBackendUser(authState.idToken)
+
+
   }, [authState.idToken]);
 
   // Handle auth response
@@ -326,10 +338,15 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [response, request, clientId, redirectUri, discovery]);
 
   const authContext = useMemo(
-    () => ({ state: authState, signIn, signOut, completeSignIn }),
-    [authState, signIn, signOut, completeSignIn]
+      () => ({
+        state: authState,
+        signIn,
+        signOut,
+        completeSignIn,
+        reloadBackendUser, // relance fetch backend user
+      }),
+      [authState, signIn, signOut, completeSignIn, reloadBackendUser]
   );
-
   return <AuthContext.Provider value={authContext}>{children}</AuthContext.Provider>;
 };
 

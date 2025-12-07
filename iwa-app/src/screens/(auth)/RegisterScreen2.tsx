@@ -39,7 +39,9 @@ export default function RegisterScreen2() {
   const [nationality, setNationality] = useState("");
   const { t } = useTranslation();
 
+  const {reloadBackendUser} = useContext(AuthContext);
   const { state } = useContext(AuthContext);
+
   useEffect(() => {
     AuthService.setJwtToken(state.accessToken);
   }, [state.accessToken]);
@@ -62,6 +64,7 @@ export default function RegisterScreen2() {
         return;
       }
      console.log("yay")
+      reloadBackendUser();
     } catch (e: any) {
       console.log("petit souci", e);
       Alert.alert(t("error") ?? "Erreur", String(e ?? "unknown"));
