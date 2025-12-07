@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package user.service;
+
+option java_package = "com.bg.usermicroservice.grpc";
+option java_multiple_files = true;
+
+import "service/user/get_user_response.proto";
+import "service/user/get_user_request.proto";
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}

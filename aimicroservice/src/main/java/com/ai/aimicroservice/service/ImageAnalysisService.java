@@ -1,6 +1,5 @@
 package com.ai.aimicroservice.service;
 
-import com.ai.aimicroservice.client.MediaServiceClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,25 +16,21 @@ public class ImageAnalysisService {
 
     private static final Logger log = LoggerFactory.getLogger(ImageAnalysisService.class);
 
-    private final MediaServiceClient mediaServiceClient;
     private final RekognitionClient rekognitionClient;
 
-    public ImageAnalysisService(MediaServiceClient mediaServiceClient, RekognitionClient rekognitionClient) {
-        this.mediaServiceClient = mediaServiceClient;
+    public ImageAnalysisService(RekognitionClient rekognitionClient) {
         this.rekognitionClient = rekognitionClient;
     }
 
     /**
      * Analyze an image to check if the context is respected
      * Also check for inappropriate content
-     * @param image the image to analyze
+     * @param file the image to analyze
      * @return the response from the LLM
      */
-    String analyzeImage(String image) {
+    String analyzeImage(byte[] file) {
         try {
-            byte[] bytes = mediaServiceClient.getS3ObjectBytes(image).get(); // blocks until result
-            mediaServiceClient.moveObjectToArchive(image); // file was processed
-            List<String> labels = detectLabels(bytes);
+            List<String> labels = detectLabels(file);
             log.info("labels: {}", labels);
             boolean result = filterLabels(labels);
             log.info("result: {}", result);

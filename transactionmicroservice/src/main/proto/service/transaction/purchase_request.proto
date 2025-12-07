@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package transaction.service;
+
+option java_package = "com.bg.transactionmicroservice.grpc";
+option java_multiple_files = true;
+
+message PurchaseRequest {
+  string clientId = 1;
+  string postId = 2;
+}
