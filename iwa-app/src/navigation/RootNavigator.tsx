@@ -24,7 +24,6 @@ import AuthPrompt from "../screens/(auth)/authPrompt";
 
 import { AuthContext } from "../context/authContext";
 
-
 import type { User, Category, Filters, Product } from "../shared/types";
 
 export type RootStackParamList = {
@@ -83,10 +82,13 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function RootNavigator() {
   const { state } = useContext(AuthContext);
 
+  const isSignedIn = !!state.isSignedIn;
+  const hasBackendAccount = !!state.hasBackendAccount;
+
   return (
     <NavigationContainer>
-      {state.isSignedIn ? (
-        // App stack when signed in
+      {isSignedIn && hasBackendAccount ? (
+        // App stack when signed in AND backend account exists
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Home" component={HomeRootScreen} />
           <Stack.Screen name="ProductDetail" component={ProductDetail} />
@@ -101,14 +103,21 @@ export default function RootNavigator() {
           <Stack.Screen name="SellerReview" component={SellerReviewScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
         </Stack.Navigator>
+      ) : isSignedIn && !hasBackendAccount ? (
+        // Registration flow when signed into Keycloak but no backend account yet
+        <Stack.Navigator initialRouteName="Register1" screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Register1" component={RegisterScreen1} />
+          <Stack.Screen name="Register2" component={RegisterScreen2} />
+          {/*<Stack.Screen name="Register3" component={RegisterScreen3} />*/}
+        </Stack.Navigator>
       ) : (
-        // Auth stack when not signed in
+        // Not signed in -> show auth stack
         <Stack.Navigator initialRouteName="Intro" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Intro" component={IntroScreen} />
           <Stack.Screen name="AuthPrompt" component={AuthPrompt} />
           <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Register1" component={RegisterScreen1} />
-          <Stack.Screen name="Register2" component={RegisterScreen2} />
+          {/*<Stack.Screen name="Register1" component={RegisterScreen1} />*/}
+          {/*<Stack.Screen name="Register2" component={RegisterScreen2} />*/}
           <Stack.Screen name="Register3" component={RegisterScreen3} />
         </Stack.Navigator>
       )}

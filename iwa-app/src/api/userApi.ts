@@ -9,12 +9,15 @@ import type {
 
 import { httpClient } from "./httpClient";
 import { FormData as PolyfillFormData } from "formdata-polyfill";
+import {AuthContext} from "../context/authContext";
 
 // Définit global.FormData si absent (doit être fait avant les autres imports qui utilisent FormData)
 if (typeof globalThis.FormData === "undefined") {
   // @ts-ignore
   globalThis.FormData = PolyfillFormData;
 }
+
+
 
 /**
  * Get a user by client ID.
@@ -29,12 +32,35 @@ export async function getUser(clientId: string): Promise<User> {
  */
 export async function registerUser(
   payload: CreateUserPayload,
+  token?: string,
 ): Promise<User> {
-  const response = await httpClient.post<User>(
-    `/user/register`,
-    payload,
-  );
-  return response.data;
+
+  const path = `/user/register`;
+  const base = (httpClient as any)?.defaults?.baseURL ?? "";
+  const fullUrl = base + path;
+
+  console.log("base URL:", base);
+    console.log("full URL:", fullUrl);
+
+  try {
+
+    console.log("POST", fullUrl);
+    console.log("payload:", payload);
+
+
+    const response = await httpClient.post<User>(path, payload ,
+    {
+      headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    },
+  )
+
+    return response.data;
+  } catch (error: any) {
+    console.log("Error during user registration:", error.response ?? error);
+    throw error;
+  }
 }
 
 /**
@@ -103,4 +129,31 @@ export async function uploadUserPhoto(
       },
     },
   );
+}
+
+/**
+ * Get a user by Keycloak user ID (gateway route: /user/{userId}/user).
+ * Returns backend user info including clientId and userId.
+ */
+export async function getUserByKeycloakUserId(
+  userId: string,
+  token?: string,
+): Promise<User> {
+  console.log("azer", userId, token);
+  try {
+    const response = await httpClient.get<User>(`/user/${userId}/user`,
+        {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        },
+    )
+    console.log("response", response);
+    return response.data;
+  }
+    catch (error: any) {
+        console.log("Error fetching user by Keycloak ID:", error.response ?? error);
+    }
+
+
 }

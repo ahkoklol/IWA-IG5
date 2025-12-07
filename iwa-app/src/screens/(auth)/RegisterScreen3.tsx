@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// File: src/screens/(auth)/RegisterScreen3.tsx
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -7,6 +8,7 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -16,88 +18,136 @@ import type { SignupData1 } from "./RegisterScreen1";
 import type { SignupData2 } from "./RegisterScreen2";
 import useRegisterWithKeycloak from "../../components/auth/useRegisterWithKeycloak";
 import { useTranslation } from "react-i18next";
+import { AuthContext } from "../../context/authContext";
+import * as SecureStore from "expo-secure-store";
 
 export default function RegisterScreen3() {
   const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+      useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
   const { step1, step2 } =
-    (route.params as { step1: SignupData1; step2: SignupData2 }) || {};
+  (route.params as { step1: SignupData1; step2: SignupData2 }) || {};
 
-  const { startRegister, loading } = useRegisterWithKeycloak();
+  const { startRegister, loading, error } = useRegisterWithKeycloak();
+  const { completeSignIn } = useContext(AuthContext);
   const [attempted, setAttempted] = useState(false);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const { t } = useTranslation();
 
-  useEffect(() => {
-    // Trigger Keycloak registration flow as soon as the screen mounts
-    if (!attempted) {
-      setAttempted(true);
-      (async () => {
-        const result = await startRegister();
-        if (!result || !result.ok) {
-          Alert.alert(
-            "Erreur",
-            `Inscription échouée: ${String(result?.error ?? "unknown")}`
-          );
-          // keep on screen so user can retry or go back
-        } else {
-          // success -> navigate to Home and clear the stack
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "Home" }],
-          });
-        }
-      })();
+  // Try to extract tokens from different sources:
+  async function extractTokensFromResultOrStore(result: any) {
+    // 1) If hook/service returned tokens directly
+    if (result?.tokens && (result.tokens.accessToken || result.tokens.idToken)) {
+      return {
+        accessToken: result.tokens.accessToken ?? null,
+        idToken: result.tokens.idToken ?? null,
+      };
     }
-  }, [attempted, startRegister, navigation]);
 
-  const handleRetry = async () => {
-    setAttempted(true);
-    const result = await startRegister();
-    if (!result || !result.ok) {
-      Alert.alert(
-        "Erreur",
-        `Inscription échouée: ${String(result?.error ?? "unknown")}`
-      );
-      return;
+    if (result?.accessToken || result?.idToken) {
+      return {
+        accessToken: result.accessToken ?? null,
+        idToken: result.idToken ?? null,
+      };
     }
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "Home" }],
-    });
-  };
+
+    // 2) Try SecureStore (native)
+    try {
+      if (Platform.OS !== "web" && typeof SecureStore.getItemAsync === "function") {
+        const accessToken = await SecureStore.getItemAsync("accessToken");
+        const idToken = await SecureStore.getItemAsync("idToken");
+        if (accessToken || idToken) return { accessToken, idToken };
+      }
+    } catch (e) {
+      // ignore and fallback
+    }
+
+    // 3) Try localStorage (web)
+    try {
+      if (Platform.OS === "web" && typeof window !== "undefined" && window.localStorage) {
+        const accessToken = window.localStorage.getItem("accessToken");
+        const idToken = window.localStorage.getItem("idToken");
+        if (accessToken || idToken) return { accessToken, idToken };
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    return { accessToken: null, idToken: null };
+  }
+
+  async function runRegisterFlow() {
+    setAttempted(true);
+    try {
+      const result = await startRegister(); // should return { ok: boolean, ... }
+      if (!result || !result.ok) {
+        Alert.alert(t("error") ?? "Erreur", `Inscription échouée: ${String(result?.error ?? "unknown")}`);
+        return;
+      }
+
+      // attempt to obtain tokens (from result or storage)
+      const tokens = await extractTokensFromResultOrStore(result);
+
+      // If we have at least one token, complete sign in in context
+      if (tokens.accessToken || tokens.idToken) {
+        try {
+          await completeSignIn({ accessToken: tokens.accessToken, idToken: tokens.idToken });
+        } catch (e) {
+          console.warn("completeSignIn failed:", e);
+        }
+      } else {
+        console.warn("No tokens found after registration; continuing without automatic sign-in.");
+      }
+
+      // Navigate to Home and clear stack
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Home" }],
+      });
+    } catch (e: any) {
+      Alert.alert(t("error") ?? "Erreur", String(e ?? "unknown"));
+    }
+  }
+
+  useEffect(() => {
+    if (!attempted) {
+      // auto start register when screen mounts
+      runRegisterFlow();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
-    <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
-      
+      <View style={styles.root}>
+        <StatusBar barStyle="dark-content" />
 
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.iconBtn}>
-          <ArrowLeft size={24} color="#111827" />
-        </Pressable>
-      </View>
-
-      <View style={styles.body}>
-        <View style={{ gap: 14 }}>
-          <View>
-            <Text style={styles.label}>{t("register_password")}</Text>
-            <TextInput value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
-          </View>
-
-          <View>
-            <Text style={styles.label}>{t("register_confirm_password")}</Text>
-            <TextInput value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry style={styles.input} />
-          </View>
-
-          <Pressable onPress={handleComplete} style={styles.validateBtn}>
-            <Text style={styles.validateText}>{t("login_submit")}</Text>
+        <View style={styles.header}>
+          <Pressable onPress={() => navigation.goBack()} style={styles.iconBtn}>
+            <ArrowLeft size={24} color="#111827" />
           </Pressable>
         </View>
+
+        <View style={styles.body}>
+          <Text style={styles.title}>{t("register_title") ?? "Inscription en cours"}</Text>
+
+          <View style={{ alignItems: "center", marginTop: 24 }}>
+            {loading ? (
+                <>
+                  <ActivityIndicator size="large" color="#111827" />
+                  <Text style={{ marginTop: 12 }}>{t("please_wait") ?? "Veuillez patienter..."}</Text>
+                </>
+            ) : (
+                <>
+                  <Text style={{ marginBottom: 12 }}>{t("register_instructions") ?? "La page d'inscription s'est fermée. Appuyez pour réessayer."}</Text>
+                  <Pressable onPress={runRegisterFlow} style={styles.retryBtn}>
+                    <Text style={styles.retryText}>{t("retry") ?? "Réessayer"}</Text>
+                  </Pressable>
+                </>
+            )}
+
+            {error ? <Text style={{ color: "red", marginTop: 12 }}>{String(error)}</Text> : null}
+          </View>
+        </View>
       </View>
-    </View>
   );
 }
 
@@ -105,7 +155,6 @@ const BG = "#B9ECFF";
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-
   header: { paddingHorizontal: 16, paddingVertical: 12 },
   iconBtn: {
     width: 40,
@@ -117,15 +166,23 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 24,
-    justifyContent: "center",
+    justifyContent: "flex-start",
   },
-  label: { fontSize: 16, color: "#111827", marginBottom: 6 },
-  validateBtn: { marginTop: 24, alignItems: "center", paddingVertical: 12 },
-  validateText: {
-    fontSize: 20,
+  title: {
+    fontSize: 22,
     color: "#111827",
     fontFamily: "Gaegu",
     fontWeight: "700",
   },
-  backBtn: { marginTop: 12 },
+  retryBtn: {
+    marginTop: 8,
+    backgroundColor: "#007AFF",
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryText: {
+    color: "#fff",
+    fontSize: 16,
+  },
 });

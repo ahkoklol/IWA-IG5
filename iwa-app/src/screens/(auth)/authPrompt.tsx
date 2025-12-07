@@ -12,9 +12,7 @@ export default function AuthWelcomeScreen() {
       <Pressable style={styles.button} onPress={() => navigation.navigate('Login')}>
         <Text style={styles.buttonText}>Login</Text>
       </Pressable>
-      <Pressable style={[styles.button, styles.secondaryButton]} onPress={() => navigation.navigate('Register1')}>
-        <Text style={styles.buttonText}>Sign Up</Text>
-      </Pressable>
+
     </View>
   );
 }

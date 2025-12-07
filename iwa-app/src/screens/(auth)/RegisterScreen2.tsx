@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// typescript
+import React, {useContext, useEffect, useState} from "react";
 import {
   View,
   Text,
@@ -6,6 +7,7 @@ import {
   Pressable,
   StyleSheet,
   StatusBar,
+  Alert,
 } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -14,6 +16,9 @@ import type { RootStackParamList } from "../../navigation/RootNavigator";
 import type { SignupData1 } from "./RegisterScreen1";
 import AuthService from "../../components/auth/AuthService";
 import { useTranslation } from "react-i18next";
+import { AuthContext } from "../../context/authContext";
+
+
 
 export interface SignupData2 {
   address: string;
@@ -24,7 +29,7 @@ export interface SignupData2 {
 
 export default function RegisterScreen2() {
   const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+      useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
   const { step1 } = (route.params as { step1: SignupData1 }) || {};
 
@@ -34,53 +39,75 @@ export default function RegisterScreen2() {
   const [nationality, setNationality] = useState("");
   const { t } = useTranslation();
 
-  const handleNext = () => {
+  const { state } = useContext(AuthContext);
+  useEffect(() => {
+    AuthService.setJwtToken(state.accessToken);
+  }, [state.accessToken]);
+
+  const handleNext = async () => {
     const step2: SignupData2 = { address, postalCode, country, nationality };
-    AuthService.setRegisterStep2(step2);
-    navigation.navigate("Register3", { step1, step2 });
+    try {
+      AuthService.setRegisterStep2(step2);
+      console.log("RegisterScreen2 - handleNext - step2 set", step2);
+
+      if (!state.id_user) {
+        console.log("--------------PROBLEME")
+      }
+      console.log("RegisterScreen2 - handleNext - idToken", state.id_user);
+      // Appel de la route backend via AuthService
+      const result = await AuthService.registerSubmit(state.id_user);
+      if (!result || !result.ok) {
+        console.log("petit souci", result?.error);
+        Alert.alert(t("error") ?? "Erreur", String(result?.error ?? "unknown"));
+        return;
+      }
+     console.log("yay")
+    } catch (e: any) {
+      console.log("petit souci", e);
+      Alert.alert(t("error") ?? "Erreur", String(e ?? "unknown"));
+    }
   };
 
   return (
-    <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
-      
+      <View style={styles.root}>
+        <StatusBar barStyle="dark-content" />
 
-      <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.iconBtn}>
-          <ArrowLeft size={24} color="#111827" />
-        </Pressable>
-      </View>
-
-      <View style={styles.body}>
-        <View style={{ gap: 14 }}>
-          <View>
-            <Text style={styles.label}>{t("register_address")}</Text>
-            <TextInput value={address} onChangeText={setAddress} style={styles.input} />
-          </View>
-
-          <View>
-            <Text style={styles.label}>{t("register_postal_code")}</Text>
-            <TextInput value={postalCode} onChangeText={setPostalCode} keyboardType="number-pad" style={styles.input} />
-          </View>
-
-          <View>
-            <Text style={styles.label}>{t("register_country")}</Text>
-            <TextInput value={country} onChangeText={setCountry} placeholder={t("register_country_placeholder")} style={styles.input} />
-          </View>
-
-          <View>
-            <Text style={styles.label}>{t("register_nationality")}</Text>
-            <TextInput value={nationality} onChangeText={setNationality} placeholder={t("register_nationality_placeholder")}  style={styles.input} />
-          </View>
-        </View>
-
-        <View style={styles.footer}>
-          <Pressable onPress={handleNext}>
-            <Text style={styles.next}>{t("register_next")}</Text>
+        <View style={styles.header}>
+          <Pressable onPress={() => navigation.goBack()} style={styles.iconBtn}>
+            <ArrowLeft size={24} color="#111827" />
           </Pressable>
         </View>
+
+        <View style={styles.body}>
+          <View style={{ gap: 14 }}>
+            <View>
+              <Text style={styles.label}>{t("register_address")}</Text>
+              <TextInput value={address} onChangeText={setAddress} style={styles.input} />
+            </View>
+
+            <View>
+              <Text style={styles.label}>{t("register_postal_code")}</Text>
+              <TextInput value={postalCode} onChangeText={setPostalCode} keyboardType="number-pad" style={styles.input} />
+            </View>
+
+            <View>
+              <Text style={styles.label}>{t("register_country")}</Text>
+              <TextInput value={country} onChangeText={setCountry} placeholder={t("register_country_placeholder")} style={styles.input} />
+            </View>
+
+            <View>
+              <Text style={styles.label}>{t("register_nationality")}</Text>
+              <TextInput value={nationality} onChangeText={setNationality} placeholder={t("register_nationality_placeholder")}  style={styles.input} />
+            </View>
+          </View>
+
+          <View style={styles.footer}>
+            <Pressable onPress={handleNext}>
+              <Text style={styles.next}>{t("register_next")}</Text>
+            </Pressable>
+          </View>
+        </View>
       </View>
-    </View>
   );
 }
 

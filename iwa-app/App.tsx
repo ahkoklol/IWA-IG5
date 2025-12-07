@@ -9,6 +9,7 @@ import RootNavigator from "./src/navigation/RootNavigator";
 import { AuthProvider } from "./src/context/authContext";
 import "./src/i18n/i18n";
 
+
 export default function App() {
   const [fontsLoaded] = useFonts({
     Gaegu: require("./assets/fonts/Gaegu-Regular.ttf"),

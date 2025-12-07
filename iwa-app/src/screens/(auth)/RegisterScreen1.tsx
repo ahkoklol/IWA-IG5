@@ -1,18 +1,19 @@
-import React, { useState } from "react";
+import React, {useState, useContext, useEffect, createContext} from "react";
 import {
   View,
   Text,
   TextInput,
   Pressable,
   StyleSheet,
-  StatusBar,
+  StatusBar, TouchableOpacity,
 } from "react-native";
-import { ArrowLeft } from "lucide-react-native";
+import {ArrowLeft, LogOut} from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../../navigation/RootNavigator";
 import AuthService from "../../components/auth/AuthService";
 import { useTranslation } from "react-i18next";
+import { AuthContext } from "../../context/authContext";
 
 export interface SignupData1 {
   lastName: string;
@@ -23,10 +24,11 @@ export interface SignupData1 {
   username: string;
 }
 
+
 export default function RegisterScreen1() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
+  const { signOut } = useContext(AuthContext);
   const [lastName, setLastName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [jj, setJj] = useState("");
@@ -36,33 +38,35 @@ export default function RegisterScreen1() {
   const [phone, setPhone] = useState("");
   const [username, setUsername] = useState("");
   const { t } = useTranslation();
+  const { state } = useContext(AuthContext);
+
+  // Mirror Keycloak email for display only
+  useEffect(() => {
+    if (state?.email) setEmail(state.email);
+  }, [state?.email]);
 
   const handleNext = () => {
     console.log("RegisterScreen1 - handleNext");
+
     const birthDate = `${jj.padStart(2, "0")}/${mm.padStart(2, "0")}/${aaaa}`;
-    // We still collect the email on the form, but we won't rely on it.
-    // Keycloak will provide the authoritative email at registration time.
     const step1: SignupData1 = {
       lastName,
       firstName,
       birthDate,
-      email,
+      email: "", // force empty to avoid using client-provided email
       phone,
       username,
     };
-
-    // Save step1 for later; but clear the email to avoid using the client-provided email as authoritative
-    const step1ToSave: SignupData1 = { ...step1, email: "" };
-    AuthService.setRegisterStep1(step1ToSave);
-
-    // navigate and pass the step for display if needed (we pass the saved version)
-    navigation.navigate("Register2", { step1: step1ToSave });
+    console.log("RegisterScreen1 - handleNext - step1", step1);
+    AuthService.setRegisterStep1(step1);
+    console.log(AuthService.getRegisterStep1())
+    navigation.navigate("Register2", { step1 });
   };
 
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
-      
+
 
     <View style={styles.header}>
       <Pressable onPress={() => navigation.goBack()} style={styles.iconBtn}>
@@ -77,6 +81,18 @@ export default function RegisterScreen1() {
         <Text style={styles.langTxt}>🌐</Text>
       </Pressable>
     </View>
+      <TouchableOpacity
+          onPress={() => {
+            // call context signOut to clear tokens + reset auth state
+            signOut()
+          }}
+
+      >
+        <View style={styles.menuLeft}>
+          <LogOut size={20} color="#EF4444" />
+          <Text style={styles.logoutText}>Se déconnecter</Text>
+        </View>
+      </TouchableOpacity>
 
 
       <View style={styles.body}>
@@ -141,12 +157,15 @@ export default function RegisterScreen1() {
             <Text style={styles.label}>{t("register_email")}</Text>
             <TextInput
               value={email}
-              onChangeText={setEmail}
+              editable={false}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
-              style={styles.input}
+              style={[styles.input, { opacity: 0.7 }]}
             />
+            <Text style={{ fontSize: 12, color: "#374151", marginTop: 4 }}>
+              {t("email_from_keycloak")}
+            </Text>
           </View>
           <View style={styles.footer}>
             <Pressable onPress={handleNext}>
@@ -249,4 +268,15 @@ const styles = StyleSheet.create({
     fontFamily: "Gaegu",
     fontWeight: "700",
   },
+  menuLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    },
+  logoutText: {
+    fontSize: 16,
+    color: "#EF4444",
+    marginLeft: 8,
+  },
+
+
 });
