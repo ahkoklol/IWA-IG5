@@ -8,6 +8,13 @@ import type {
 } from "../shared/types/user";
 
 import { httpClient } from "./httpClient";
+import { FormData as PolyfillFormData } from "formdata-polyfill";
+
+// Définit global.FormData si absent (doit être fait avant les autres imports qui utilisent FormData)
+if (typeof globalThis.FormData === "undefined") {
+  // @ts-ignore
+  globalThis.FormData = PolyfillFormData;
+}
 
 /**
  * Get a user by client ID.
