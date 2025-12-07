@@ -38,7 +38,7 @@ public class ClientServiceRoutes implements BaseRoutes {
                 .route(RequestPredicates.GET("/user/{clientId}/reviews"), userServiceHandler)
                 .route(RequestPredicates.POST("/user/{clientId}/review"), userServiceHandler)
                 .route(RequestPredicates.POST("/user/{clientId}/photo"), userServiceHandler)
-                .route(RequestPredicates.POST("/user/{userId}/user"), userServiceHandler)
+                .route(RequestPredicates.GET("/user/{userId}/user"), userServiceHandler)
                 .build();
     }
 }
